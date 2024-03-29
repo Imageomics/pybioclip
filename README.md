@@ -25,7 +25,7 @@ Command line tool and python package to simplify using [BioCLIP](https://imageom
 pip install git+https://github.com/Imageomics/bioclip-cli
 ```
 
-If you have any issues installing upgrade pip by running `pip install --upgrade pip`.
+If you have any issues with installation, please first upgrade pip by running `pip install --upgrade pip`.
 
 ## Command Line Usage
 
