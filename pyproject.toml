@@ -32,9 +32,9 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/Imageomics/bioclip-cli#readme"
-Issues = "https://github.com/Imageomics/bioclip-cli/issues"
-Source = "https://github.com/Imageomics/bioclip-cli"
+Documentation = "https://github.com/Imageomics/pybioclip#readme"
+Issues = "https://github.com/Imageomics/pybioclip/issues"
+Source = "https://github.com/Imageomics/pybioclip"
 
 [project.scripts]
 bioclip = "bioclip.__main__:main"

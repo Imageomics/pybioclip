@@ -16,6 +16,7 @@ Command line tool and python package to simplify using [BioCLIP](https://imageom
 - [Python Package Usage](#python-package-usage)
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
+- [License](#license)
   
 ## Requirements
 - Python compatible with [PyTorch](https://pytorch.org/get-started/locally/#linux-python)
@@ -30,17 +31,18 @@ If you have any issues with installation, please first upgrade pip by running `p
 
 ## Command Line Usage
 
-The first time `bioclip` is run it will download and cache required model/data files.
+### Viewing command line help
+```console
+$ bioclip --help
+```
 
 ### Predict classification
 
-#### Example: Predict species for an image
-
-Prediction species for a `Ursus-arctos.jpeg` file:
+Example: Predict taxon for image "Ursus-arctos.jpeg":
 ```console
 bioclip predict Ursus-arctos.jpeg
 ```
-Output:
+
 ```
 +----------------------------------------------------------------------------------------+-----------------------+
 |                                         Taxon                                          |      Probability      |
@@ -53,70 +55,15 @@ Output:
 +----------------------------------------------------------------------------------------+-----------------------+
 ```
 
----
-
-To save as a JSON file you can use the `--format json` and `--output <filename>` arguments.
-
-To save the JSON output to `ursus.json` run:
-```console
-bioclip predict --format json --output ursus.json Ursus-arctos.jpeg 
+Usage for prediction
 ```
-
-To save CSV the output to `ursus.json` run:
-```console
-bioclip predict --format csv --output ursus.csv Ursus-arctos.jpeg 
+bioclip predict [--format=FORMAT --rank=RANK --k=K --output=OUTFILE] IMAGE_FILE 
 ```
-
-#### Predict genus for an image
-
-Predict genus for image `Ursus-arctos.jpeg` limit to top 3 predictions:
-```console
-bioclip predict --rank genus --k 3 Ursus-arctos.jpeg
-```
-Output:
-```
-+---------------------------------------------------------+------------------------+
-|                          Taxon                          |      Probability       |
-+---------------------------------------------------------+------------------------+
-|    Animalia Chordata Mammalia Carnivora Ursidae Ursus   |   0.9994320273399353   |
-| Animalia Chordata Mammalia Artiodactyla Cervidae Cervus | 0.00032594642834737897 |
-|  Animalia Chordata Mammalia Artiodactyla Cervidae Alces | 7.803700282238424e-05  |
-+---------------------------------------------------------+------------------------+
-```
-
-#### Optional arguments for predicting classifications:
-- `--rank RANK` - rank of the classification (kingdom, phylum, class, order, family, genus, species) [default: species] 
-- `--k K` - number of top predictions to show [default: 5]
-- `--format FORMAT` - format of the output (table, json, or csv) [default: table]
-- `--output OUTPUT` - save output to a filename instead of printing it [default: stdout]
 
 
 ### Predict from a list of classes
-
-Create predictions for 3 classes (cat, bird, and bear) for image `Ursus-arctos.jpeg`:
-```console
-bioclip predict --cls cat,bird,bear Ursus-arctos.jpeg
 ```
-Output:
-```
-+-------+-----------------------+
-| Taxon |      Probability      |
-+-------+-----------------------+
-|  cat  | 4.581644930112816e-08 |
-|  bird | 3.051998476166773e-08 |
-|  bear |   0.9999998807907104  |
-+-------+-----------------------+%                                                                  
-```
-
-#### Optional arguments for predicting from a list of classes:
-- `--format FORMAT` - format of the output (table, json, or csv) [default: table]
-- `--output OUTPUT` - save output to a filename instead of printing it [default: stdout]
-- `--cls CLS` - comma separated list of classes to predict, when specified the `--rank` and `--k` arguments are ignored [default: all]
-
-
-### View command line help
-```console
-$ bioclip --help
+bioclip predict [--format=FORMAT --cls=CLS --output=OUTFILE] IMAGE_FILE 
 ```
 
 ## Python Package Usage
@@ -159,7 +106,7 @@ bear 1.0
 
 ## License
 
-`bioclip-cli` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+`bioclip` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
 
 ## Acknowledgments
 The [prediction code in this repo](src/bioclip/predict.py) is based on work by [@samuelstevens](https://github.com/samuelstevens) in [bioclip-demo](https://huggingface.co/spaces/imageomics/bioclip-demo/tree/ef075807a55687b320427196ac1662b9383f988f)
