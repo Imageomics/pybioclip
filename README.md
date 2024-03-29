@@ -12,10 +12,11 @@ Command line tool and python package to simplify using [BioCLIP](https://imageom
 **Table of Contents**
 
 - [Installation](#installation)
-- [License](#license)
 - [Command Line Usage](#command-line-usage)
 - [Python Package Usage](#python-package-usage)
-
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+  
 ## Requirements
 - Python compatible with [PyTorch](https://pytorch.org/get-started/locally/#linux-python)
 
@@ -160,4 +161,5 @@ bear 1.0
 
 `bioclip-cli` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
 
-
+## Acknowledgments
+The [prediction code in this repo](src/bioclip/predict.py) is based on work by @samuelstevens in [bioclip-demo](https://huggingface.co/spaces/imageomics/bioclip-demo/tree/ef075807a55687b320427196ac1662b9383f988f)
