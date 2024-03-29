@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "bioclip"
+name = "pybioclip"
 dynamic = ["version"]
 description = 'Python package that simplifies using the BioCLIP foundation model.'
 readme = "README.md"

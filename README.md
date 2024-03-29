@@ -1,4 +1,4 @@
-# bioclip-cli
+# pybioclip
 
 
 [![PyPI - Version](https://img.shields.io/pypi/v/bioclip.svg)](https://pypi.org/project/bioclip)
@@ -24,7 +24,7 @@ Command line tool and python package to simplify using [BioCLIP](https://imageom
 ## Installation
 
 ```console
-pip install git+https://github.com/Imageomics/bioclip-cli
+pip install git+https://github.com/Imageomics/pybioclip
 ```
 
 If you have any issues with installation, please first upgrade pip by running `pip install --upgrade pip`.
