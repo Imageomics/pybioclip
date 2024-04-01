@@ -1,0 +1,92 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bioclip"]
+
+[project]
+name = "pybioclip"
+dynamic = ["version"]
+description = 'Python package that simplifies using the BioCLIP foundation model.'
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "John Bradley", email = "johnbradley2008@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy"
+]
+dependencies = [
+  'open_clip_torch',
+  'torchvision',
+  'torch',
+  'docopt-ng',
+  'prettytable',
+]
+
+[project.urls]
+Documentation = "https://github.com/Imageomics/pybioclip#readme"
+Issues = "https://github.com/Imageomics/pybioclip/issues"
+Source = "https://github.com/Imageomics/pybioclip"
+
+[project.scripts]
+bioclip = "bioclip.__main__:main"
+
+[tool.hatch.version]
+path = "src/bioclip/__about__.py"
+
+[tool.hatch.envs.default]
+dependencies = [
+  "coverage[toml]>=6.5",
+  "pytest",
+]
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "coverage run -m pytest {args:tests}"
+cov-report = [
+  "- coverage combine",
+  "coverage report",
+]
+cov = [
+  "test-cov",
+  "cov-report",
+]
+
+[[tool.hatch.envs.all.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11"]
+
+[tool.hatch.envs.types]
+dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/bioclip tests}"
+
+[tool.coverage.run]
+source_pkgs = ["bioclip", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/bioclip/__about__.py",
+]
+
+[tool.coverage.paths]
+bioclip = ["src/bioclip", "*/bioclip/src/bioclip"]
+tests = ["tests", "*/bioclip/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
