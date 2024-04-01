@@ -1,4 +1,4 @@
-"""Usage: bioclip predict [options] IMAGE_FILE 
+"""Usage: bioclip predict [options] IMAGE_FILE... 
 
 Process FILE and optionally apply correction to either left-hand side or
 right-hand side.
@@ -16,30 +16,44 @@ Options:
 
 """
 from docopt import docopt
-from bioclip import predict_classification, predict_classifications_from_list, Rank
-import json
 import sys
-import prettytable as pt
-import csv
+from bioclip.predict import CustomLabelsClassifier, TreeOfLifeClassifier, Rank
+from bioclip.output import write_tree_of_life_results, write_custom_labels_results
 
 
-def write_results(result, format, outfile):
-    if format == 'table':
-        table = pt.PrettyTable()
-        table.field_names = ['Taxon', 'Probability']
-        for taxon, prob in result.items():
-            table.add_row([taxon, prob])
-        outfile.write(str(table))
-        outfile.write('\n')
-    elif format == 'json':
-        json.dump(result, outfile, indent=2)
-    elif format == 'csv':
-        writer = csv.writer(outfile)
-        writer.writerow(['Taxon', 'Probability'])
-        for taxon, prob in result.items():
-            writer.writerow([taxon, prob])
+def tree_of_life_prediction(image_files, rank, k, output, format):
+    classifier = TreeOfLifeClassifier()
+    pred_list = []
+    for image_file in image_files:
+        single_image_pred_list = classifier.predict(image_path=image_file, rank=rank, k=k)
+        for pred in single_image_pred_list:
+            pred["file_name"] = image_file
+            pred_list.append(pred)
+    if output == 'stdout':
+        write_tree_of_life_results(outfile=sys.stdout, pred_list=pred_list,
+                                   format=format, rank=rank)
     else:
-        raise ValueError(f"Invalid format: {format}")
+        with open(output, 'w') as outfile:
+            write_tree_of_life_results(outfile=outfile, pred_list=pred_list,
+                                       format=format, rank=rank)
+
+
+def custom_labels_prediction(image_files, cls, output, format):
+    classifier = CustomLabelsClassifier()
+    cls_ary = cls.split(',')
+    pred_list = []
+    for image_file in image_files:
+        single_image_pred_list = classifier.predict(image_path=image_file, cls_ary=cls_ary)
+        for prediction in single_image_pred_list:
+            prediction["file_name"] = image_file
+            pred_list.append(prediction)
+    if output == 'stdout':
+        write_custom_labels_results(outfile=sys.stdout, pred_list=pred_list, 
+                                    format=format, cls_ary=cls_ary)
+    else:
+        with open(output, 'w') as outfile:
+            write_custom_labels_results(outfile=outfile, pred_list=pred_list,
+                                        format=format, cls_ary=cls_ary)
 
 
 def main():
@@ -47,24 +61,17 @@ def main():
     x = docopt(__doc__)  # parse arguments based on docstring above
     format = x['--format']
     output = x['--output']
-    image_file = x['IMAGE_FILE']
+    k = int(x['--k'])
+    image_files = x['IMAGE_FILE']
     cls = x['--cls']
     if not format in ['table', 'json', 'csv']:
         raise ValueError(f"Invalid format: {format}")
     rank = Rank[x['--rank'].upper()]
+    device = 'cpu'
     if cls == 'all':
-        result = predict_classification(img=image_file,
-                                        rank=rank,
-                                        k=int(x['--k']))
+        tree_of_life_prediction(image_files, rank, k, output, format)
     else:
-        result = predict_classifications_from_list(img=image_file, 
-                                                   cls_ary=cls.split(','))
-    outfile = sys.stdout
-    if output == 'stdout':
-        write_results(result, format, sys.stdout)
-    else:
-        with open(output, 'w') as outfile:
-            write_results(result, format, outfile)
+        custom_labels_prediction(image_files, cls, output, format)
 
 
 if __name__ == '__main__':
