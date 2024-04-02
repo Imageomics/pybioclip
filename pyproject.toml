@@ -32,6 +32,7 @@ dependencies = [
   'torch',
   'docopt-ng',
   'prettytable',
+  'pandas',
 ]
 
 [project.urls]
@@ -89,4 +90,9 @@ exclude_lines = [
   "no cov",
   "if __name__ == .__main__.:",
   "if TYPE_CHECKING:",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "src"
 ]
