@@ -11,6 +11,7 @@ Options:
   --rank=RANK          rank of the classification (kingdom, phylum, class, order, family, genus, species) [default: species] 
   --k=K                number of top predictions to show [default: 5]
   --cls=CLS            comma separated list of classes to predict, when specified the --rank and --k arguments are ignored [default: all]
+  --device=DEVICE      device to use for prediction (cpu or cuda or mps) [default: cpu]
   --output=OUTFILE     print output to file OUTFILE [default: stdout]
 
 """
@@ -52,18 +53,21 @@ def main():
     format = x['--format']
     output = x['--output']
     image_file = x['IMAGE_FILE']
+    device = 'cpu'
+    if x['--device']:
+        device = x['--device']
     cls = x['--cls']
     if not format in ['table', 'csv']:
         raise ValueError(f"Invalid format: {format}")
     rank = Rank[x['--rank'].upper()]
     if cls == 'all':
-        classifier = TreeOfLifeClassifier()
+        classifier = TreeOfLifeClassifier(device=device)
         data = []
         for image_path in image_file:
             data.extend(classifier.predict(image_path=image_path, rank=rank, k=int(x['--k'])))
         write_results(data, format, output)
     else:
-        classifier = CustomLabelsClassifier()
+        classifier = CustomLabelsClassifier(device=device)
         data = []
         for image_path in image_file:
             data.extend(classifier.predict(image_path=image_path, cls_ary=cls.split(',')))

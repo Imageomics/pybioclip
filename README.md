@@ -107,6 +107,7 @@ Options:
   --k=K              number of top predictions to show [default: 5]
   --cls=CLS          comma separated list of classes to predict, when specified the --rank and
                      --k arguments are ignored [default: all]
+  --device=DEVICE    device to use for prediction (cpu or cuda or mps) [default: cpu]
   --output=OUTFILE   print output to file OUTFILE [default: stdout]
 ```
 
