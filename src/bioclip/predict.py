@@ -240,7 +240,7 @@ class TreeOfLifeClassifier(object):
     def __init__(self, device: Union[str, torch.device] = 'cpu'):
         self.device = device
         self.model = create_bioclip_model(device=device)
-        self.txt_emb = get_txt_emb()
+        self.txt_emb = get_txt_emb().to(device)
         self.txt_names = get_txt_names()
 
     def encode_image(self, img: PIL.Image.Image) -> torch.Tensor:

@@ -29,6 +29,15 @@ pip install git+https://github.com/Imageomics/pybioclip
 If you have any issues with installation, please first upgrade pip by running `pip install --upgrade pip`.
 
 ## Python Package Usage
+
+### Example Notebooks
+
+- Predict species for images - [examples/PredictImages.ipynb](examples/PredictImages.ipynb) <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/PredictImages.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+- Predict species for [iNaturalist](https://www.inaturalist.org/) images - [examples/iNaturalistPredict.ipynb](examples/iNaturalistPredict.ipynb) <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/iNaturalistPredict.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
+
 ### Predict species classification
 
 ```python
@@ -107,6 +116,7 @@ Options:
   --k=K              number of top predictions to show [default: 5]
   --cls=CLS          comma separated list of classes to predict, when specified the --rank and
                      --k arguments are ignored [default: all]
+  --device=DEVICE    device to use for prediction (cpu or cuda or mps) [default: cpu]
   --output=OUTFILE   print output to file OUTFILE [default: stdout]
 ```
 
