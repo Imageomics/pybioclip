@@ -14,6 +14,7 @@ from enum import Enum
 
 HF_DATAFILE_REPO = "imageomics/bioclip-demo"
 HF_DATAFILE_REPO_TYPE = "space"
+MODEL_STR = "hf-hub:imageomics/bioclip"
 PRED_FILENAME_KEY = "file_name"
 PRED_CLASSICATION_KEY = "classification"
 PRED_SCORE_KEY = "score"
@@ -149,7 +150,7 @@ SPECIES_EPITHET_LABEL = "species_epithet"
 COMMON_NAME_LABEL = "common_name"
 
 
-def create_bioclip_model(model_str="hf-hub:imageomics/bioclip", device="cuda"):
+def create_bioclip_model(model_str, device="cuda"):
     model = create_model(model_str, output_dict=True, require_pretrained=True)
     model = model.to(device)
     return torch.compile(model)
@@ -160,9 +161,10 @@ def create_bioclip_tokenizer(tokenizer_str="ViT-B-16"):
 
 
 class CustomLabelsClassifier(object):
-    def __init__(self, device: Union[str, torch.device] = 'cpu'):
+    def __init__(self, device: Union[str, torch.device] = 'cpu', model_str: str = MODEL_STR):
         self.device = device
-        self.model = create_bioclip_model(device=device)
+        self.model = create_bioclip_model(device=device, model_str=model_str)
+        self.model_str = model_str
         self.tokenizer = create_bioclip_tokenizer()
 
     def get_txt_features(self, classnames):
@@ -237,11 +239,17 @@ def join_names(classification_dict: dict[str, str]) -> str:
 
 
 class TreeOfLifeClassifier(object):
-    def __init__(self, device: Union[str, torch.device] = 'cpu'):
+    def __init__(self, device: Union[str, torch.device] = 'cpu', model_str: str = MODEL_STR):
         self.device = device
-        self.model = create_bioclip_model(device=device)
+        self.model = create_bioclip_model(device=device, model_str=model_str)
+        self.model_str = model_str
         self.txt_emb = get_txt_emb().to(device)
         self.txt_names = get_txt_names()
+
+    @torch.no_grad()
+    def get_image_features(self, image_path: str) -> torch.Tensor:
+        img = PIL.Image.open(image_path)
+        return self.encode_image(img)
 
     def encode_image(self, img: PIL.Image.Image) -> torch.Tensor:
         img = preprocess_img(img).to(self.device)
