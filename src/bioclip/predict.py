@@ -130,6 +130,32 @@ preprocess_img = transforms.Compose(
     ]
 )
 
+
+def process_image_paths(image_paths: List[str], device: Union[str, torch.device]) -> torch.Tensor:
+    preprocessed_images = []
+    for image_path in image_paths:
+        img = PIL.Image.open(image_path)
+        prep_img = preprocess_img(img).to(device)
+        preprocessed_images.append(prep_img)
+    return torch.stack(preprocessed_images)
+
+
+@torch.no_grad()
+def create_probabilities_dict(model, img_features, txt_features, paths) -> dict[str, torch.Tensor]:
+    probs_dict = {}
+    with torch.no_grad():
+        img_features = F.normalize(img_features, dim=-1)
+        logits = (model.logit_scale.exp() * img_features @ txt_features).squeeze()
+        for i, path in enumerate(paths):
+            probs_dict[path] = F.softmax(logits[i], dim=0)
+    return probs_dict
+
+
+def create_probabilities(model, image_paths, txt_features, device):
+    preprocessed_images = process_image_paths(image_paths, device)
+    return create_probabilities_dict(model, preprocessed_images, txt_features, image_paths)
+
+
 class Rank(Enum):
     KINGDOM = 0
     PHYLUM = 1
@@ -288,18 +314,20 @@ class TreeOfLifeClassifier(object):
         for name in topk_names:
             item = { PRED_FILENAME_KEY: image_path }
             item.update(name_to_class_dict[name])
-            #item.update(class_dict_lookup)
             item[PRED_SCORE_KEY] = output[name].item()
             prediction_ary.append(item)
         return prediction_ary
 
     @torch.no_grad()
-    def predict(self, image_path: str, rank: Rank, min_prob: float = 1e-9, k: int = 5) -> List[dict[str, float]]:
-        img = PIL.Image.open(image_path)
-        probs = self.predict_species(img)
-        if rank == Rank.SPECIES:
-            return self.format_species_probs(image_path, probs, k)
-        return self.format_grouped_probs(image_path, probs, rank, min_prob, k)
+    def predict(self, image_paths: List[str], rank: Rank, min_prob: float = 1e-9, k: int = 5) -> dict[str, dict[str, float]]:
+        probs = create_probabilities(self.model, image_paths, self.txt_emb, self.device)
+        result = {}
+        for image_path in image_paths:
+            if rank == Rank.SPECIES:
+                result[image_path] = self.format_species_probs(image_path, probs[image_path], k)
+            else:
+                result[image_path] = self.format_grouped_probs(image_path, probs[image_path], rank, min_prob, k)
+        return result
 
 
 def predict_classification(img: str, rank: Rank, device: Union[str, torch.device] = 'cpu',
@@ -310,4 +338,4 @@ def predict_classification(img: str, rank: Rank, device: Union[str, torch.device
     species, then sums up species-level probabilities for the given rank.
     """
     classifier = TreeOfLifeClassifier(device=device)
-    return classifier.predict(img, rank, min_prob, k)
+    return classifier.predict([img], rank, min_prob, k)[img]
