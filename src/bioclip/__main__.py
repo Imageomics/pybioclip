@@ -28,6 +28,7 @@ def write_results_to_file(df, format, outfile):
     else:
         raise ValueError(f"Invalid format: {format}")
 
+
 def predict(image_file: list[str], format: str,  output: str,
              cls_str: str, device: str,  rank: Rank, k: int):
     if cls_str:
