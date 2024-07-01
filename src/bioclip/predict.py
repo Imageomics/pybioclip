@@ -119,6 +119,11 @@ def get_txt_names():
     return txt_names
 
 
+def open_image(image_path):
+    img = PIL.Image.open(image_path)
+    return img.convert("RGB")
+
+
 preprocess_img = transforms.Compose(
     [
         transforms.ToTensor(),
@@ -181,7 +186,7 @@ class CustomLabelsClassifier(object):
 
     @torch.no_grad()
     def predict(self, image_path: str, cls_ary: List[str]) -> dict[str, float]:
-        img = PIL.Image.open(image_path)
+        img = open_image(image_path)
         classes = [cls.strip() for cls in cls_ary]
         txt_features = self.get_txt_features(classes)
 
@@ -248,7 +253,7 @@ class TreeOfLifeClassifier(object):
 
     @torch.no_grad()
     def get_image_features(self, image_path: str) -> torch.Tensor:
-        img = PIL.Image.open(image_path)
+        img = open_image(image_path)
         return self.encode_image(img)
 
     def encode_image(self, img: PIL.Image.Image) -> torch.Tensor:
@@ -295,7 +300,7 @@ class TreeOfLifeClassifier(object):
 
     @torch.no_grad()
     def predict(self, image_path: str, rank: Rank, min_prob: float = 1e-9, k: int = 5) -> List[dict[str, float]]:
-        img = PIL.Image.open(image_path)
+        img = open_image(image_path)
         probs = self.predict_species(img)
         if rank == Rank.SPECIES:
             return self.format_species_probs(image_path, probs, k)

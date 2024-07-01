@@ -7,6 +7,7 @@ import torch
 
 DIRNAME = os.path.dirname(os.path.realpath(__file__))
 EXAMPLE_CAT_IMAGE = os.path.join(DIRNAME, "images", "mycat.jpg")
+EXAMPLE_CAT_IMAGE2 = os.path.join(DIRNAME, "images", "mycat.png")
 
 class TestPredict(unittest.TestCase):
     def test_tree_of_life_classifier_species(self):
@@ -50,6 +51,12 @@ class TestPredict(unittest.TestCase):
             {'file_name': EXAMPLE_CAT_IMAGE, 'classification': 'cat', 'score': unittest.mock.ANY},
             {'file_name': EXAMPLE_CAT_IMAGE, 'classification': 'dog', 'score': unittest.mock.ANY},
         ])
+
+    def test_predict_with_rgba_image(self):
+        # Ensure that the classifier can handle RGBA images
+        classifier = TreeOfLifeClassifier()
+        prediction_ary = classifier.predict(image_path=EXAMPLE_CAT_IMAGE2, rank=Rank.SPECIES)
+        self.assertEqual(len(prediction_ary), 5)
 
 
 class TestEmbed(unittest.TestCase):
