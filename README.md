@@ -103,21 +103,24 @@ bear 1.0
 
 ## Command Line Usage
 ```
-bioclip predict [options] [IMAGE_FILE...]
+bioclip predict [-h] [--format {table,csv}] [--output OUTPUT] [--rank {kingdom,phylum,class,order,family,genus,species}] [--k K] [--cls CLS] [--device DEVICE] image_file [image_file ...]
+bioclip embed [-h] [--device=DEVICE] [--output=OUTPUT] [IMAGE_FILE...]
+
+Commands:
+    predict            Use BioCLIP to generate predictions for image files.
+    embed              Use BioCLIP to generate embeddings for image files.
 
 Arguments:
-  IMAGE_FILE         input image file
+  IMAGE_FILE           input image file
 
 Options:
   -h --help
-  --format=FORMAT    format of the output (table or csv) [default: csv]
-  --rank=RANK        rank of the classification (kingdom, phylum, class, order, family, genus, species)
-                     [default: species] 
-  --k=K              number of top predictions to show [default: 5]
-  --cls=CLS          comma separated list of classes to predict, when specified the --rank and
-                     --k arguments are ignored [default: all]
-  --device=DEVICE    device to use for prediction (cpu or cuda or mps) [default: cpu]
-  --output=OUTFILE   print output to file OUTFILE [default: stdout]
+  --format=FORMAT      format of the output (table or csv) for predict mode [default: csv]
+  --rank=RANK          rank of the classification (kingdom, phylum, class, order, family, genus, species) [default: species] 
+  --k=K                number of top predictions to show [default: 5]
+  --cls=CLS            comma separated list of classes to predict, when specified the --rank and --k arguments are not allowed
+  --device=DEVICE      device to use matrix math (cpu or cuda or mps) [default: cpu]
+  --output=OUTFILE     print output to file OUTFILE [default: stdout]
 ```
 
 ### Predict classification
@@ -189,6 +192,28 @@ file_name,classification,score
 Ursus-arctos.jpeg,cat,4.581644930112816e-08
 Ursus-arctos.jpeg,bird,3.051998476166773e-08
 Ursus-arctos.jpeg,bear,0.9999998807907104                                                                 
+```
+
+### Create embeddings
+
+#### Create embedding for an image
+
+```console
+bioclip embed Ursus-arctos.jpeg
+```
+Output:
+```
+{
+    "model": "hf-hub:imageomics/bioclip",
+    "embeddings": {
+        "Ursus-arctos.jpeg": [
+            -0.23633578419685364,
+            -0.28467196226119995,
+            -0.4394485652446747,
+            ...
+        ]
+    }
+}
 ```
 
 ### View command line help

@@ -2,6 +2,8 @@ import unittest
 from bioclip.predict import TreeOfLifeClassifier, Rank
 from bioclip.predict import CustomLabelsClassifier
 import os
+import torch
+
 
 DIRNAME = os.path.dirname(os.path.realpath(__file__))
 EXAMPLE_CAT_IMAGE = os.path.join(DIRNAME, "images", "mycat.jpg")
@@ -48,3 +50,11 @@ class TestPredict(unittest.TestCase):
             {'file_name': EXAMPLE_CAT_IMAGE, 'classification': 'cat', 'score': unittest.mock.ANY},
             {'file_name': EXAMPLE_CAT_IMAGE, 'classification': 'dog', 'score': unittest.mock.ANY},
         ])
+
+
+class TestEmbed(unittest.TestCase):
+    def test_get_image_features(self):
+        classifier = TreeOfLifeClassifier(device='cpu')
+        self.assertEqual(classifier.model_str, 'hf-hub:imageomics/bioclip')
+        features = classifier.get_image_features(EXAMPLE_CAT_IMAGE)
+        self.assertEqual(features.shape, torch.Size([1, 512]))
