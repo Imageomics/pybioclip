@@ -45,8 +45,8 @@ class TestPredict(unittest.TestCase):
         self.assertEqual(prediction_ary[0], prediction_dict)
 
     def test_custom_labels_classifier(self):
-        classifier = CustomLabelsClassifier()
-        results = classifier.predict(image_path=EXAMPLE_CAT_IMAGE, cls_ary=['cat', 'dog'])
+        classifier = CustomLabelsClassifier(cls_ary=['cat', 'dog'])
+        results = classifier.predict(image_path=EXAMPLE_CAT_IMAGE)
         self.assertEqual(results, [
             {'file_name': EXAMPLE_CAT_IMAGE, 'classification': 'cat', 'score': unittest.mock.ANY},
             {'file_name': EXAMPLE_CAT_IMAGE, 'classification': 'dog', 'score': unittest.mock.ANY},

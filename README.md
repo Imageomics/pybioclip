@@ -89,8 +89,8 @@ df = pd.DataFrame(predictions)
 ```python
 from bioclip import CustomLabelsClassifier
 
-classifier = CustomLabelsClassifier()
-predictions = classifier.predict("Ursus-arctos.jpeg", ["duck","fish","bear"])
+classifier = CustomLabelsClassifier(["duck","fish","bear"])
+predictions = classifier.predict("Ursus-arctos.jpeg")
 for prediction in predictions:
    print(prediction["classification"], prediction["score"])
 ```

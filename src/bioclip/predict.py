@@ -166,13 +166,16 @@ def create_bioclip_tokenizer(tokenizer_str="ViT-B-16"):
 
 
 class CustomLabelsClassifier(object):
-    def __init__(self, device: Union[str, torch.device] = 'cpu', model_str: str = MODEL_STR):
+    def __init__(self, cls_ary: List[str], device: Union[str, torch.device] = 'cpu', model_str: str = MODEL_STR):
         self.device = device
         self.model = create_bioclip_model(device=device, model_str=model_str)
         self.model_str = model_str
         self.tokenizer = create_bioclip_tokenizer()
+        self.classes = [cls.strip() for cls in cls_ary]
+        self.txt_features = self._get_txt_features(self.classes)
 
-    def get_txt_features(self, classnames):
+    @torch.no_grad()
+    def _get_txt_features(self, classnames):
         all_features = []
         for classname in classnames:
             txts = [template(classname) for template in OPENA_AI_IMAGENET_TEMPLATE]
@@ -185,19 +188,17 @@ class CustomLabelsClassifier(object):
         return all_features
 
     @torch.no_grad()
-    def predict(self, image_path: str, cls_ary: List[str]) -> dict[str, float]:
+    def predict(self, image_path: str) -> dict[str, float]:
         img = open_image(image_path)
-        classes = [cls.strip() for cls in cls_ary]
-        txt_features = self.get_txt_features(classes)
 
         img = preprocess_img(img).to(self.device)
         img_features = self.model.encode_image(img.unsqueeze(0))
         img_features = F.normalize(img_features, dim=-1)
 
-        logits = (self.model.logit_scale.exp() * img_features @ txt_features).squeeze()
+        logits = (self.model.logit_scale.exp() * img_features @ self.txt_features).squeeze()
         probs = F.softmax(logits, dim=0).to("cpu").tolist()
         pred_list = []
-        for cls, prob in zip(classes, probs):
+        for cls, prob in zip(self.classes, probs):
             pred_list.append({
                 PRED_FILENAME_KEY: image_path,
                 PRED_CLASSICATION_KEY: cls,
@@ -207,8 +208,8 @@ class CustomLabelsClassifier(object):
 
 
 def predict_classifications_from_list(img: Union[PIL.Image.Image, str], cls_ary: List[str], device: Union[str, torch.device] = 'cpu') -> dict[str, float]:
-    classifier = CustomLabelsClassifier(device=device)
-    return classifier.predict(img, cls_ary)
+    classifier = CustomLabelsClassifier(cls_ary=cls_ary, device=device)
+    return classifier.predict(img)
 
 
 def get_tol_classification_labels(rank: Rank) -> List[str]:
@@ -293,7 +294,6 @@ class TreeOfLifeClassifier(object):
         for name in topk_names:
             item = { PRED_FILENAME_KEY: image_path }
             item.update(name_to_class_dict[name])
-            #item.update(class_dict_lookup)
             item[PRED_SCORE_KEY] = output[name].item()
             prediction_ary.append(item)
         return prediction_ary
