@@ -206,24 +206,43 @@ class CustomLabelsClassifier(object):
         return pred_list
     
     @torch.no_grad()
-    def predict_from_pil(self, img: Union[PIL.Image.Image, str], cls_ary: List[str]):
-        img = img.convert("RGB")
+    def predict_from_list_pil(self, images: List[Union[PIL.Image.Image, str]], cls_ary: List[str], return_formatted=True):
+        """
+        Takes a list of PIL images and list of classes and returns the predictions for each combination. 
+        Can either return a N_Images x N_classes tensor, or list of formatted probs depending on the return_formatted parameter.
+        """
+        images = [img.convert("RGB") for img in images]
         classes = [cls.strip() for cls in cls_ary]
         txt_features = self.get_txt_features(classes)
 
-        img = preprocess_img(img).to(self.device)
-        img_features = self.model.encode_image(img.unsqueeze(0))
+        images = torch.stack([preprocess_img(img).to(self.device) for img in images], dim=0)
+        img_features = self.model.encode_image(images)
         img_features = F.normalize(img_features, dim=-1)
 
-        logits = (self.model.logit_scale.exp() * img_features @ txt_features).squeeze()
-        probs = F.softmax(logits, dim=0).to("cpu").tolist()
-        pred_list = []
-        for cls, prob in zip(classes, probs):
-            pred_list.append({
-                PRED_CLASSICATION_KEY: cls,
-                PRED_SCORE_KEY: prob
-            })
-        return pred_list
+        logits = (self.model.logit_scale.exp() * img_features @ txt_features)
+        probs = F.softmax(logits, dim=1)
+
+        del images
+        del logits
+        del img_features
+        del txt_features
+        torch.cuda.empty_cache()
+
+        if not return_formatted:
+            return probs
+        else:
+            probs = probs.to("cpu").tolist()
+            pred_list = []
+            for i in range(len(probs)):
+                pred_list.append([])
+                for cls, prob in zip(classes, probs[i]):
+                    pred_list[i].append({
+                        PRED_CLASSICATION_KEY: cls,
+                        PRED_SCORE_KEY: prob
+                    })
+            del probs
+            torch.cuda.empty_cache()
+            return pred_list
 
 
 def predict_classifications_from_list(img: Union[PIL.Image.Image, str], cls_ary: List[str], device: Union[str, torch.device] = 'cpu') -> dict[str, float]:
