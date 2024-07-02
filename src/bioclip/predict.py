@@ -204,6 +204,26 @@ class CustomLabelsClassifier(object):
                 PRED_SCORE_KEY: prob
             })
         return pred_list
+    
+    @torch.no_grad()
+    def predict_from_pil(self, img: Union[PIL.Image.Image, str], cls_ary: List[str]):
+        img = img.convert("RGB")
+        classes = [cls.strip() for cls in cls_ary]
+        txt_features = self.get_txt_features(classes)
+
+        img = preprocess_img(img).to(self.device)
+        img_features = self.model.encode_image(img.unsqueeze(0))
+        img_features = F.normalize(img_features, dim=-1)
+
+        logits = (self.model.logit_scale.exp() * img_features @ txt_features).squeeze()
+        probs = F.softmax(logits, dim=0).to("cpu").tolist()
+        pred_list = []
+        for cls, prob in zip(classes, probs):
+            pred_list.append({
+                PRED_CLASSICATION_KEY: cls,
+                PRED_SCORE_KEY: prob
+            })
+        return pred_list
 
 
 def predict_classifications_from_list(img: Union[PIL.Image.Image, str], cls_ary: List[str], device: Union[str, torch.device] = 'cpu') -> dict[str, float]:
