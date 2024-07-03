@@ -31,10 +31,10 @@ def write_results_to_file(df, format, outfile):
 def predict(image_file: list[str], format: str,  output: str,
              cls_str: str, device: str,  rank: Rank, k: int):
     if cls_str:
-        classifier = CustomLabelsClassifier(device=device)
+        classifier = CustomLabelsClassifier(cls_ary=cls_str.split(','), device=device)
         data = []
         for image_path in image_file:
-            data.extend(classifier.predict(image_path=image_path, cls_ary=cls_str.split(',')))
+            data.extend(classifier.predict(image_path=image_path))
         write_results(data, format, output)
     else:
         classifier = TreeOfLifeClassifier(device=device)
