@@ -28,20 +28,17 @@ def write_results_to_file(df, format, outfile):
     else:
         raise ValueError(f"Invalid format: {format}")
 
+
 def predict(image_file: list[str], format: str,  output: str,
              cls_str: str, device: str,  rank: Rank, k: int):
     if cls_str:
         classifier = CustomLabelsClassifier(cls_ary=cls_str.split(','), device=device)
-        data = []
-        for image_path in image_file:
-            data.extend(classifier.predict(image_path=image_path))
-        write_results(data, format, output)
+        predictions = classifier.predict(image_paths=image_file)
+        write_results(predictions, format, output)
     else:
         classifier = TreeOfLifeClassifier(device=device)
-        data = []
-        for image_path in image_file:
-            data.extend(classifier.predict(image_path=image_path, rank=rank, k=k))
-        write_results(data, format, output)
+        predictions = classifier.predict(image_paths=image_file, rank=rank, k=k)
+        write_results(predictions, format, output)
 
 
 def embed(image_file: list[str], output: str, device: str):
@@ -52,14 +49,14 @@ def embed(image_file: list[str], output: str, device: str):
         "embeddings": images_dict
     }
     for image_path in image_file:
-        features = classifier.get_image_features(image_path)[0]
+        features = classifier.create_image_features_for_path(image_path=image_path, normalize=False)
         images_dict[image_path] = features.tolist()
     if output == 'stdout':
         print(json.dumps(data, indent=4))
     else:
         with open(output, 'w') as outfile:
-            json.dump(data, outfile, indent=4) 
-        
+            json.dump(data, outfile, indent=4)
+
 
 def create_parser():
     parser = argparse.ArgumentParser(prog='bioclip', description='BioCLIP command line interface')
