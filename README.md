@@ -85,6 +85,8 @@ predictions = classifier.predict("Ursus-arctos.jpeg", Rank.SPECIES)
 df = pd.DataFrame(predictions)
 ```
 
+The first argument of the `predict()` method supports both a single path or a list of paths.
+
 ### Predict from a list of classes
 ```python
 from bioclip import CustomLabelsClassifier

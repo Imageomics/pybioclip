@@ -119,22 +119,6 @@ def get_txt_names():
     return txt_names
 
 
-def open_image(image_path):
-    img = PIL.Image.open(image_path)
-    return img.convert("RGB")
-
-
-preprocess_img = transforms.Compose(
-    [
-        transforms.ToTensor(),
-        transforms.Resize((224, 224), antialias=True),
-        transforms.Normalize(
-            mean=(0.48145466, 0.4578275, 0.40821073),
-            std=(0.26862954, 0.26130258, 0.27577711),
-        ),
-    ]
-)
-
 class Rank(Enum):
     KINGDOM = 0
     PHYLUM = 1
@@ -165,11 +149,68 @@ def create_bioclip_tokenizer(tokenizer_str="ViT-B-16"):
     return get_tokenizer(tokenizer_str)
 
 
-class CustomLabelsClassifier(object):
-    def __init__(self, cls_ary: List[str], device: Union[str, torch.device] = 'cpu', model_str: str = MODEL_STR):
+preprocess_img = transforms.Compose(
+    [
+        transforms.ToTensor(),
+        transforms.Resize((224, 224), antialias=True),
+        transforms.Normalize(
+            mean=(0.48145466, 0.4578275, 0.40821073),
+            std=(0.26862954, 0.26130258, 0.27577711),
+        ),
+    ]
+)
+
+
+class BaseClassifier(object):
+    def __init__(self, device: Union[str, torch.device] = 'cpu', model_str: str = MODEL_STR):
         self.device = device
         self.model = create_bioclip_model(device=device, model_str=model_str)
         self.model_str = model_str
+
+    @staticmethod
+    def open_image(image_path):
+        img = PIL.Image.open(image_path)
+        return img.convert("RGB")
+
+    @torch.no_grad()
+    def create_image_features(self, images: List[PIL.Image.Image], normalize : bool = True) -> torch.Tensor:
+        preprocessed_images = []
+        for img in images:
+            prep_img = preprocess_img(img).to(self.device)
+            preprocessed_images.append(prep_img)
+        preprocessed_image_tensor = torch.stack(preprocessed_images)
+        img_features = self.model.encode_image(preprocessed_image_tensor)
+        if normalize:
+            return F.normalize(img_features, dim=-1)
+        else:
+            return img_features
+
+    @torch.no_grad()
+    def create_image_features_for_path(self, image_path: str, normalize: bool) -> torch.Tensor:
+        img = self.open_image(image_path)
+        result = self.create_image_features([img], normalize=normalize)
+        return result[0]
+
+    @torch.no_grad()
+    def create_probabilities(self, img_features: torch.Tensor,
+                             txt_features: torch.Tensor) -> dict[str, torch.Tensor]:
+        logits = (self.model.logit_scale.exp() * img_features @ txt_features)
+        return F.softmax(logits, dim=1)
+
+    def create_probabilities_for_image_paths(self, image_paths: List[str] | str,
+                                             txt_features: torch.Tensor) -> dict[str, torch.Tensor]:
+        images = [self.open_image(image_path) for image_path in image_paths]
+        img_features = self.create_image_features(images)
+        probs = self.create_probabilities(img_features, txt_features)
+        result = {}
+        for i, key in enumerate(image_paths):
+            result[key] = probs[i]
+        return result
+
+
+class CustomLabelsClassifier(BaseClassifier):
+    def __init__(self, cls_ary: List[str], device: Union[str, torch.device] = 'cpu', model_str: str = MODEL_STR):
+        super().__init__(device=device, model_str=model_str)
         self.tokenizer = create_bioclip_tokenizer()
         self.classes = [cls.strip() for cls in cls_ary]
         self.txt_features = self._get_txt_features(self.classes)
@@ -188,28 +229,24 @@ class CustomLabelsClassifier(object):
         return all_features
 
     @torch.no_grad()
-    def predict(self, image_path: str) -> dict[str, float]:
-        img = open_image(image_path)
-
-        img = preprocess_img(img).to(self.device)
-        img_features = self.model.encode_image(img.unsqueeze(0))
-        img_features = F.normalize(img_features, dim=-1)
-
-        logits = (self.model.logit_scale.exp() * img_features @ self.txt_features).squeeze()
-        probs = F.softmax(logits, dim=0).to("cpu").tolist()
-        pred_list = []
-        for cls, prob in zip(self.classes, probs):
-            pred_list.append({
-                PRED_FILENAME_KEY: image_path,
-                PRED_CLASSICATION_KEY: cls,
-                PRED_SCORE_KEY: prob
-            })
-        return pred_list
+    def predict(self, image_paths: List[str] | str) -> dict[str, float]:
+        if isinstance(image_paths, str):
+            image_paths = [image_paths]
+        probs = self.create_probabilities_for_image_paths(image_paths, self.txt_features)
+        result = []
+        for image_path in image_paths:
+            for cls_str, prob in zip(self.classes, probs[image_path]):
+                result.append({
+                    PRED_FILENAME_KEY: image_path,
+                    PRED_CLASSICATION_KEY: cls_str,
+                    PRED_SCORE_KEY: prob.item()
+                })
+        return result
 
 
 def predict_classifications_from_list(img: Union[PIL.Image.Image, str], cls_ary: List[str], device: Union[str, torch.device] = 'cpu') -> dict[str, float]:
     classifier = CustomLabelsClassifier(cls_ary=cls_ary, device=device)
-    return classifier.predict(img)
+    return classifier.predict([img])
 
 
 def get_tol_classification_labels(rank: Rank) -> List[str]:
@@ -244,30 +281,11 @@ def join_names(classification_dict: dict[str, str]) -> str:
     return " ".join(classification_dict.values())
 
 
-class TreeOfLifeClassifier(object):
+class TreeOfLifeClassifier(BaseClassifier):
     def __init__(self, device: Union[str, torch.device] = 'cpu', model_str: str = MODEL_STR):
-        self.device = device
-        self.model = create_bioclip_model(device=device, model_str=model_str)
-        self.model_str = model_str
-        self.txt_emb = get_txt_emb().to(device)
+        super().__init__(device=device, model_str=model_str)
+        self.txt_features = get_txt_emb().to(device)
         self.txt_names = get_txt_names()
-
-    @torch.no_grad()
-    def get_image_features(self, image_path: str) -> torch.Tensor:
-        img = open_image(image_path)
-        return self.encode_image(img)
-
-    def encode_image(self, img: PIL.Image.Image) -> torch.Tensor:
-        img = preprocess_img(img).to(self.device)
-        img_features = self.model.encode_image(img.unsqueeze(0))
-        return img_features
-
-    def predict_species(self, img: PIL.Image.Image) -> torch.Tensor:
-        img_features = self.encode_image(img)
-        img_features = F.normalize(img_features, dim=-1)
-        logits = (self.model.logit_scale.exp() * img_features @ self.txt_emb).squeeze()
-        probs = F.softmax(logits, dim=0)
-        return probs
 
     def format_species_probs(self, image_path: str, probs: torch.Tensor, k: int = 5) -> List[dict[str, float]]:
         topk = probs.topk(k)
@@ -299,12 +317,17 @@ class TreeOfLifeClassifier(object):
         return prediction_ary
 
     @torch.no_grad()
-    def predict(self, image_path: str, rank: Rank, min_prob: float = 1e-9, k: int = 5) -> List[dict[str, float]]:
-        img = open_image(image_path)
-        probs = self.predict_species(img)
-        if rank == Rank.SPECIES:
-            return self.format_species_probs(image_path, probs, k)
-        return self.format_grouped_probs(image_path, probs, rank, min_prob, k)
+    def predict(self, image_paths: List[str] | str, rank: Rank, min_prob: float = 1e-9, k: int = 5) -> dict[str, dict[str, float]]:
+        if isinstance(image_paths, str):
+            image_paths = [image_paths]
+        probs = self.create_probabilities_for_image_paths(image_paths, self.txt_features)
+        result = []
+        for image_path in image_paths:
+            if rank == Rank.SPECIES:
+                result.extend(self.format_species_probs(image_path, probs[image_path], k))
+            else:
+                result.extend(self.format_grouped_probs(image_path, probs[image_path], rank, min_prob, k))
+        return result
 
 
 def predict_classification(img: str, rank: Rank, device: Union[str, torch.device] = 'cpu',
@@ -315,4 +338,4 @@ def predict_classification(img: str, rank: Rank, device: Union[str, torch.device
     species, then sums up species-level probabilities for the given rank.
     """
     classifier = TreeOfLifeClassifier(device=device)
-    return classifier.predict(img, rank, min_prob, k)
+    return classifier.predict([img], rank, min_prob, k)
