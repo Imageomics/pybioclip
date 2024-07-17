@@ -23,7 +23,7 @@ Command line tool and python package to simplify using [BioCLIP](https://imageom
 ## Installation
 
 ```console
-pip install git+https://github.com/Imageomics/pybioclip
+pip install pybioclip
 ```
 
 If you have any issues with installation, please first upgrade pip by running `pip install --upgrade pip`.
