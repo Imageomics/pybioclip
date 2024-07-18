@@ -1,8 +1,8 @@
 # pybioclip
 
 
-[![PyPI - Version](https://img.shields.io/pypi/v/bioclip.svg)](https://pypi.org/project/bioclip)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/bioclip.svg)](https://pypi.org/project/bioclip)
+[![PyPI - Version](https://img.shields.io/pypi/v/pybioclip.svg)](https://pypi.org/project/pybioclip)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pybioclip.svg)](https://pypi.org/project/pybioclip)
 
 -----
 
