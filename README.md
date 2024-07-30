@@ -229,3 +229,38 @@ bioclip --help
 
 ## Acknowledgments
 The [prediction code in this repo](src/bioclip/predict.py) is based on work by [@samuelstevens](https://github.com/samuelstevens) in [bioclip-demo](https://huggingface.co/spaces/imageomics/bioclip-demo/tree/ef075807a55687b320427196ac1662b9383f988f).
+
+## Citation
+
+Our code (this repository):
+```
+@software{Bradley_pybioclip_2024,
+author = {Bradley, John and Lapp, Hilmar and Campolongo, Elizabeth G.},
+doi = {10.5281/zenodo.13151194},
+month = jul,
+title = {{pybioclip}},
+version = {1.0.0},
+year = {2024}
+}
+```
+
+BioCLIP paper:
+```
+@inproceedings{stevens2024bioclip,
+  title = {{B}io{CLIP}: A Vision Foundation Model for the Tree of Life}, 
+  author = {Samuel Stevens and Jiaman Wu and Matthew J Thompson and Elizabeth G Campolongo and Chan Hee Song and David Edward Carlyn and Li Dong and Wasila M Dahdul and Charles Stewart and Tanya Berger-Wolf and Wei-Lun Chao and Yu Su},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year = {2024}
+}
+```
+
+Also consider citing the BioCLIP code:
+```
+@software{bioclip2023code,
+  author = {Samuel Stevens and Jiaman Wu and Matthew J. Thompson and Elizabeth G. Campolongo and Chan Hee Song and David Edward Carlyn},
+  doi = {10.5281/zenodo.10895871},
+  title = {BioCLIP},
+  version = {v1.0.0},
+  year = {2024}
+}
+```

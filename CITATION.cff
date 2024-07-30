@@ -1,0 +1,91 @@
+cff-version: 1.2.0
+title: pybioclip
+message: If you use this software, please cite both the conference paper from references section and the software itself.
+type: software
+authors:
+  - given-names: John
+    family-names: Bradley
+  - given-names: Hilmar
+    family-names: Lapp
+  - family-names: Campolongo
+    given-names: "Elizabeth G."
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.13151194
+  - description: "The GitHub release URL of tag 1.0.0."
+    type: url
+    value: "https://github.com/Imageomics/pybioclip/releases/tag/1.0.0"
+  - description: "The GitHub URL of the commit tagged with 1.0.0."
+    type: url
+    value: "https://github.com/Imageomics/pybioclip/tree/19b3c52a9b806a4abfd1c847ba2ebb6a4d703b34"
+repository-code: 'https://github.com/Imageomics/pybioclip'
+url: 'https://github.com/Imageomics/pybioclip'
+abstract: Python package and command line tool that simplifies using the BioCLIP foundation model.
+keywords:
+  - clip
+  - biology
+  - CV
+  - imageomics
+  - animals
+  - species
+  - images
+  - taxonomy
+  - "rare species"
+  - "endangered species"
+  - "evolutionary biology"
+  - multimodal
+  - "knowledge-guided"
+  - python
+  - "command line"
+  - bioclip
+  - plants
+  - fungi
+  - genus
+  - "image classification"
+license: MIT
+version: 1.0.0
+date-released: '2024-07-19'
+preferred-citation:
+  authors:
+  - given-names: John
+    family-names: Bradley
+  - given-names: Hilmar
+    family-names: Lapp
+  - family-names: Campolongo
+    given-names: "Elizabeth G."
+  type: software
+  title: pybioclip
+  version: 1.0.0
+  doi: 10.5281/zenodo.13151194
+  date-released: "2024-07-19"
+references:
+- type: conference-paper
+  title: "BioCLIP: A Vision Foundation Model for the Tree of Life"
+  authors:
+    - family-names: Stevens
+      given-names: Samuel
+    - family-names: Wu
+      given-names: Jiaman
+    - family-names: Thompson
+      given-names: "Matthew J."
+    - family-names: Campolongo
+      given-names: "Elizabeth G."
+    - family-names: Song
+      given-names: "Chan Hee"
+    - family-names: Carlyn
+      given-names: "David Edward"
+    - family-names: Dong
+      given-names: Li
+    - family-names: Dahdul
+      given-names: "Wasila M"
+    - family-names: Stewart
+      given-names: Charles
+    - family-names: "Berger-Wolf"
+      given-names: Tanya
+    - family-names: Chao
+      given-names: "Wei-Lun"
+    - family-names: Su
+      given-names: Yu
+  version: 1.0.0
+  doi: "10.5281/zenodo.10895871"
+  date-released: "2024-03-29"
