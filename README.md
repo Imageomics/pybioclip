@@ -6,8 +6,7 @@
 
 -----
 
-Command line tool and python package to simplify using [BioCLIP](https://imageomics.github.io/bioclip/).
-
+Command line tool and python package to simplify using [BioCLIP](https://imageomics.github.io/bioclip/), including for taxonomic or other label prediction on (and thus annotation or labeling of) images, as well as for generating semantic embeddings for images. No particular understanding of ML or computer vision is required to use it. It also implements a number of performance optimizations for batches of images or custom class lists, which should be particularly useful for integration into computational workflows.
 
 **Table of Contents**
 
