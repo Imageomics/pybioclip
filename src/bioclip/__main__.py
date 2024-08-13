@@ -33,7 +33,7 @@ def predict(image_file: list[str], format: str,  output: str,
              cls_str: str, device: str,  rank: Rank, k: int):
     if cls_str:
         classifier = CustomLabelsClassifier(cls_ary=cls_str.split(','), device=device)
-        predictions = classifier.predict(image_paths=image_file)
+        predictions = classifier.predict(image_paths=image_file, k=k)
         write_results(predictions, format, output)
     else:
         classifier = TreeOfLifeClassifier(device=device)
@@ -87,8 +87,8 @@ def parse_args(input_args=None):
     if args.command == 'predict':
         if args.cls:
             # custom class list mode
-            if args.rank or args.k:
-                raise ValueError("Cannot use --cls with --rank or --k")
+            if args.rank:
+                raise ValueError("Cannot use --cls with --rank")
         else:
             # tree of life class list mode
             if not args.rank:
