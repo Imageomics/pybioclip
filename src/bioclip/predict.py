@@ -229,16 +229,20 @@ class CustomLabelsClassifier(BaseClassifier):
         return all_features
 
     @torch.no_grad()
-    def predict(self, image_paths: List[str] | str) -> dict[str, float]:
+    def predict(self, image_paths: List[str] | str, k: int = None) -> dict[str, float]:
         if isinstance(image_paths, str):
             image_paths = [image_paths]
         probs = self.create_probabilities_for_image_paths(image_paths, self.txt_features)
         result = []
         for image_path in image_paths:
-            for cls_str, prob in zip(self.classes, probs[image_path]):
+            img_probs = probs[image_path]
+            if not k or k > len(self.classes):
+                k = len(self.classes)
+            topk = img_probs.topk(k)
+            for i, prob in zip(topk.indices, topk.values):
                 result.append({
                     PRED_FILENAME_KEY: image_path,
-                    PRED_CLASSICATION_KEY: cls_str,
+                    PRED_CLASSICATION_KEY: self.classes[i],
                     PRED_SCORE_KEY: prob.item()
                 })
         return result

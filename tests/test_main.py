@@ -44,9 +44,10 @@ class TestParser(unittest.TestCase):
         # test error when using --cls with --rank
         with self.assertRaises(ValueError):
             parse_args(['predict', 'image.jpg', '--cls', 'class1,class2', '--rank', 'genus'])
-        # test error when using --cls with --k
-        with self.assertRaises(ValueError):
-            parse_args(['predict', 'image.jpg', '--cls', 'class1,class2', '--k', '10'])
+
+        # not an error when using --cls with --k
+        args = parse_args(['predict', 'image.jpg', '--cls', 'class1,class2', '--k', '10'])
+        self.assertEqual(args.k, 10)
 
         args = parse_args(['embed', 'image.jpg'])
         self.assertEqual(args.command, 'embed')
