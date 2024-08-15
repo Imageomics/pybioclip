@@ -1,7 +1,7 @@
 import json
 import torch
 from torchvision import transforms
-from open_clip import create_model, get_tokenizer
+import open_clip as oc
 import torch.nn.functional as F
 import numpy as np
 import collections
@@ -139,14 +139,8 @@ SPECIES_EPITHET_LABEL = "species_epithet"
 COMMON_NAME_LABEL = "common_name"
 
 
-def create_bioclip_model(model_str, device="cuda"):
-    model = create_model(model_str, output_dict=True, require_pretrained=True)
-    model = model.to(device)
-    return torch.compile(model)
-
-
-def create_bioclip_tokenizer(tokenizer_str="ViT-B-16"):
-    return get_tokenizer(tokenizer_str)
+def create_bioclip_tokenizer(model_name="ViT-B-16"):
+    return oc.get_tokenizer(model_name=model_name)
 
 
 preprocess_img = transforms.Compose(
@@ -162,10 +156,23 @@ preprocess_img = transforms.Compose(
 
 
 class BaseClassifier(object):
-    def __init__(self, device: Union[str, torch.device] = 'cpu', model_str: str = MODEL_STR):
+    def __init__(self, model_str: str, pretrained_str: str | None = None, device: Union[str, torch.device] = 'cpu'):
         self.device = device
-        self.model = create_bioclip_model(device=device, model_str=model_str)
-        self.model_str = model_str
+        self.load_pretrained_model(model_str=model_str, pretrained_str=pretrained_str)
+
+    def load_pretrained_model(self, model_str: str = MODEL_STR, pretrained_str: str | None = None):
+        self.model_str = model_str or MODEL_STR
+        pretrained_tags = oc.list_pretrained_tags_by_model(self.model_str)
+        if pretrained_str is None and len(pretrained_tags) > 0:
+            if len(pretrained_tags) > 1:
+                raise ValueError(f"Multiple pretrained tags available {pretrained_tags}, must provide one")
+            pretrained_str = pretrained_tags[0]
+        model, preprocess = oc.create_model_from_pretrained(self.model_str,
+                                                            pretrained=pretrained_str,
+                                                            device=self.device,
+                                                            return_transform=True)
+        self.model = torch.compile(model.to(self.device))
+        self.preprocess = preprocess_img if self.model_str == MODEL_STR else preprocess
 
     @staticmethod
     def open_image(image_path):
@@ -176,7 +183,7 @@ class BaseClassifier(object):
     def create_image_features(self, images: List[PIL.Image.Image], normalize : bool = True) -> torch.Tensor:
         preprocessed_images = []
         for img in images:
-            prep_img = preprocess_img(img).to(self.device)
+            prep_img = self.preprocess(img).to(self.device)
             preprocessed_images.append(prep_img)
         preprocessed_image_tensor = torch.stack(preprocessed_images)
         img_features = self.model.encode_image(preprocessed_image_tensor)
@@ -209,9 +216,9 @@ class BaseClassifier(object):
 
 
 class CustomLabelsClassifier(BaseClassifier):
-    def __init__(self, cls_ary: List[str], device: Union[str, torch.device] = 'cpu', model_str: str = MODEL_STR):
-        super().__init__(device=device, model_str=model_str)
-        self.tokenizer = create_bioclip_tokenizer()
+    def __init__(self, cls_ary: List[str], **kwargs):
+        super().__init__(**kwargs)
+        self.tokenizer = create_bioclip_tokenizer(self.model_str)
         self.classes = [cls.strip() for cls in cls_ary]
         self.txt_features = self._get_txt_features(self.classes)
 
@@ -286,9 +293,9 @@ def join_names(classification_dict: dict[str, str]) -> str:
 
 
 class TreeOfLifeClassifier(BaseClassifier):
-    def __init__(self, device: Union[str, torch.device] = 'cpu', model_str: str = MODEL_STR):
-        super().__init__(device=device, model_str=model_str)
-        self.txt_features = get_txt_emb().to(device)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.txt_features = get_txt_emb().to(self.device)
         self.txt_names = get_txt_names()
 
     def format_species_probs(self, image_path: str, probs: torch.Tensor, k: int = 5) -> List[dict[str, float]]:

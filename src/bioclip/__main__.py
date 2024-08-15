@@ -1,4 +1,5 @@
 from bioclip import TreeOfLifeClassifier, Rank, CustomLabelsClassifier
+import open_clip as oc
 import json
 import sys
 import prettytable as pt
@@ -29,20 +30,25 @@ def write_results_to_file(df, format, outfile):
         raise ValueError(f"Invalid format: {format}")
 
 
-def predict(image_file: list[str], format: str,  output: str,
-             cls_str: str, device: str,  rank: Rank, k: int):
+def predict(image_file: list[str],
+            format: str,
+            output: str,
+            cls_str: str,
+            rank: Rank,
+            k: int,
+            **kwargs):
     if cls_str:
-        classifier = CustomLabelsClassifier(cls_ary=cls_str.split(','), device=device)
+        classifier = CustomLabelsClassifier(cls_ary=cls_str.split(','), **kwargs)
         predictions = classifier.predict(image_paths=image_file, k=k)
         write_results(predictions, format, output)
     else:
-        classifier = TreeOfLifeClassifier(device=device)
+        classifier = TreeOfLifeClassifier(**kwargs)
         predictions = classifier.predict(image_paths=image_file, rank=rank, k=k)
         write_results(predictions, format, output)
 
 
-def embed(image_file: list[str], output: str, device: str):
-    classifier = TreeOfLifeClassifier(device=device)
+def embed(image_file: list[str], output: str, **kwargs):
+    classifier = TreeOfLifeClassifier(**kwargs)
     images_dict = {}
     data = {
         "model": classifier.model_str,
@@ -72,12 +78,20 @@ def create_parser():
     predict_parser.add_argument('--k', type=int, help='number of top predictions to show, default: 5')
     predict_parser.add_argument('--cls', help='comma separated list of classes to predict, when specified the --rank and --k arguments are not allowed')
     predict_parser.add_argument('--device', help='device to use (cpu or cuda or mps), default: cpu', default='cpu')
+    predict_parser.add_argument('--model', help='model identifier (see open_clip); default: hf-hub:imageomics/bioclip')
+    predict_parser.add_argument('--pretrained', help='pretrained model checkpoint as tag or file, depends on model')
 
     # Embed command
     embed_parser = subparsers.add_parser('embed', help='Use BioCLIP to generate embeddings for image files.')
     embed_parser.add_argument('image_file', nargs='+', help='input image file(s)')
     embed_parser.add_argument('--output', default='stdout', help='print output to file, default: stdout')
     embed_parser.add_argument('--device', help='device to use (cpu or cuda or mps), default: cpu', default='cpu')
+    embed_parser.add_argument('--model', help='model identifier (see open_clip); default: hf-hub:imageomics/bioclip')
+    embed_parser.add_argument('--pretrained', help='pretrained model checkpoint as tag or file, depends on model')
+
+    # List command
+    list_parser = subparsers.add_parser('list-models', help='List available models and pretrained model checkpoints.')
+    list_parser.add_argument('--model', help='list available pretrained model checkpoint(s) for model')
 
     return parser
 
@@ -91,6 +105,8 @@ def parse_args(input_args=None):
                 raise ValueError("Cannot use --cls with --rank")
         else:
             # tree of life class list mode
+            if args.model or args.pretrained:
+                raise ValueError("Custom model or checkpoints currently not supported for Tree-of-Life prediction")
             if not args.rank:
                 args.rank = 'species'
             args.rank = Rank[args.rank.upper()]
@@ -102,9 +118,28 @@ def parse_args(input_args=None):
 def main():
     args = parse_args()
     if args.command == 'embed':
-        embed(args.image_file, args.output, args.device)
+        embed(args.image_file,
+              args.output,
+              device=args.device,
+              model_str=args.model,
+              pretrained_str=args.pretrained)
     elif args.command == 'predict':
-        predict(args.image_file, args.format, args.output, args.cls, args.device, args.rank, args.k)
+        predict(args.image_file,
+                format=args.format,
+                output=args.output,
+                cls_str=args.cls,
+                rank=args.rank,
+                k=args.k,
+                device=args.device,
+                model_str=args.model,
+                pretrained_str=args.pretrained)
+    elif args.command == 'list-models':
+        if args.model:
+            for tag in oc.list_pretrained_tags_by_model(args.model):
+                print(tag)
+        else:
+            for model_str in oc.list_models():
+                print(f"\t{model_str}")
     else:
         raise ValueError("Invalid command")
 
