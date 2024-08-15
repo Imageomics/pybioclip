@@ -14,7 +14,7 @@ from enum import Enum
 
 HF_DATAFILE_REPO = "imageomics/bioclip-demo"
 HF_DATAFILE_REPO_TYPE = "space"
-MODEL_STR = "hf-hub:imageomics/bioclip"
+BIOCLIP_MODEL_STR = "hf-hub:imageomics/bioclip"
 PRED_FILENAME_KEY = "file_name"
 PRED_CLASSICATION_KEY = "classification"
 PRED_SCORE_KEY = "score"
@@ -160,8 +160,8 @@ class BaseClassifier(object):
         self.device = device
         self.load_pretrained_model(model_str=model_str, pretrained_str=pretrained_str)
 
-    def load_pretrained_model(self, model_str: str = MODEL_STR, pretrained_str: str | None = None):
-        self.model_str = model_str or MODEL_STR
+    def load_pretrained_model(self, model_str: str = BIOCLIP_MODEL_STR, pretrained_str: str | None = None):
+        self.model_str = model_str or BIOCLIP_MODEL_STR
         pretrained_tags = oc.list_pretrained_tags_by_model(self.model_str)
         if pretrained_str is None and len(pretrained_tags) > 0:
             if len(pretrained_tags) > 1:
@@ -172,7 +172,7 @@ class BaseClassifier(object):
                                                             device=self.device,
                                                             return_transform=True)
         self.model = torch.compile(model.to(self.device))
-        self.preprocess = preprocess_img if self.model_str == MODEL_STR else preprocess
+        self.preprocess = preprocess_img if self.model_str == BIOCLIP_MODEL_STR else preprocess
 
     @staticmethod
     def open_image(image_path):
