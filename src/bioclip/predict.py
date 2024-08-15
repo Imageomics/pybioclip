@@ -156,7 +156,7 @@ preprocess_img = transforms.Compose(
 
 
 class BaseClassifier(object):
-    def __init__(self, model_str: str, pretrained_str: str | None = None, device: Union[str, torch.device] = 'cpu'):
+    def __init__(self, model_str: str = BIOCLIP_MODEL_STR, pretrained_str: str | None = None, device: Union[str, torch.device] = 'cpu'):
         self.device = device
         self.load_pretrained_model(model_str=model_str, pretrained_str=pretrained_str)
 
