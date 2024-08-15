@@ -1,4 +1,5 @@
 from bioclip import TreeOfLifeClassifier, Rank, CustomLabelsClassifier
+from .predict import BIOCLIP_MODEL_STR
 import open_clip as oc
 import json
 import sys
@@ -68,30 +69,42 @@ def create_parser():
     parser = argparse.ArgumentParser(prog='bioclip', description='BioCLIP command line interface')
     subparsers = parser.add_subparsers(title='commands', dest='command')
 
+    device_arg = {'default':'cpu', 'help': 'device to use (cpu or cuda or mps), default: cpu'}
+    output_arg = {'default': 'stdout', 'help': 'print output to file, default: stdout'}
+    model_arg = {'help': f'model identifier (see command list-models); default: {BIOCLIP_MODEL_STR}'}
+    pretrained_arg = {'help': 'pretrained model checkpoint as tag or file, depends on model; '
+                              'needed only if more than one is available (see command list-models)'}
+
     # Predict command
     predict_parser = subparsers.add_parser('predict', help='Use BioCLIP to generate predictions for image files.')
     predict_parser.add_argument('image_file', nargs='+', help='input image file(s)')
     predict_parser.add_argument('--format', choices=['table', 'csv'], default='csv', help='format of the output, default: csv')
-    predict_parser.add_argument('--output', default='stdout', help='print output to file, default: stdout')
+    predict_parser.add_argument('--output', **output_arg)
     predict_parser.add_argument('--rank', choices=['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'],
                                 help='rank of the classification, default: species (when)')
     predict_parser.add_argument('--k', type=int, help='number of top predictions to show, default: 5')
-    predict_parser.add_argument('--cls', help='comma separated list of classes to predict, when specified the --rank and --k arguments are not allowed')
-    predict_parser.add_argument('--device', help='device to use (cpu or cuda or mps), default: cpu', default='cpu')
-    predict_parser.add_argument('--model', help='model identifier (see open_clip); default: hf-hub:imageomics/bioclip')
-    predict_parser.add_argument('--pretrained', help='pretrained model checkpoint as tag or file, depends on model')
+    predict_parser.add_argument('--cls', help='comma separated list of classes to predict, when specified the --rank argument is not allowed')
+    predict_parser.add_argument('--device', **device_arg)
+    predict_parser.add_argument('--model', **model_arg)
+    predict_parser.add_argument('--pretrained', **pretrained_arg)
 
     # Embed command
     embed_parser = subparsers.add_parser('embed', help='Use BioCLIP to generate embeddings for image files.')
     embed_parser.add_argument('image_file', nargs='+', help='input image file(s)')
-    embed_parser.add_argument('--output', default='stdout', help='print output to file, default: stdout')
-    embed_parser.add_argument('--device', help='device to use (cpu or cuda or mps), default: cpu', default='cpu')
-    embed_parser.add_argument('--model', help='model identifier (see open_clip); default: hf-hub:imageomics/bioclip')
-    embed_parser.add_argument('--pretrained', help='pretrained model checkpoint as tag or file, depends on model')
+    embed_parser.add_argument('--output', **output_arg)
+    embed_parser.add_argument('--device', **device_arg)
+    embed_parser.add_argument('--model', **model_arg)
+    embed_parser.add_argument('--pretrained', **pretrained_arg)
 
     # List command
-    list_parser = subparsers.add_parser('list-models', help='List available models and pretrained model checkpoints.')
-    list_parser.add_argument('--model', help='list available pretrained model checkpoint(s) for model')
+    list_parser = subparsers.add_parser('list-models',
+                                        help='List available models and pretrained model checkpoints.',
+                                        description=
+                                             'Note that this will only list models known to open_clip; '
+                                             'any model identifier loadable by open_clip, such as from hf-hub, file, etc '
+                                             'should also be usable for --model in the embed and predict commands. '
+                                             f'(The default model {BIOCLIP_MODEL_STR} is one example.)')
+    list_parser.add_argument('--model', help='list available tags for pretrained model checkpoint(s) for specified model')
 
     return parser
 
