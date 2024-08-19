@@ -1,0 +1,93 @@
+{
+  "creators": [
+    {
+      "name": "Bradley, John",
+      "orcid": "0000-0003-3858-848X"
+    },
+    {
+      "name": "Lapp, Hilmar",
+      "orcid": "0000-0001-9107-0714"
+    },
+    {
+      "name": "Campolongo, Elizabeth G.",
+      "orcid": "0000-0003-0846-2413"
+    }
+  ],
+  "description": "Python package and command line tool that simplifies using the BioCLIP foundation model.",
+  "keywords": [
+    "clip",
+    "biology",
+    "CV",
+    "imageomics",
+    "animals",
+    "species",
+    "images",
+    "taxonomy",
+    "rare species",
+    "endangered species",
+    "evolutionary biology",
+    "multimodal",
+    "knowledge-guided",
+    "python",
+    "command line",
+    "bioclip",
+    "plants",
+    "fungi",
+    "genus",
+    "image classification"
+  ],
+  "license": {
+    "id": "MIT"
+  },
+  "publication_date": "2024-07-19",
+  "title": "pybioclip",
+  "version": "1.0.0",
+  "funding": [
+      {
+        "award": {
+          "id": "021nxhr62::2118240",
+          "number": "2118240",
+          "program": "CISE/OAD",
+          "title": {
+            "en": "HDR Institute: Imageomics: A New Frontier of Biological Information Powered by Knowledge-Guided Machine Learning"
+          }
+        },
+        "funder": {
+          "id": "021nxhr62",
+          "name": "National Science Foundation"
+        }
+      }
+    ],
+    "references": [
+      {
+         "reference": "Stevens S, Wu J, Thompson MJ, Campolongo EG, Song CH, Carlyn DE, Dong L, Dahdul WM, Stewart C, Berger-Wolf T, Chao W-L, Su Y (2024) BioCLIP: A Vision Foundation Model for the Tree of Life. Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), 19412\u201319424."
+      },
+    ],
+    "related_identifiers": [
+      {
+        "identifier": "https://github.com/Imageomics/pybioclip/",
+        "relation_type": {
+          "id": "isversionof",
+          "title": {
+            "de": "Ist eine Version von",
+            "en": "Is version of"
+          }
+        },
+        "resource_type": {
+          "id": "software",
+          "title": {
+            "de": "Software",
+            "en": "Software"
+          }
+        },
+        "scheme": "url"
+      }
+    ],
+    "resource_type": {
+      "id": "software",
+      "title": {
+        "de": "Software",
+        "en": "Software"
+      }
+    }
+}
