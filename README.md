@@ -104,7 +104,7 @@ bear 1.0
 
 ## Command Line Usage
 ```
-bioclip predict [-h] [--format {table,csv}] [--output OUTPUT] [--rank {kingdom,phylum,class,order,family,genus,species}] [--k K] [--cls CLS | --cls-file CLS_FILE] [--device DEVICE] image_file [image_file ...]
+bioclip predict [-h] [--format {table,csv}] [--output OUTPUT] [--rank {kingdom,phylum,class,order,family,genus,species}] [--k K] [--cls CLS] [--device DEVICE] image_file [image_file ...]
 bioclip embed [-h] [--device=DEVICE] [--output=OUTPUT] [IMAGE_FILE...]
 
 Commands:
