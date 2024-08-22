@@ -1,6 +1,7 @@
 from bioclip import TreeOfLifeClassifier, Rank, CustomLabelsClassifier
 from .predict import BIOCLIP_MODEL_STR
 import open_clip as oc
+import os
 import json
 import sys
 import prettytable as pt
@@ -83,9 +84,9 @@ def create_parser():
     predict_parser.add_argument('--rank', choices=['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'],
                                 help='rank of the classification, default: species (when)')
     predict_parser.add_argument('--k', type=int, help='number of top predictions to show, default: 5')
-    cls_group = predict_parser.add_mutually_exclusive_group(required=False)
-    cls_group.add_argument('--cls', help='comma separated list of classes to predict, when specified the --rank argument is not allowed')
-    cls_group.add_argument('--cls-file', help='path to file with list of classes to predict, one per line, when specified the --rank and --k arguments are not allowed')
+    cls_help = "classes to predict either a comma separated list or a path to a text file of classes (one per line), when specified the --rank argument is not allowed."
+    predict_parser.add_argument('--cls', help=cls_help)
+
     predict_parser.add_argument('--device', **device_arg)
     predict_parser.add_argument('--model', **model_arg)
     predict_parser.add_argument('--pretrained', **pretrained_arg)
@@ -147,8 +148,8 @@ def main():
               pretrained_str=args.pretrained)
     elif args.command == 'predict':
         cls_str = args.cls
-        if args.cls_file:
-            cls_str = create_classes_str(args.cls_file)
+        if os.path.exists(args.cls):
+            cls_str = create_classes_str(args.cls)
         predict(args.image_file,
                 format=args.format,
                 output=args.output,

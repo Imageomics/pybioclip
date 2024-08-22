@@ -51,9 +51,9 @@ class TestParser(unittest.TestCase):
         args = parse_args(['predict', 'image.jpg', '--cls', 'class1,class2', '--k', '10'])
         self.assertEqual(args.k, 10)
 
-        args = parse_args(['predict', '--cls-file', 'somefile.txt', 'image.jpg'])
-        self.assertEqual(args.cls_file, 'somefile.txt')
-        self.assertEqual(args.cls, None)
+        # example showing filename
+        args = parse_args(['predict', 'image.jpg', '--cls', 'classes.txt', '--k', '10'])
+        self.assertEqual(args.cls, 'classes.txt')
 
         args = parse_args(['embed', 'image.jpg'])
         self.assertEqual(args.command, 'embed')
