@@ -148,7 +148,7 @@ def main():
               pretrained_str=args.pretrained)
     elif args.command == 'predict':
         cls_str = args.cls
-        if os.path.exists(args.cls):
+        if args.cls and os.path.exists(args.cls):
             cls_str = create_classes_str(args.cls)
         predict(args.image_file,
                 format=args.format,
