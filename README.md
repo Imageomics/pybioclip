@@ -120,7 +120,6 @@ Options:
   --rank=RANK          rank of the classification (kingdom, phylum, class, order, family, genus, species) [default: species] 
   --k=K                number of top predictions to show [default: 5]
   --cls=CLS            classes to predict either a comma separated list or a path to a text file of classes (one per line), when specified the --rank argument is not allowed.
-  --rank and --k arguments are not allowed
   --device=DEVICE      device to use matrix math (cpu or cuda or mps) [default: cpu]
   --output=OUTFILE     print output to file OUTFILE [default: stdout]
 ```
