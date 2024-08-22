@@ -119,7 +119,7 @@ Options:
   --format=FORMAT      format of the output (table or csv) for predict mode [default: csv]
   --rank=RANK          rank of the classification (kingdom, phylum, class, order, family, genus, species) [default: species] 
   --k=K                number of top predictions to show [default: 5]
-  --cls=CLS            classes to predict either a comma separated list or a path to a text file of classes (one per line), when specified the --rank argument is not allowed.
+  --cls=CLS            classes to predict: either a comma separated list or a path to a text file of classes (one per line), when specified the --rank argument is not allowed.
   --device=DEVICE      device to use matrix math (cpu or cuda or mps) [default: cpu]
   --output=OUTFILE     print output to file OUTFILE [default: stdout]
 ```
