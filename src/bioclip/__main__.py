@@ -84,7 +84,7 @@ def create_parser():
     predict_parser.add_argument('--rank', choices=['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'],
                                 help='rank of the classification, default: species (when)')
     predict_parser.add_argument('--k', type=int, help='number of top predictions to show, default: 5')
-    cls_help = "classes to predict either a comma separated list or a path to a text file of classes (one per line), when specified the --rank argument is not allowed."
+    cls_help = "classes to predict: either a comma separated list or a path to a text file of classes (one per line), when specified the --rank argument is not allowed."
     predict_parser.add_argument('--cls', help=cls_help)
 
     predict_parser.add_argument('--device', **device_arg)
