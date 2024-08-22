@@ -104,7 +104,7 @@ bear 1.0
 
 ## Command Line Usage
 ```
-bioclip predict [-h] [--format {table,csv}] [--output OUTPUT] [--rank {kingdom,phylum,class,order,family,genus,species}] [--k K] [--cls CLS] [--device DEVICE] image_file [image_file ...]
+bioclip predict [-h] [--format {table,csv}] [--output OUTPUT] [--rank {kingdom,phylum,class,order,family,genus,species}] [--k K] [--cls CLS | --cls-file CLS_FILE] [--device DEVICE] image_file [image_file ...]
 bioclip embed [-h] [--device=DEVICE] [--output=OUTPUT] [IMAGE_FILE...]
 
 Commands:
@@ -119,7 +119,9 @@ Options:
   --format=FORMAT      format of the output (table or csv) for predict mode [default: csv]
   --rank=RANK          rank of the classification (kingdom, phylum, class, order, family, genus, species) [default: species] 
   --k=K                number of top predictions to show [default: 5]
-  --cls=CLS            comma separated list of classes to predict, when specified the --rank and --k arguments are not allowed
+  --cls=CLS            comma separated list of classes to predict, when specified the --rank and --k 
+  arguments are not allowed
+  --cls-file CLS_FILE  path to file with list of classes to predict, one per line, when specified the --rank and --k arguments are not allowed
   --device=DEVICE      device to use matrix math (cpu or cuda or mps) [default: cpu]
   --output=OUTFILE     print output to file OUTFILE [default: stdout]
 ```

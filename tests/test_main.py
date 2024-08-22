@@ -1,5 +1,7 @@
 import unittest
-from bioclip.__main__ import parse_args, Rank
+from unittest.mock import mock_open, patch
+import argparse
+from bioclip.__main__ import parse_args, Rank, create_classes_str
 
 
 class TestParser(unittest.TestCase):
@@ -49,6 +51,10 @@ class TestParser(unittest.TestCase):
         args = parse_args(['predict', 'image.jpg', '--cls', 'class1,class2', '--k', '10'])
         self.assertEqual(args.k, 10)
 
+        args = parse_args(['predict', '--cls-file', 'somefile.txt', 'image.jpg'])
+        self.assertEqual(args.cls_file, 'somefile.txt')
+        self.assertEqual(args.cls, None)
+
         args = parse_args(['embed', 'image.jpg'])
         self.assertEqual(args.command, 'embed')
         self.assertEqual(args.image_file, ['image.jpg'])
@@ -60,3 +66,8 @@ class TestParser(unittest.TestCase):
         self.assertEqual(args.image_file, ['image.jpg', 'image2.png'])
         self.assertEqual(args.output, 'data.json')
         self.assertEqual(args.device, 'cuda')
+
+    def test_create_classes_str(self):
+        data = "class1\nclass2\nclass3"
+        with patch("builtins.open", mock_open(read_data=data)) as mock_file:
+            self.assertEqual(create_classes_str('path/to/file'), 'class1,class2,class3')
