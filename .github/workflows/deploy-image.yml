@@ -55,4 +55,4 @@ jobs:
       - name: pull an apptainer container
         run: apptainer pull apptainer.sif docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
       - name: push the apptainer container
-        run: apptainer push apptainer.sif oras://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+        run: apptainer push apptainer.sif oras://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-sif:${{ steps.meta.outputs.version }}
