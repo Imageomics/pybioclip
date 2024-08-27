@@ -1,3 +1,4 @@
+import os
 import json
 import torch
 from torchvision import transforms
@@ -18,6 +19,13 @@ BIOCLIP_MODEL_STR = "hf-hub:imageomics/bioclip"
 PRED_FILENAME_KEY = "file_name"
 PRED_CLASSICATION_KEY = "classification"
 PRED_SCORE_KEY = "score"
+
+
+# Use secure model loading unless explicitly disabled.
+# See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more.
+if not "TORCH_FORCE_WEIGHTS_ONLY_LOAD" in os.environ:
+    os.environ["TORCH_FORCE_WEIGHTS_ONLY_LOAD"] = "true"
+
 
 OPENA_AI_IMAGENET_TEMPLATE = [
     lambda c: f"a bad photo of a {c}.",
