@@ -1,4 +1,5 @@
-name: Create and publish a Docker image
+
+name: Create and publish container images
 
 on:
   release:
@@ -8,7 +9,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push-image:
+  build-and-push-docker:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -43,3 +44,38 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: "PYBIOCLIP_VERSION=${{ steps.meta.outputs.version }}"
+
+  build-and-push-apptainer:
+    runs-on: ubuntu-latest
+    needs: build-and-push-docker
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version for apptainer build
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Setup apptainer executable
+        uses: eWaterCycle/setup-apptainer@v2
+        with:
+          apptainer-version: 1.3.3
+
+      - name: Build an apptainer image
+        run: apptainer build --build-arg PYBIOCLIP_VERSION=${{ steps.meta.outputs.version }} apptainer.sif apptainer.def
+
+      - name: Publish apptainer image
+        run: apptainer push apptainer.sif oras://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-sif:${{ steps.meta.outputs.version }}
