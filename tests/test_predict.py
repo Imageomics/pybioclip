@@ -209,6 +209,13 @@ class TestPredict(unittest.TestCase):
         self.assertEqual(classifier.get_txt_embeddings().shape, torch.Size([512, 1]))
         self.assertEqual(len(classifier.get_current_txt_names()), 1)
 
+    def test_forward(self):
+        classifier = TreeOfLifeClassifier()
+        img = classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE)
+        img_features = torch.stack([classifier.preprocess(img)])
+        result = classifier.forward(x=img_features)
+        self.assertEqual(result.shape, torch.Size([1, len(classifier.txt_names)]))
+
 
 class TestEmbed(unittest.TestCase):
     def test_get_image_features(self):

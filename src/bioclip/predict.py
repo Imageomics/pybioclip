@@ -3,6 +3,7 @@ import json
 import torch
 from torchvision import transforms
 import open_clip as oc
+from torch import nn
 import torch.nn.functional as F
 import numpy as np
 import pandas as pd
@@ -165,7 +166,7 @@ preprocess_img = transforms.Compose(
 )
 
 
-class BaseClassifier(object):
+class BaseClassifier(nn.Module):
     def __init__(self, model_str: str = BIOCLIP_MODEL_STR, pretrained_str: str | None = None, device: Union[str, torch.device] = 'cpu'):
         """
         Initializes the prediction model.
@@ -175,7 +176,7 @@ class BaseClassifier(object):
             pretrained_str (str, optional): The string identifier for the pretrained model to be loaded.
             device (Union[str, torch.device]): The device on which the model will be run.
         """
-        
+        super().__init__()
         self.device = device
         self.load_pretrained_model(model_str=model_str, pretrained_str=pretrained_str)
 
@@ -227,7 +228,6 @@ class BaseClassifier(object):
         result = self.create_image_features([img], normalize=normalize)
         return result[0]
 
-    @torch.no_grad()
     def create_probabilities(self, img_features: torch.Tensor,
                              txt_features: torch.Tensor) -> dict[str, torch.Tensor]:
         logits = (self.model.logit_scale.exp() * img_features @ txt_features)
@@ -243,6 +243,18 @@ class BaseClassifier(object):
         for i, key in enumerate(keys):
             result[key] = probs[i]
         return result
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Given an input tensor representing multiple images, return probabilities for each class for each image.
+        Args:
+            x (torch.Tensor): Input tensor representing the multiple images.
+        Returns:
+            torch.Tensor: Softmax probabilities of the logits for each class for each image.
+        """
+        img_features = self.model.encode_image(x)
+        img_features = F.normalize(img_features, dim=-1)
+        return self.create_probabilities(img_features, self.txt_embeddings)
 
 
 class CustomLabelsClassifier(BaseClassifier):
@@ -260,10 +272,10 @@ class CustomLabelsClassifier(BaseClassifier):
         super().__init__(**kwargs)
         self.tokenizer = create_bioclip_tokenizer(self.model_str)
         self.classes = [cls.strip() for cls in cls_ary]
-        self.txt_features = self._get_txt_features(self.classes)
+        self.txt_embeddings = self._get_txt_embeddings(self.classes)
 
     @torch.no_grad()
-    def _get_txt_features(self, classnames):
+    def _get_txt_embeddings(self, classnames):
         all_features = []
         for classname in classnames:
             txts = [template(classname) for template in OPENA_AI_IMAGENET_TEMPLATE]
@@ -289,7 +301,7 @@ class CustomLabelsClassifier(BaseClassifier):
         """
         if isinstance(images, str):
             images = [images]
-        probs = self.create_probabilities_for_images(images, self.txt_features)
+        probs = self.create_probabilities_for_images(images, self.txt_embeddings)
         result = []
         for i, image in enumerate(images):
             key = self.make_key(image, i)

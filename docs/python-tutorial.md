@@ -132,6 +132,10 @@ small 7.165559509303421e-05
 !!! info "Documentation"
      For subsetting the TreeOfLifeClassifier see [get_label_data()](python-api.md#bioclip.TreeOfLifeClassifier.get_label_data), [create_taxa_filter()](python-api.md#bioclip.TreeOfLifeClassifier.create_taxa_filter) and [apply_filter()](python-api.md#bioclip.TreeOfLifeClassifier.apply_filter) .
 
+### Experiment with [grad-cam](https://github.com/jacobgil/pytorch-grad-cam)
+[GradCamExperiment.ipynb](https://github.com/Imageomics/pybioclip/blob/main/examples/GradCamExperiment.ipynb)  applies GradCAM AI explainability to BioCLIP. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/GradCamExperiment.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+
 ## PIL Images
 The predict() functions used in all the examples above allow passing a list of paths or a list of [PIL Images](https://pillow.readthedocs.io/en/stable/reference/Image.html).
 When a list of PIL images is passed the index of the image will be filled in for `file_name`. This is because PIL images may not have an associated file name.
