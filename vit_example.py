@@ -17,7 +17,7 @@ from pytorch_grad_cam import GuidedBackpropReLUModel
 from pytorch_grad_cam.utils.image import show_cam_on_image, \
     preprocess_image
 from pytorch_grad_cam.ablation_layer import AblationLayerVit
-
+from bioclip import TreeOfLifeClassifier
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -83,14 +83,14 @@ if __name__ == '__main__':
     if args.method not in list(methods.keys()):
         raise Exception(f"method should be one of {list(methods.keys())}")
 
-    model = torch.hub.load('facebookresearch/deit:main',
-                           'deit_tiny_patch16_224', pretrained=True)
+    classifier = TreeOfLifeClassifier()
+    model = classifier.model.visual
     model.eval()
 
     if args.use_cuda:
         model = model.cuda()
 
-    target_layers = [model.blocks[-1].norm1]
+    target_layers = [classifier.model.visual.transformer.resblocks[-1].ln_1]
 
     if args.method not in methods:
         raise Exception(f"Method {args.method} not implemented")
