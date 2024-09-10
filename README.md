@@ -222,6 +222,12 @@ Output:
 bioclip --help
 ```
 
+## Additional Documentation
+See [pybioclip wiki documentation](https://github.com/Imageomics/pybioclip/wiki) for additional documentation.
+
+- [Using a custom model](https://github.com/Imageomics/pybioclip/wiki/Using-Other-OpenCLIP-Models)
+
+
 ## License
 
 `pybioclip` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
