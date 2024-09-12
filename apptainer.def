@@ -1,0 +1,8 @@
+Bootstrap: docker
+From: ghcr.io/imageomics/pybioclip:{{ PYBIOCLIP_VERSION }}
+
+%arguments
+    PYBIOCLIP_VERSION=
+
+%runscript
+   exec "$@"
