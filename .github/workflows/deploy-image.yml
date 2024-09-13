@@ -77,9 +77,5 @@ jobs:
       - name: Build an apptainer image
         run: apptainer build --build-arg PYBIOCLIP_VERSION=${{ steps.meta.outputs.version }} apptainer.sif apptainer.def
 
-      - name: create lowercase image name
-        id: lowercase
-        run: echo "LC_IMAGE_NAME=${IMAGE_NAME,,}" >> "$GITHUB_OUTPUT"
-
       - name: Publish apptainer image
-        run: apptainer push apptainer.sif oras://${{ env.REGISTRY }}/${{ steps.lowercase.outputs.LC_IMAGE_NAME  }}-sif:${{ steps.meta.outputs.version }}
+        run: apptainer push apptainer.sif "oras://${{ env.REGISTRY }}/${IMAGE_NAME,,}-sif:${{ steps.meta.outputs.version }}"
