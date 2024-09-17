@@ -225,6 +225,8 @@ bioclip --help
 ## Additional Documentation
 See [pybioclip wiki documentation](https://github.com/Imageomics/pybioclip/wiki) for additional documentation.
 
+- [Using the pybioclip docker container](https://github.com/Imageomics/pybioclip/wiki/Docker-Instructions)
+- [Using the pybioclip apptainer/singularity container](https://github.com/Imageomics/pybioclip/wiki/Apptainer-Singularity-Instructions)
 - [Using a custom model](https://github.com/Imageomics/pybioclip/wiki/Using-Other-OpenCLIP-Models)
 
 
