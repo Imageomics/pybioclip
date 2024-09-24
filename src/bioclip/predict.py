@@ -253,13 +253,39 @@ class CustomLabelsClassifier(BaseClassifier):
             img_probs = probs[image_path]
             if not k or k > len(self.classes):
                 k = len(self.classes)
-            topk = img_probs.topk(k)
-            for i, prob in zip(topk.indices, topk.values):
-                result.append({
-                    PRED_FILENAME_KEY: image_path,
-                    PRED_CLASSICATION_KEY: self.classes[i],
-                    PRED_SCORE_KEY: prob.item()
-                })
+            result.extend(self.group_probs(image_path, img_probs, k))
+        return result
+
+    def group_probs(self, image_path: str, img_probs: torch.Tensor, k: int = None) -> List[dict[str, float]]:
+        result = []
+        topk = img_probs.topk(k)
+        for i, prob in zip(topk.indices, topk.values):
+            result.append({
+                PRED_FILENAME_KEY: image_path,
+                PRED_CLASSICATION_KEY: self.classes[i],
+                PRED_SCORE_KEY: prob.item()
+            })
+        return result
+
+
+class CustomLabelsBinningClassifier(CustomLabelsClassifier):
+    def __init__(self, cls_to_bin: dict, **kwargs):
+        super().__init__(cls_ary=cls_to_bin.keys(), **kwargs)
+        self.cls_to_bin = cls_to_bin
+
+    def group_probs(self, image_path: str, img_probs: torch.Tensor, k: int = None) -> List[dict[str, float]]:
+        result = []
+        output = collections.defaultdict(float)
+        for i in range(len(self.classes)):
+            name = self.cls_to_bin[self.classes[i]]
+            output[name] += img_probs[i]
+        topk_names = heapq.nlargest(k, output, key=output.get)
+        for name in topk_names:
+            result.append({
+                PRED_FILENAME_KEY: image_path,
+                PRED_CLASSICATION_KEY: name,
+                PRED_SCORE_KEY: output[name].item()
+            })
         return result
 
 
