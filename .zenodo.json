@@ -61,7 +61,7 @@
     "references": [
       {
          "reference": "Stevens S, Wu J, Thompson MJ, Campolongo EG, Song CH, Carlyn DE, Dong L, Dahdul WM, Stewart C, Berger-Wolf T, Chao W-L, Su Y (2024) BioCLIP: A Vision Foundation Model for the Tree of Life. Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), 19412\u201319424."
-      },
+      }
     ],
     "related_identifiers": [
       {
