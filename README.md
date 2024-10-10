@@ -141,7 +141,7 @@ Options:
                         rank of the classification, default: species (when)
   --cls CLS             classes to predict: either a comma separated list or a path to a text file of classes (one per line), when specified the
                         --rank and --bins arguments are not allowed.
-  --bins BINS           path to CSV file with two columns with the first being classes and second being bin names, when specified the --cls and
+  --bins BINS           path to CSV file with two columns with the first being classes and second being bin names, when specified the --cls
                         --bins arguments are not allowed.
   --k K                 number of top predictions to show, default: 5
   --device=DEVICE      device to use matrix math (cpu or cuda or mps) [default: cpu]
