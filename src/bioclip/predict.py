@@ -5,6 +5,7 @@ from torchvision import transforms
 import open_clip as oc
 import torch.nn.functional as F
 import numpy as np
+import pandas as pd
 import collections
 import heapq
 import PIL.Image
@@ -272,6 +273,8 @@ class CustomLabelsBinningClassifier(CustomLabelsClassifier):
     def __init__(self, cls_to_bin: dict, **kwargs):
         super().__init__(cls_ary=cls_to_bin.keys(), **kwargs)
         self.cls_to_bin = cls_to_bin
+        if any([pd.isna(x) or not x for x in cls_to_bin.values()]):
+            raise ValueError("Empty, null, or nan are not allowed for bin values.")
 
     def group_probs(self, image_path: str, img_probs: torch.Tensor, k: int = None) -> List[dict[str, float]]:
         result = []

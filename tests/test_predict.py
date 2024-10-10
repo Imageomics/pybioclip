@@ -4,6 +4,7 @@ from bioclip.predict import CustomLabelsClassifier
 from bioclip.predict import CustomLabelsBinningClassifier
 import os
 import torch
+import pandas as pd
 
 
 DIRNAME = os.path.dirname(os.path.realpath(__file__))
@@ -110,6 +111,32 @@ class TestPredict(unittest.TestCase):
         self.assertEqual(prediction_ary[0]['file_name'], EXAMPLE_CAT_IMAGE2)
         names = set([pred['classification'] for pred in prediction_ary])
         self.assertEqual(names, set(['one', 'two', 'three']))
+
+    def test_predict_with_bins_bad_values(self):
+        with self.assertRaises(ValueError) as raised_exceptions:
+            CustomLabelsBinningClassifier(cls_to_bin={
+                'cat': 'one',
+                'mouse': '',
+                'fish': 'two',
+            })
+        self.assertEqual(str(raised_exceptions.exception),
+                         "Empty, null, or nan are not allowed for bin values.")
+        with self.assertRaises(ValueError) as raised_exceptions:
+            CustomLabelsBinningClassifier(cls_to_bin={
+                'cat': 'one',
+                'mouse': None,
+                'fish': 'two',
+            })
+        self.assertEqual(str(raised_exceptions.exception),
+                         "Empty, null, or nan are not allowed for bin values.")
+        with self.assertRaises(ValueError) as raised_exceptions:
+            CustomLabelsBinningClassifier(cls_to_bin={
+                'cat': 'one',
+                'mouse': pd.NA,
+                'fish': 'two',
+            })
+        self.assertEqual(str(raised_exceptions.exception),
+                         "Empty, null, or nan are not allowed for bin values.")
 
 class TestEmbed(unittest.TestCase):
     def test_get_image_features(self):
