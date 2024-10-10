@@ -124,7 +124,7 @@ small 7.165559509303421e-05
 ```
 bioclip predict [-h] [--format {table,csv}] [--output OUTPUT]
                 [--rank {kingdom,phylum,class,order,family,genus,species} | --cls CLS | --bins BINS]
-                [--k K] [--cls CLS] [--device DEVICE] image_file [image_file ...]
+                [--k K] [--device DEVICE] image_file [image_file ...]
 bioclip embed [-h] [--device=DEVICE] [--output=OUTPUT] [IMAGE_FILE...]
 
 Commands:
