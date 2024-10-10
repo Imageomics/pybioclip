@@ -1,4 +1,4 @@
-from bioclip import TreeOfLifeClassifier, Rank, CustomLabelsClassifier
+from bioclip import TreeOfLifeClassifier, Rank, CustomLabelsClassifier, CustomLabelsBinningClassifier
 from .predict import BIOCLIP_MODEL_STR
 import open_clip as oc
 import os
@@ -32,15 +32,30 @@ def write_results_to_file(df, format, outfile):
         raise ValueError(f"Invalid format: {format}")
 
 
+def parse_bins_csv(bins_path):
+    if not os.path.exists(bins_path):
+        raise FileNotFoundError(f"File not found: {bins_path}")
+    bin_df = pd.read_csv(bins_path, index_col=0)
+    if len(bin_df.columns) == 0:
+        raise ValueError("CSV file must have at least two columns.")
+    return bin_df[bin_df.columns[0]].to_dict()
+
+
 def predict(image_file: list[str],
             format: str,
             output: str,
             cls_str: str,
             rank: Rank,
+            bins_path: str,
             k: int,
             **kwargs):
     if cls_str:
         classifier = CustomLabelsClassifier(cls_ary=cls_str.split(','), **kwargs)
+        predictions = classifier.predict(image_paths=image_file, k=k)
+        write_results(predictions, format, output)
+    elif bins_path:
+        cls_to_bin = parse_bins_csv(bins_path)
+        classifier = CustomLabelsBinningClassifier(cls_to_bin=cls_to_bin, **kwargs)
         predictions = classifier.predict(image_paths=image_file, k=k)
         write_results(predictions, format, output)
     else:
@@ -81,11 +96,13 @@ def create_parser():
     predict_parser.add_argument('image_file', nargs='+', help='input image file(s)')
     predict_parser.add_argument('--format', choices=['table', 'csv'], default='csv', help='format of the output, default: csv')
     predict_parser.add_argument('--output', **output_arg)
-    predict_parser.add_argument('--rank', choices=['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'],
+    cls_group = predict_parser.add_mutually_exclusive_group(required=False)
+    cls_group.add_argument('--rank', choices=['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'],
                                 help='rank of the classification, default: species (when)')
+    cls_help = "classes to predict: either a comma separated list or a path to a text file of classes (one per line), when specified the --rank and --bins arguments are not allowed."
+    cls_group.add_argument('--cls', help=cls_help)
+    cls_group.add_argument('--bins', help='path to CSV file with two columns with the first being classes and second being bin names, when specified the --cls argument is not allowed.')
     predict_parser.add_argument('--k', type=int, help='number of top predictions to show, default: 5')
-    cls_help = "classes to predict: either a comma separated list or a path to a text file of classes (one per line), when specified the --rank argument is not allowed."
-    predict_parser.add_argument('--cls', help=cls_help)
 
     predict_parser.add_argument('--device', **device_arg)
     predict_parser.add_argument('--model', **model_arg)
@@ -115,11 +132,7 @@ def create_parser():
 def parse_args(input_args=None):
     args = create_parser().parse_args(input_args)
     if args.command == 'predict':
-        if args.cls:
-            # custom class list mode
-            if args.rank:
-                raise ValueError("Cannot use --cls with --rank")
-        else:
+        if not args.cls and not args.bins:
             # tree of life class list mode
             if args.model or args.pretrained:
                 raise ValueError("Custom model or checkpoints currently not supported for Tree-of-Life prediction")
@@ -155,6 +168,7 @@ def main():
                 output=args.output,
                 cls_str=cls_str,
                 rank=args.rank,
+                bins_path=args.bins,
                 k=args.k,
                 device=args.device,
                 model_str=args.model,
@@ -167,7 +181,7 @@ def main():
             for model_str in oc.list_models():
                 print(f"\t{model_str}")
     else:
-        raise ValueError("Invalid command")
+        create_parser().print_help()
 
 
 if __name__ == '__main__':
