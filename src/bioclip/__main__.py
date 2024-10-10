@@ -101,7 +101,7 @@ def create_parser():
                                 help='rank of the classification, default: species (when)')
     cls_help = "classes to predict: either a comma separated list or a path to a text file of classes (one per line), when specified the --rank and --bins arguments are not allowed."
     cls_group.add_argument('--cls', help=cls_help)
-    cls_group.add_argument('--bins', help='path to CSV file with two columns with the first being classes and second being bin names, when specified the --cls and --bins arguments are not allowed.')
+    cls_group.add_argument('--bins', help='path to CSV file with two columns with the first being classes and second being bin names, when specified the --cls argument is not allowed.')
     predict_parser.add_argument('--k', type=int, help='number of top predictions to show, default: 5')
 
     predict_parser.add_argument('--device', **device_arg)
