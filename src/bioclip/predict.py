@@ -3,6 +3,7 @@ import json
 import torch
 from torchvision import transforms
 import open_clip as oc
+from torch import nn
 import torch.nn.functional as F
 import numpy as np
 import collections
@@ -163,8 +164,9 @@ preprocess_img = transforms.Compose(
 )
 
 
-class BaseClassifier(object):
+class BaseClassifier(nn.Module):
     def __init__(self, model_str: str = BIOCLIP_MODEL_STR, pretrained_str: str | None = None, device: Union[str, torch.device] = 'cpu'):
+        super().__init__()
         self.device = device
         self.load_pretrained_model(model_str=model_str, pretrained_str=pretrained_str)
 
@@ -221,6 +223,12 @@ class BaseClassifier(object):
         for i, key in enumerate(image_paths):
             result[key] = probs[i]
         return result
+
+    def forward(self, x):
+        img_features = self.model.visual(x)
+        img_features = F.normalize(img_features, dim=-1)
+        logits = (self.model.logit_scale.exp() * img_features @ self.txt_features)
+        return F.softmax(logits, dim=1)
 
 
 class CustomLabelsClassifier(BaseClassifier):
