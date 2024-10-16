@@ -5,6 +5,7 @@ from bioclip.predict import CustomLabelsBinningClassifier
 import os
 import torch
 import pandas as pd
+import PIL.Image
 
 
 DIRNAME = os.path.dirname(os.path.realpath(__file__))
@@ -39,6 +40,14 @@ class TestPredict(unittest.TestCase):
     def test_tree_of_life_classifier_species_ary_multiple(self):
         classifier = TreeOfLifeClassifier()
         prediction_ary = classifier.predict(image_paths=[EXAMPLE_CAT_IMAGE, EXAMPLE_CAT_IMAGE2],
+                                            rank=Rank.SPECIES)
+        self.assertEqual(len(prediction_ary), 10)
+
+    def test_tree_of_life_classifier_species_ary_multiple_pil(self):
+        classifier = TreeOfLifeClassifier()
+        img1 = PIL.Image.open(EXAMPLE_CAT_IMAGE)
+        img2 = PIL.Image.open(EXAMPLE_CAT_IMAGE2)
+        prediction_ary = classifier.predict(image_paths=[img1, img2],
                                             rank=Rank.SPECIES)
         self.assertEqual(len(prediction_ary), 10)
 
@@ -81,6 +90,18 @@ class TestPredict(unittest.TestCase):
             {'file_name': EXAMPLE_CAT_IMAGE, 'classification': 'dog', 'score': unittest.mock.ANY},
             {'file_name': EXAMPLE_CAT_IMAGE2, 'classification': 'cat', 'score': unittest.mock.ANY},
             {'file_name': EXAMPLE_CAT_IMAGE2, 'classification': 'dog', 'score': unittest.mock.ANY},
+        ])
+
+    def test_custom_labels_classifier_ary_multiple_pil(self):
+        classifier = CustomLabelsClassifier(cls_ary=['cat', 'dog'])
+        img1 = PIL.Image.open(EXAMPLE_CAT_IMAGE)
+        img2 = PIL.Image.open(EXAMPLE_CAT_IMAGE2)
+        prediction_ary = classifier.predict(image_paths=[img1, img2])
+        self.assertEqual(prediction_ary, [
+            {'file_name': '0', 'classification': 'cat', 'score': unittest.mock.ANY},
+            {'file_name': '0', 'classification': 'dog', 'score': unittest.mock.ANY},
+            {'file_name': '1', 'classification': 'cat', 'score': unittest.mock.ANY},
+            {'file_name': '1', 'classification': 'dog', 'score': unittest.mock.ANY},
         ])
 
     def test_predict_with_rgba_image(self):
@@ -137,6 +158,20 @@ class TestPredict(unittest.TestCase):
             })
         self.assertEqual(str(raised_exceptions.exception),
                          "Empty, null, or nan are not allowed for bin values.")
+
+    def test_predict_with_bins_pil(self):
+        classifier = CustomLabelsBinningClassifier(cls_to_bin={
+            'cat': 'one',
+            'mouse': 'two',
+            'fish': 'two',
+        })
+        img1 = PIL.Image.open(EXAMPLE_CAT_IMAGE)
+        prediction_ary = classifier.predict(image_paths=[img1])
+        self.assertEqual(len(prediction_ary), 2)
+        self.assertEqual(prediction_ary[0]['file_name'], '0')
+        names = set([pred['classification'] for pred in prediction_ary])
+        self.assertEqual(names, set(['one', 'two']))
+
 
 class TestEmbed(unittest.TestCase):
     def test_get_image_features(self):
