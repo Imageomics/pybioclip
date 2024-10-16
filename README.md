@@ -102,9 +102,29 @@ fish 2.932403668845507e-12
 bear 1.0
 ```
 
+### Predict from a list of classes with binning
+```python
+from bioclip import CustomLabelsBinningClassifier
+classifier = CustomLabelsBinningClassifier(cls_to_bin={
+  'dog': 'small',
+  'fish': 'small',
+  'bear': 'big',
+})
+predictions = classifier.predict("Ursus-arctos.jpeg")
+for prediction in predictions:
+   print(prediction["classification"], prediction["score"])
+```
+Output:
+```console
+big 0.99992835521698
+small 7.165559509303421e-05
+```
+
 ## Command Line Usage
 ```
-bioclip predict [-h] [--format {table,csv}] [--output OUTPUT] [--rank {kingdom,phylum,class,order,family,genus,species}] [--k K] [--cls CLS] [--device DEVICE] image_file [image_file ...]
+bioclip predict [-h] [--format {table,csv}] [--output OUTPUT]
+                [--rank {kingdom,phylum,class,order,family,genus,species} | --cls CLS | --bins BINS]
+                [--k K] [--device DEVICE] image_file [image_file ...]
 bioclip embed [-h] [--device=DEVICE] [--output=OUTPUT] [IMAGE_FILE...]
 
 Commands:
@@ -117,9 +137,13 @@ Arguments:
 Options:
   -h --help
   --format=FORMAT      format of the output (table or csv) for predict mode [default: csv]
-  --rank=RANK          rank of the classification (kingdom, phylum, class, order, family, genus, species) [default: species] 
-  --k=K                number of top predictions to show [default: 5]
-  --cls=CLS            classes to predict: either a comma separated list or a path to a text file of classes (one per line), when specified the --rank argument is not allowed.
+  --rank {kingdom,phylum,class,order,family,genus,species}
+                        rank of the classification, default: species (when)
+  --cls CLS             classes to predict: either a comma separated list or a path to a text file of classes (one per line), when specified the
+                        --rank and --bins arguments are not allowed.
+  --bins BINS           path to CSV file with two columns with the first being classes and second being bin names, when specified the --cls
+                        argument is not allowed.
+  --k K                 number of top predictions to show, default: 5
   --device=DEVICE      device to use matrix math (cpu or cuda or mps) [default: cpu]
   --output=OUTFILE     print output to file OUTFILE [default: stdout]
 ```
@@ -193,6 +217,29 @@ file_name,classification,score
 Ursus-arctos.jpeg,cat,4.581644930112816e-08
 Ursus-arctos.jpeg,bird,3.051998476166773e-08
 Ursus-arctos.jpeg,bear,0.9999998807907104                                                                 
+```
+
+### Predict from a binning CSV
+Create predictions for 3 classes (cat, bird, and bear) with 2 bins (one, two) for image `Ursus-arctos.jpeg`:
+
+Create a CSV file named `bins.csv` with the following contents:
+```
+cls,bin
+cat,one
+bird,one
+bear,two
+```
+The names of the columns do not matter. The first column values will be used as the classes. The second column values will be used for bin names.
+
+Run predict command:
+```console
+bioclip predict --bins bins.csv Ursus-arctos.jpeg
+```
+
+Output:
+```
+Ursus-arctos.jpeg,two,0.9999998807907104
+Ursus-arctos.jpeg,one,7.633736487377973e-08
 ```
 
 ### Create embeddings
