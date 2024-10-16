@@ -184,9 +184,19 @@ class BaseClassifier(object):
         self.preprocess = preprocess_img if self.model_str == BIOCLIP_MODEL_STR else preprocess
 
     @staticmethod
-    def open_image(image_path):
-        img = PIL.Image.open(image_path)
+    def ensure_rgb_image(image: str | PIL.Image.Image) -> PIL.Image.Image:
+        if isinstance(image, PIL.Image.Image):
+            img = image
+        else:
+            img = PIL.Image.open(image)
         return img.convert("RGB")
+
+    @staticmethod
+    def make_key(image: str | PIL.Image.Image, idx: int) -> str:
+        if isinstance(image, PIL.Image.Image):
+            return f"{idx}"
+        else:
+            return image
 
     @torch.no_grad()
     def create_image_features(self, images: List[PIL.Image.Image], normalize : bool = True) -> torch.Tensor:
@@ -202,8 +212,8 @@ class BaseClassifier(object):
             return img_features
 
     @torch.no_grad()
-    def create_image_features_for_path(self, image_path: str, normalize: bool) -> torch.Tensor:
-        img = self.open_image(image_path)
+    def create_image_features_for_image(self, image: str | PIL.Image.Image, normalize: bool) -> torch.Tensor:
+        img = self.ensure_rgb_image(image)
         result = self.create_image_features([img], normalize=normalize)
         return result[0]
 
@@ -213,13 +223,14 @@ class BaseClassifier(object):
         logits = (self.model.logit_scale.exp() * img_features @ txt_features)
         return F.softmax(logits, dim=1)
 
-    def create_probabilities_for_image_paths(self, image_paths: List[str] | str,
-                                             txt_features: torch.Tensor) -> dict[str, torch.Tensor]:
-        images = [self.open_image(image_path) for image_path in image_paths]
+    def create_probabilities_for_images(self, images: List[str] | List[PIL.Image.Image],
+                                        txt_features: torch.Tensor) -> dict[str, torch.Tensor]:
+        keys = [self.make_key(image, i) for i,image in enumerate(images)]
+        images = [self.ensure_rgb_image(image) for image in images]
         img_features = self.create_image_features(images)
         probs = self.create_probabilities(img_features, txt_features)
         result = {}
-        for i, key in enumerate(image_paths):
+        for i, key in enumerate(keys):
             result[key] = probs[i]
         return result
 
@@ -245,24 +256,25 @@ class CustomLabelsClassifier(BaseClassifier):
         return all_features
 
     @torch.no_grad()
-    def predict(self, image_paths: List[str] | str, k: int = None) -> dict[str, float]:
-        if isinstance(image_paths, str):
-            image_paths = [image_paths]
-        probs = self.create_probabilities_for_image_paths(image_paths, self.txt_features)
+    def predict(self, images: List[str] | str | List[PIL.Image.Image], k: int = None) -> dict[str, float]:
+        if isinstance(images, str):
+            images = [images]
+        probs = self.create_probabilities_for_images(images, self.txt_features)
         result = []
-        for image_path in image_paths:
-            img_probs = probs[image_path]
+        for i, image in enumerate(images):
+            key = self.make_key(image, i)
+            img_probs = probs[key]
             if not k or k > len(self.classes):
                 k = len(self.classes)
-            result.extend(self.group_probs(image_path, img_probs, k))
+            result.extend(self.group_probs(key, img_probs, k))
         return result
 
-    def group_probs(self, image_path: str, img_probs: torch.Tensor, k: int = None) -> List[dict[str, float]]:
+    def group_probs(self, image_key: str, img_probs: torch.Tensor, k: int = None) -> List[dict[str, float]]:
         result = []
         topk = img_probs.topk(k)
         for i, prob in zip(topk.indices, topk.values):
             result.append({
-                PRED_FILENAME_KEY: image_path,
+                PRED_FILENAME_KEY: image_key,
                 PRED_CLASSICATION_KEY: self.classes[i],
                 PRED_SCORE_KEY: prob.item()
             })
@@ -276,7 +288,7 @@ class CustomLabelsBinningClassifier(CustomLabelsClassifier):
         if any([pd.isna(x) or not x for x in cls_to_bin.values()]):
             raise ValueError("Empty, null, or nan are not allowed for bin values.")
 
-    def group_probs(self, image_path: str, img_probs: torch.Tensor, k: int = None) -> List[dict[str, float]]:
+    def group_probs(self, image_key: str, img_probs: torch.Tensor, k: int = None) -> List[dict[str, float]]:
         result = []
         output = collections.defaultdict(float)
         for i in range(len(self.classes)):
@@ -285,7 +297,7 @@ class CustomLabelsBinningClassifier(CustomLabelsClassifier):
         topk_names = heapq.nlargest(k, output, key=output.get)
         for name in topk_names:
             result.append({
-                PRED_FILENAME_KEY: image_path,
+                PRED_FILENAME_KEY: image_key,
                 PRED_CLASSICATION_KEY: name,
                 PRED_SCORE_KEY: output[name].item()
             })
@@ -335,17 +347,17 @@ class TreeOfLifeClassifier(BaseClassifier):
         self.txt_features = get_txt_emb().to(self.device)
         self.txt_names = get_txt_names()
 
-    def format_species_probs(self, image_path: str, probs: torch.Tensor, k: int = 5) -> List[dict[str, float]]:
+    def format_species_probs(self, image_key: str, probs: torch.Tensor, k: int = 5) -> List[dict[str, float]]:
         topk = probs.topk(k)
         result = []
         for i, prob in zip(topk.indices, topk.values):
-            item = { PRED_FILENAME_KEY: image_path }
+            item = { PRED_FILENAME_KEY: image_key }
             item.update(create_classification_dict(self.txt_names[i], Rank.SPECIES))
             item[PRED_SCORE_KEY] = prob.item()
             result.append(item)
         return result
 
-    def format_grouped_probs(self, image_path: str, probs: torch.Tensor, rank: Rank, min_prob: float = 1e-9, k: int = 5) -> List[dict[str, float]]:
+    def format_grouped_probs(self, image_key: str, probs: torch.Tensor, rank: Rank, min_prob: float = 1e-9, k: int = 5) -> List[dict[str, float]]:
         output = collections.defaultdict(float)
         class_dict_lookup = {}
         name_to_class_dict = {}
@@ -358,27 +370,28 @@ class TreeOfLifeClassifier(BaseClassifier):
         topk_names = heapq.nlargest(k, output, key=output.get)
         prediction_ary = []
         for name in topk_names:
-            item = { PRED_FILENAME_KEY: image_path }
+            item = { PRED_FILENAME_KEY: image_key }
             item.update(name_to_class_dict[name])
             item[PRED_SCORE_KEY] = output[name].item()
             prediction_ary.append(item)
         return prediction_ary
 
     @torch.no_grad()
-    def predict(self, image_paths: List[str] | str, rank: Rank, min_prob: float = 1e-9, k: int = 5) -> dict[str, dict[str, float]]:
-        if isinstance(image_paths, str):
-            image_paths = [image_paths]
-        probs = self.create_probabilities_for_image_paths(image_paths, self.txt_features)
+    def predict(self, images: List[str] | str | List[PIL.Image.Image], rank: Rank, min_prob: float = 1e-9, k: int = 5) -> dict[str, dict[str, float]]:
+        if isinstance(images, str):
+            images = [images]
+        probs = self.create_probabilities_for_images(images, self.txt_features)
         result = []
-        for image_path in image_paths:
+        for i, image in enumerate(images):
+            key = self.make_key(image, i)
             if rank == Rank.SPECIES:
-                result.extend(self.format_species_probs(image_path, probs[image_path], k))
+                result.extend(self.format_species_probs(key, probs[key], k))
             else:
-                result.extend(self.format_grouped_probs(image_path, probs[image_path], rank, min_prob, k))
+                result.extend(self.format_grouped_probs(key, probs[key], rank, min_prob, k))
         return result
 
 
-def predict_classification(img: str, rank: Rank, device: Union[str, torch.device] = 'cpu',
+def predict_classification(img: Union[PIL.Image.Image, str], rank: Rank, device: Union[str, torch.device] = 'cpu',
                            min_prob: float = 1e-9, k: int = 5) -> dict[str, float]:
     """
     Predicts from the entire tree of life.
