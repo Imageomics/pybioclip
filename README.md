@@ -121,7 +121,7 @@ small 7.165559509303421e-05
 ```
 
 ### PIL Images
-The predict() functions used in all the examples above allow passing an list of paths or a list of [PIL Images](https://pillow.readthedocs.io/en/stable/reference/Image.html).
+The predict() functions used in all the examples above allow passing a list of paths or a list of [PIL Images](https://pillow.readthedocs.io/en/stable/reference/Image.html).
 When a list of PIL images is passed the index of the image will be filled in for `file_name`. This is because PIL images may not have an associated file name.
 
 
