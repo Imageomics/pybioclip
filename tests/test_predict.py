@@ -177,5 +177,11 @@ class TestEmbed(unittest.TestCase):
     def test_get_image_features(self):
         classifier = TreeOfLifeClassifier(device='cpu')
         self.assertEqual(classifier.model_str, 'hf-hub:imageomics/bioclip')
-        features = classifier.create_image_features_for_path(EXAMPLE_CAT_IMAGE, normalize=False)
+        features = classifier.create_image_features_for_image(EXAMPLE_CAT_IMAGE, normalize=False)
+        self.assertEqual(features.shape, torch.Size([512]))
+
+    def test_get_image_features_pil(self):
+        classifier = TreeOfLifeClassifier(device='cpu')
+        self.assertEqual(classifier.model_str, 'hf-hub:imageomics/bioclip')
+        features = classifier.create_image_features_for_image(EXAMPLE_CAT_IMAGE, normalize=False)
         self.assertEqual(features.shape, torch.Size([512]))
