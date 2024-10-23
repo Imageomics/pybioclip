@@ -46,6 +46,7 @@ def predict(image_file: list[str],
             output: str,
             cls_str: str,
             rank: Rank,
+            tol_subset: str,
             bins_path: str,
             k: int,
             **kwargs):
@@ -60,6 +61,9 @@ def predict(image_file: list[str],
         write_results(predictions, format, output)
     else:
         classifier = TreeOfLifeClassifier(**kwargs)
+        if tol_subset:
+            subset_df = pd.read_csv(tol_subset)
+            classifier.subset_embeddings(subset_df)
         predictions = classifier.predict(image_paths=image_file, rank=rank, k=k)
         write_results(predictions, format, output)
 
@@ -102,6 +106,7 @@ def create_parser():
     cls_help = "classes to predict: either a comma separated list or a path to a text file of classes (one per line), when specified the --rank and --bins arguments are not allowed."
     cls_group.add_argument('--cls', help=cls_help)
     cls_group.add_argument('--bins', help='path to CSV file with two columns with the first being classes and second being bin names, when specified the --cls argument is not allowed.')
+    predict_parser.add_argument("--tol-subset", help='path to CSV file used to filter TOL embeddings tol-subset, requires --rank argument.')
     predict_parser.add_argument('--k', type=int, help='number of top predictions to show, default: 5')
 
     predict_parser.add_argument('--device', **device_arg)
@@ -163,11 +168,13 @@ def main():
         cls_str = args.cls
         if args.cls and os.path.exists(args.cls):
             cls_str = create_classes_str(args.cls)
+        # TODO raise error for tol-subset with cls or bins
         predict(args.image_file,
                 format=args.format,
                 output=args.output,
                 cls_str=cls_str,
                 rank=args.rank,
+                tol_subset=args.tol_subset,
                 bins_path=args.bins,
                 k=args.k,
                 device=args.device,

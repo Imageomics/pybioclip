@@ -332,15 +332,65 @@ def join_names(classification_dict: dict[str, str]) -> str:
 class TreeOfLifeClassifier(BaseClassifier):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.txt_features = get_txt_emb().to(self.device)
+        self.txt_embeddings = get_txt_emb().to(self.device)
         self.txt_names = get_txt_names()
+        self._subset_embeddings = None
+        self._subset_names = None
+
+    def get_txt_embeddings(self):
+        if self._subset_embeddings is None:
+            return self.txt_embeddings
+        return self._subset_embeddings
+
+    def get_txt_names(self):
+        if self._subset_names is None:
+            return self.txt_names
+        return self._subset_names
+
+    def get_classification_dict(self, idx: int, rank: Rank):
+        name_ary = self.get_txt_names()[idx]
+        return create_classification_dict(name_ary, rank)
+
+    def get_names_dataframe(self):
+        data = []
+        for name_ary in self.get_txt_names():
+            data.append(create_classification_dict(names=name_ary, rank=Rank.SPECIES))
+        return pd.DataFrame(data)
+
+    def _get_join_on(self, names_df: pd.DataFrame, subset_df: pd.DataFrame):
+        tol_columns = set(names_df.columns.tolist())
+        subset_columns = set(subset_df.columns.tolist())
+        common_columns = tol_columns.intersection(subset_columns)
+        if not common_columns:
+            msg = "Missing required columns in subset data.\n"
+            msg += "At least one column from " + ",".join(tol_columns) + " must be present."
+            raise ValueError(msg)
+        return list(common_columns)
+
+    def subset_embeddings(self, subset_df: pd.DataFrame):
+        names_df = self.get_names_dataframe()
+        join_on = self._get_join_on(names_df=names_df, subset_df=subset_df)
+        # Add idx column so we can lookup embeddings after joining
+        names_df['idx'] = names_df.index
+        target_names_df = pd.merge(names_df, subset_df, on=join_on)
+        if target_names_df.empty:
+            raise ValueError("No matching embeddings found for subset data.")
+
+        embeddings = []
+        names = []
+        for idx in target_names_df['idx']:
+            embeddings.append(self.txt_embeddings[:,idx])
+            names.append(self.txt_names[idx])
+
+        self._subset_embeddings = torch.stack(embeddings, dim=1)
+        self._subset_names = names
 
     def format_species_probs(self, image_path: str, probs: torch.Tensor, k: int = 5) -> List[dict[str, float]]:
         topk = probs.topk(k)
         result = []
         for i, prob in zip(topk.indices, topk.values):
             item = { PRED_FILENAME_KEY: image_path }
-            item.update(create_classification_dict(self.txt_names[i], Rank.SPECIES))
+            item.update(self.get_classification_dict(i, Rank.SPECIES))
             item[PRED_SCORE_KEY] = prob.item()
             result.append(item)
         return result
@@ -350,7 +400,7 @@ class TreeOfLifeClassifier(BaseClassifier):
         class_dict_lookup = {}
         name_to_class_dict = {}
         for i in torch.nonzero(probs > min_prob).squeeze():
-            classification_dict = create_classification_dict(self.txt_names[i], rank)
+            classification_dict = self.get_classification_dict(i, rank)
             name = join_names(classification_dict)
             class_dict_lookup[name] = classification_dict
             output[name] += probs[i]
@@ -368,7 +418,7 @@ class TreeOfLifeClassifier(BaseClassifier):
     def predict(self, image_paths: List[str] | str, rank: Rank, min_prob: float = 1e-9, k: int = 5) -> dict[str, dict[str, float]]:
         if isinstance(image_paths, str):
             image_paths = [image_paths]
-        probs = self.create_probabilities_for_image_paths(image_paths, self.txt_features)
+        probs = self.create_probabilities_for_image_paths(image_paths, self.get_txt_embeddings())
         result = []
         for image_path in image_paths:
             if rank == Rank.SPECIES:
