@@ -51,16 +51,16 @@ def predict(image_file: list[str],
             **kwargs):
     if cls_str:
         classifier = CustomLabelsClassifier(cls_ary=cls_str.split(','), **kwargs)
-        predictions = classifier.predict(image_paths=image_file, k=k)
+        predictions = classifier.predict(images=image_file, k=k)
         write_results(predictions, format, output)
     elif bins_path:
         cls_to_bin = parse_bins_csv(bins_path)
         classifier = CustomLabelsBinningClassifier(cls_to_bin=cls_to_bin, **kwargs)
-        predictions = classifier.predict(image_paths=image_file, k=k)
+        predictions = classifier.predict(images=image_file, k=k)
         write_results(predictions, format, output)
     else:
         classifier = TreeOfLifeClassifier(**kwargs)
-        predictions = classifier.predict(image_paths=image_file, rank=rank, k=k)
+        predictions = classifier.predict(images=image_file, rank=rank, k=k)
         write_results(predictions, format, output)
 
 
@@ -72,7 +72,7 @@ def embed(image_file: list[str], output: str, **kwargs):
         "embeddings": images_dict
     }
     for image_path in image_file:
-        features = classifier.create_image_features_for_path(image_path=image_path, normalize=False)
+        features = classifier.create_image_features_for_image(image=image_path, normalize=False)
         images_dict[image_path] = features.tolist()
     if output == 'stdout':
         print(json.dumps(data, indent=4))
