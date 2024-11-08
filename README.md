@@ -127,33 +127,44 @@ When a list of PIL images is passed the index of the image will be filled in for
 
 ## Command Line Usage
 ```
-bioclip predict [-h] [--format {table,csv}] [--output OUTPUT]
-                [--rank {kingdom,phylum,class,order,family,genus,species} | --cls CLS | --bins BINS]
-                [--k K] [--device DEVICE] image_file [image_file ...]
-bioclip embed [-h] [--device=DEVICE] [--output=OUTPUT] [IMAGE_FILE...]
+usage: bioclip [-h] {predict,embed,list-models} ...
 
-Commands:
-    predict            Use BioCLIP to generate predictions for image files.
-    embed              Use BioCLIP to generate embeddings for image files.
+BioCLIP command line interface
 
-Arguments:
-  IMAGE_FILE           input image file
+options:
+  -h, --help            show this help message and exit
 
-Options:
-  -h --help
-  --format=FORMAT      format of the output (table or csv) for predict mode [default: csv]
-  --rank {kingdom,phylum,class,order,family,genus,species}
-                        rank of the classification, default: species (when)
-  --cls CLS             classes to predict: either a comma separated list or a path to a text file of classes (one per line), when specified the
-                        --rank and --bins arguments are not allowed.
-  --bins BINS           path to CSV file with two columns with the first being classes and second being bin names, when specified the --cls
-                        argument is not allowed.
-  --k K                 number of top predictions to show, default: 5
-  --device=DEVICE      device to use matrix math (cpu or cuda or mps) [default: cpu]
-  --output=OUTFILE     print output to file OUTFILE [default: stdout]
+commands:
+  {predict,embed,list-models}
+    predict             Use BioCLIP to generate predictions for image files.
+    embed               Use BioCLIP to generate embeddings for image files.
+    list-models         List available models and pretrained model checkpoints.
 ```
 
 ### Predict classification
+
+```console
+usage: bioclip predict [-h] [--format {table,csv}] [--output OUTPUT] [--rank {kingdom,phylum,class,order,family,genus,species} | --cls CLS | --bins BINS] [--k K] [--device DEVICE] [--model MODEL]
+                       [--pretrained PRETRAINED]
+                       image_file [image_file ...]
+
+positional arguments:
+  image_file            input image file(s)
+
+options:
+  -h, --help            show this help message and exit
+  --format {table,csv}  format of the output, default: csv
+  --output OUTPUT       print output to file, default: stdout
+  --rank {kingdom,phylum,class,order,family,genus,species}
+                        rank of the classification, default: species (when)
+  --cls CLS             classes to predict: either a comma separated list or a path to a text file of classes (one per line), when specified the --rank and --bins arguments are not allowed.        
+  --bins BINS           path to CSV file with two columns with the first being classes and second being bin names, when specified the --cls argument is not allowed.
+  --k K                 number of top predictions to show, default: 5
+  --device DEVICE       device to use (cpu or cuda or mps), default: cpu
+  --model MODEL         model identifier (see command list-models); default: hf-hub:imageomics/bioclip
+  --pretrained PRETRAINED
+                        pretrained model checkpoint as tag or file, depends on model; needed only if more than one is available (see command list-models)
+```
 
 #### Predict species for an image
 The example images used below are [`Ursus-arctos.jpeg`](https://huggingface.co/spaces/imageomics/bioclip-demo/blob/ef075807a55687b320427196ac1662b9383f988f/examples/Ursus-arctos.jpeg) 
@@ -249,6 +260,21 @@ Ursus-arctos.jpeg,one,7.633736487377973e-08
 
 ### Create embeddings
 
+```console
+usage: bioclip embed [-h] [--output OUTPUT] [--device DEVICE] [--model MODEL] [--pretrained PRETRAINED] image_file [image_file ...]
+
+positional arguments:
+  image_file            input image file(s)
+
+options:
+  -h, --help            show this help message and exit
+  --output OUTPUT       print output to file, default: stdout
+  --device DEVICE       device to use (cpu or cuda or mps), default: cpu
+  --model MODEL         model identifier (see command list-models); default: hf-hub:imageomics/bioclip
+  --pretrained PRETRAINED
+                        pretrained model checkpoint as tag or file, depends on model; needed only if more than one is available (see command list-models)
+```
+
 #### Create embedding for an image
 
 ```console
@@ -267,6 +293,19 @@ Output:
         ]
     }
 }
+```
+
+### View available models and pretrained model checkpoints
+
+```console
+usage: bioclip list-models [-h] [--model MODEL]
+
+Note that this will only list models known to open_clip; any model identifier loadable by open_clip, such as from hf-hub, file, etc should also be usable for --model in the embed and predict       
+commands. (The default model hf-hub:imageomics/bioclip is one example.)
+
+options:
+  -h, --help     show this help message and exit
+  --model MODEL  list available tags for pretrained model checkpoint(s) for specified model
 ```
 
 ### View command line help
