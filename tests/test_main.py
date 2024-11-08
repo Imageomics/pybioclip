@@ -1,11 +1,164 @@
 import unittest
-from unittest.mock import mock_open, patch
+from unittest.mock import mock_open, patch, MagicMock
 import argparse
 import pandas as pd
-from bioclip.__main__ import parse_args, Rank, create_classes_str, main, parse_bins_csv
+from enum import Enum
+from bioclip.predict import Rank
+from bioclip.__main__ import parse_args, create_classes_str, main, parse_bins_csv
 
 
 class TestParser(unittest.TestCase):
+
+    def test_parse_args_lazy_import(self):
+        """Test that Rank is only imported when needed"""
+        # Should not import Rank
+        with patch('bioclip.predict.Rank') as mock_rank:
+            args = parse_args(['embed', 'image.jpg'])
+            mock_rank.assert_not_called()
+            
+        # Should not import Rank when using --cls
+        with patch('bioclip.predict.Rank') as mock_rank:
+            args = parse_args(['predict', 'image.jpg', '--cls', 'class1,class2'])
+            mock_rank.assert_not_called()
+
+        # Should not import Rank when using --bins
+        with patch('bioclip.predict.Rank') as mock_rank:
+            args = parse_args(['predict', 'image.jpg', '--bins', 'bins.csv'])
+            mock_rank.assert_not_called()
+
+        # Should import Rank for tree-of-life prediction
+        with patch('bioclip.predict.Rank', Rank) as mock_rank:
+            args = parse_args(['predict', 'image.jpg'])
+            self.assertEqual(args.rank, Rank.SPECIES)
+
+def test_list_models_lazy_import(self):
+    """Test that open_clip is only imported when the list-models command is used"""
+    # Should import open_clip for list-models
+    with patch('bioclip.__main__.open_clip', create=True) as mock_oc:
+        mock_parse_args = MagicMock(return_value=argparse.Namespace(
+            command='list-models',
+            model=None
+        ))
+        with patch('bioclip.__main__.parse_args', mock_parse_args), \
+             patch('builtins.print'):  # prevent actual printing
+            main()
+            mock_oc.list_models.assert_called_once()
+
+    # Should call list_pretrained_tags when model specified 
+    with patch('bioclip.__main__.open_clip', create=True) as mock_oc:
+        mock_parse_args = MagicMock(return_value=argparse.Namespace(
+            command='list-models',
+            model='somemodel'
+        ))
+        with patch('bioclip.__main__.parse_args', mock_parse_args), \
+             patch('builtins.print'):  # prevent actual printing
+            main()
+            mock_oc.list_pretrained_tags_by_model.assert_called_once_with('somemodel')
+
+    def test_predict_lazy_imports(self):
+        """Test that classifier classes are only imported when needed"""
+        # For cls_str path
+        with patch('bioclip.predict.TreeOfLifeClassifier') as mock_tree, \
+            patch('bioclip.predict.CustomLabelsClassifier') as mock_custom, \
+            patch('bioclip.predict.CustomLabelsBinningClassifier') as mock_binning:
+            mock_parse_args = MagicMock(return_value=argparse.Namespace(
+                command='predict',
+                image_file=['image.jpg'],
+                format='csv',
+                output='stdout',
+                cls='cat,dog',
+                bins=None,
+                device='cpu',
+                model=None,
+                pretrained=None,
+                k=5,
+                rank=None
+            ))
+            with patch('bioclip.__main__.parse_args', mock_parse_args):
+                with patch('bioclip.__main__.write_results'):  # Prevent actual write
+                    main()
+                    mock_custom.assert_called()
+                    mock_tree.assert_not_called()
+                    mock_binning.assert_not_called()
+
+        # For bins path
+        with patch('bioclip.predict.TreeOfLifeClassifier') as mock_tree, \
+            patch('bioclip.predict.CustomLabelsClassifier') as mock_custom, \
+            patch('bioclip.predict.CustomLabelsBinningClassifier') as mock_binning:
+            mock_parse_args = MagicMock(return_value=argparse.Namespace(
+                command='predict',
+                image_file=['image.jpg'],
+                format='csv',
+                output='stdout',
+                cls=None,
+                bins='bins.csv',
+                device='cpu',
+                model=None,
+                pretrained=None,
+                k=5,
+                rank=None
+            ))
+            with patch('bioclip.__main__.parse_args', mock_parse_args), \
+                patch('bioclip.__main__.parse_bins_csv', return_value={}), \
+                patch('bioclip.__main__.write_results'):
+                main()
+                mock_binning.assert_called()
+                mock_tree.assert_not_called()
+                mock_custom.assert_not_called()
+
+        # For default (TreeOfLifeClassifier) path
+        with patch('bioclip.predict.TreeOfLifeClassifier') as mock_tree, \
+            patch('bioclip.predict.CustomLabelsClassifier') as mock_custom, \
+            patch('bioclip.predict.CustomLabelsBinningClassifier') as mock_binning:
+            mock_parse_args = MagicMock(return_value=argparse.Namespace(
+                command='predict',
+                image_file=['image.jpg'],
+                format='csv',
+                output='stdout',
+                cls=None,
+                bins=None,
+                device='cpu',
+                model=None,
+                pretrained=None,
+                k=5,
+                rank=Rank.SPECIES
+            ))
+            with patch('bioclip.__main__.parse_args', mock_parse_args), \
+                patch('bioclip.__main__.write_results'):
+                main()
+                mock_tree.assert_called()
+                mock_custom.assert_not_called()
+                mock_binning.assert_not_called()
+
+    def test_embed_lazy_imports(self):
+        """Test that TreeOfLifeClassifier is only imported for embed command"""
+        class MockTensor:
+            def tolist(self):
+                return [1.0, 2.0, 3.0]
+        
+        with patch('bioclip.predict.TreeOfLifeClassifier') as mock_clf:
+            # Mock the classifier instance
+            mock_clf_instance = MagicMock()
+            mock_clf.return_value = mock_clf_instance
+            
+            # Make create_image_features_for_image return our mock tensor
+            mock_clf_instance.create_image_features_for_image.return_value = MockTensor()
+            mock_clf_instance.model_str = "test-model"
+            
+            mock_parse_args = MagicMock(return_value=argparse.Namespace(
+                command='embed',
+                image_file=['image.jpg'],
+                output='stdout',
+                device='cpu',
+                model=None,
+                pretrained=None
+            ))
+            with patch('bioclip.__main__.parse_args', mock_parse_args), \
+                patch('builtins.print'):  # prevent actual printing to stdout
+                main()
+                mock_clf.assert_called_once()
+                mock_clf_instance.create_image_features_for_image.assert_called_once()
+
     def test_parse_args(self):
 
         args = parse_args(['predict', 'image.jpg'])
