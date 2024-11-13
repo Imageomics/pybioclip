@@ -297,6 +297,10 @@ Output:
 
 ### View available models and pretrained model checkpoints
 
+Besides the default BioCLIP model, it is possible to use other OpenCLIP models with pybioclip. 
+
+See this wiki page for more information on [using other OpenCLIP models](https://github.com/Imageomics/pybioclip/wiki/Using-Other-OpenCLIP-Models).
+
 ```console
 usage: bioclip list-models [-h] [--model MODEL]
 
