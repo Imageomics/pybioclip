@@ -344,15 +344,64 @@ def join_names(classification_dict: dict[str, str]) -> str:
 class TreeOfLifeClassifier(BaseClassifier):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.txt_features = get_txt_emb().to(self.device)
+        self.txt_embeddings = get_txt_emb().to(self.device)
         self.txt_names = get_txt_names()
+        self._subset_txt_embeddings = None
+        self._subset_txt_names = None
+
+    def get_txt_embeddings(self):
+        if self._subset_txt_embeddings is None:
+            return self.txt_embeddings
+        return self._subset_txt_embeddings
+
+    def get_current_txt_names(self):
+        if self._subset_txt_names is None:
+            return self.txt_names
+        return self._subset_txt_names
+
+    def get_classification_dict(self, idx: int, rank: Rank):
+        name_ary = self.get_current_txt_names()[idx]
+        return create_classification_dict(name_ary, rank)
+
+    def get_label_data(self):
+        data = []
+        for name_ary in self.txt_names:
+            data.append(create_classification_dict(names=name_ary, rank=Rank.SPECIES))
+        return pd.DataFrame(data, copy=True)
+    
+    def create_taxa_filter(self, rank: Rank, user_values: List[str]):
+        taxa_column = rank.get_label()
+        label_data = self.get_label_data()
+
+        # Ensure all user values exist
+        pd_user_values = pd.Series(user_values, name=taxa_column)
+        unknown_values = pd_user_values[~pd_user_values.isin(label_data[taxa_column])]
+        if not unknown_values.empty:
+            bad_species = ", ".join(unknown_values.values)
+            raise ValueError(f"Unknown {taxa_column} received: {bad_species}. Only known {taxa_column} may be used.")
+
+        return label_data[taxa_column].isin(pd_user_values)
+
+    def apply_filter(self, keep_labels_ary: List[bool]):
+        if len(keep_labels_ary) != len(self.txt_names):
+            expected = len(self.txt_names)
+            raise ValueError("Invalid keep_embeddings values. " + 
+                             f"This parameter should be a list containing {expected} items.")
+        embeddings = []
+        names = []
+        for idx, keep in enumerate(keep_labels_ary):
+            if keep:
+                embeddings.append(self.txt_embeddings[:,idx])
+                names.append(self.txt_names[idx])
+        self._subset_txt_embeddings = torch.stack(embeddings, dim=1)
+        self._subset_txt_names = names
 
     def format_species_probs(self, image_key: str, probs: torch.Tensor, k: int = 5) -> List[dict[str, float]]:
         topk = probs.topk(k)
         result = []
         for i, prob in zip(topk.indices, topk.values):
             item = { PRED_FILENAME_KEY: image_key }
-            item.update(create_classification_dict(self.txt_names[i], Rank.SPECIES))
+            item.update(self.get_classification_dict(i, Rank.SPECIES))
             item[PRED_SCORE_KEY] = prob.item()
             result.append(item)
         return result
@@ -362,7 +411,7 @@ class TreeOfLifeClassifier(BaseClassifier):
         class_dict_lookup = {}
         name_to_class_dict = {}
         for i in torch.nonzero(probs > min_prob).squeeze():
-            classification_dict = create_classification_dict(self.txt_names[i], rank)
+            classification_dict = self.get_classification_dict(i, rank)
             name = join_names(classification_dict)
             class_dict_lookup[name] = classification_dict
             output[name] += probs[i]
@@ -380,7 +429,7 @@ class TreeOfLifeClassifier(BaseClassifier):
     def predict(self, images: List[str] | str | List[PIL.Image.Image], rank: Rank, min_prob: float = 1e-9, k: int = 5) -> dict[str, dict[str, float]]:
         if isinstance(images, str):
             images = [images]
-        probs = self.create_probabilities_for_images(images, self.txt_features)
+        probs = self.create_probabilities_for_images(images, self.get_txt_embeddings())
         result = []
         for i, image in enumerate(images):
             key = self.make_key(image, i)

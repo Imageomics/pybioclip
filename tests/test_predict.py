@@ -172,6 +172,43 @@ class TestPredict(unittest.TestCase):
         names = set([pred['classification'] for pred in prediction_ary])
         self.assertEqual(names, set(['one', 'two']))
 
+    def test_get_label_data(self):
+        classifier = TreeOfLifeClassifier()
+        df = classifier.get_label_data()
+        self.assertEqual(list(df.columns), ['kingdom', 'phylum', 'class', 'order', 'family', 'genus',
+                                            'species_epithet', 'species','common_name'])
+
+    def test_create_taxa_filter(self):
+        classifier = TreeOfLifeClassifier()
+        taxa_filter = classifier.create_taxa_filter(
+            Rank.SPECIES,
+            user_values=['Ursus arctos', 'Ursus arctos bruinosus']
+        )
+        self.assertEqual(len(taxa_filter), len(classifier.txt_names))
+        # Should have two embeddings since we asked for two species
+        self.assertEqual(sum(taxa_filter), 2)
+
+        # Should raise exception for bogus taxa values
+        with self.assertRaises(ValueError) as raised_ex:
+            classifier.create_taxa_filter(
+                Rank.SPECIES,
+                user_values=['Ursus arctos', 'Ursus fakespeciesname']
+            )
+        self.assertEqual(str(raised_ex.exception),
+                         "Unknown species received: Ursus fakespeciesname. Only known species may be used.")
+
+    def test_apply_filter(self):
+        classifier = TreeOfLifeClassifier()
+        # Ensure an error is raised if there are too few boolean values in the array
+        with self.assertRaises(ValueError) as raised_ex:
+            classifier.apply_filter([False, True])
+
+        # Test that if we filter a single species we get one embedding
+        taxon_filter = classifier.get_label_data().species == 'Ursus arctos'
+        classifier.apply_filter(taxon_filter)
+        self.assertEqual(classifier.get_txt_embeddings().shape, torch.Size([512, 1]))
+        self.assertEqual(len(classifier.get_current_txt_names()), 1)
+
 
 class TestEmbed(unittest.TestCase):
     def test_get_image_features(self):
