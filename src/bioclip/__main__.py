@@ -1,5 +1,5 @@
 from bioclip import TreeOfLifeClassifier, Rank, CustomLabelsClassifier, CustomLabelsBinningClassifier
-from .predict import BIOCLIP_MODEL_STR
+from .predict import BIOCLIP_MODEL_STR, get_rank_labels
 import open_clip as oc
 import os
 import json
@@ -48,6 +48,7 @@ def predict(image_file: list[str],
             rank: Rank,
             bins_path: str,
             k: int,
+            subset: str,
             **kwargs):
     if cls_str:
         classifier = CustomLabelsClassifier(cls_ary=cls_str.split(','), **kwargs)
@@ -60,6 +61,9 @@ def predict(image_file: list[str],
         write_results(predictions, format, output)
     else:
         classifier = TreeOfLifeClassifier(**kwargs)
+        if subset:
+            filter = classifier.create_taxa_filter_from_csv(subset)
+            classifier.apply_filter(filter)
         predictions = classifier.predict(images=image_file, rank=rank, k=k)
         write_results(predictions, format, output)
 
@@ -98,10 +102,13 @@ def create_parser():
     predict_parser.add_argument('--output', **output_arg)
     cls_group = predict_parser.add_mutually_exclusive_group(required=False)
     cls_group.add_argument('--rank', choices=['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'],
-                                help='rank of the classification, default: species (when)')
-    cls_help = "classes to predict: either a comma separated list or a path to a text file of classes (one per line), when specified the --rank and --bins arguments are not allowed."
+                                help='rank of the classification, default: species, when specified the --cls, --bins, and --subset arguments are not allowed.')
+    cls_help = "classes to predict: either a comma separated list or a path to a text file of classes (one per line), when specified the --rank, --bins, and --subset arguments are not allowed."
     cls_group.add_argument('--cls', help=cls_help)
-    cls_group.add_argument('--bins', help='path to CSV file with two columns with the first being classes and second being bin names, when specified the --cls argument is not allowed.')
+    cls_group.add_argument('--bins', help='path to CSV file with two columns with the first being classes and second being bin names, when specified the --rank, --cls, and --subset arguments are not allowed.')
+    subset_labels = ','.join(get_rank_labels())
+    SUBSET_HELP = f"path to CSV file used to subset the tree of life embeddings. CSV first column must be named one of {subset_labels}. When specified the --rank, --bins, and --cls arguments are not allowed."
+    cls_group.add_argument('--subset', help=SUBSET_HELP)
     predict_parser.add_argument('--k', type=int, help='number of top predictions to show, default: 5')
 
     predict_parser.add_argument('--device', **device_arg)
@@ -125,6 +132,9 @@ def create_parser():
                                              'should also be usable for --model in the embed and predict commands. '
                                              f'(The default model {BIOCLIP_MODEL_STR} is one example.)')
     list_parser.add_argument('--model', help='list available tags for pretrained model checkpoint(s) for specified model')
+
+    # List TOL taxa command
+    subparsers.add_parser('list-tol-taxa', help='Print a CSV of the taxa embedding labels included with the tree of life model to the terminal.')
 
     return parser
 
@@ -175,7 +185,8 @@ def main():
                 k=args.k,
                 device=args.device,
                 model_str=args.model,
-                pretrained_str=args.pretrained)
+                pretrained_str=args.pretrained,
+                subset=args.subset)
     elif args.command == 'list-models':
         if args.model:
             for tag in oc.list_pretrained_tags_by_model(args.model):
@@ -183,6 +194,11 @@ def main():
         else:
             for model_str in oc.list_models():
                 print(f"\t{model_str}")
+    elif args.command == 'list-tol-taxa':
+        classifier = TreeOfLifeClassifier()
+        df = classifier.get_label_data()
+        # Removing newline from print since to_csv already adds one
+        print(df.to_csv(index=False), end='')
     else:
         create_parser().print_help()
 
