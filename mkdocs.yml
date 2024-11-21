@@ -1,0 +1,37 @@
+site_name: pybioclip
+repo_url: https://github.com/Imageomics/pybioclip
+nav:
+   - Home: index.md
+   - Command Line Usage:
+     - Tutorial: command-line-tutorial.md
+     - Help: command-line-help.md
+   - Python Usage:
+     - Tutorial: python-tutorial.md   
+     - API: python-api.md
+   - Containers:
+     - Docker: docker.md
+     - Apptainer/Singularity: apptainer.md
+   - Acknowledgments: acknowledgments.md
+theme: 
+  name: material
+  features:
+  - navigation.tabs
+  - navigation.tabs.sticky
+  - content.code.copy
+  - content.code.annotate
+
+plugins:
+- search
+- mkdocstrings:
+    handlers:
+      python:
+        paths: [src]  # search packages in the src folder
+        options:
+          docstring_style: google
+          merge_init_into_class: true
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.superfences
+extra_css:
+- css/mkdocstrings.css

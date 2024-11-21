@@ -129,6 +129,7 @@ def get_txt_names():
 
 
 class Rank(Enum):
+    """Rank for the Tree of Life classification."""
     KINGDOM = 0
     PHYLUM = 1
     CLASS = 2
@@ -166,6 +167,15 @@ preprocess_img = transforms.Compose(
 
 class BaseClassifier(object):
     def __init__(self, model_str: str = BIOCLIP_MODEL_STR, pretrained_str: str | None = None, device: Union[str, torch.device] = 'cpu'):
+        """
+        Initializes the prediction model.
+
+        Parameters:
+            model_str (str): The string identifier for the model to be used.
+            pretrained_str (str, optional): The string identifier for the pretrained model to be loaded.
+            device (Union[str, torch.device]): The device on which the model will be run.
+        """
+        
         self.device = device
         self.load_pretrained_model(model_str=model_str, pretrained_str=pretrained_str)
 
@@ -236,7 +246,17 @@ class BaseClassifier(object):
 
 
 class CustomLabelsClassifier(BaseClassifier):
+    """
+    A classifier that predicts from a list of custom labels for images.
+    """
+
     def __init__(self, cls_ary: List[str], **kwargs):
+        """
+        Initializes the classifier with the given class array and additional keyword arguments.
+
+        Parameters:
+            cls_ary (List[str]): A list of class names as strings.
+        """
         super().__init__(**kwargs)
         self.tokenizer = create_bioclip_tokenizer(self.model_str)
         self.classes = [cls.strip() for cls in cls_ary]
@@ -257,6 +277,16 @@ class CustomLabelsClassifier(BaseClassifier):
 
     @torch.no_grad()
     def predict(self, images: List[str] | str | List[PIL.Image.Image], k: int = None) -> dict[str, float]:
+        """
+        Predicts the probabilities for the given images.
+
+        Parameters:
+            images (List[str] | str | List[PIL.Image.Image]): A list of image file paths, a single image file path, or a list of PIL Image objects.
+            k (int, optional): The number of top probabilities to return. If not specified or if greater than the number of classes, all probabilities are returned.
+
+        Returns:
+            List[dict]: A list of dicts with keys "file_name" and the custom class labels.
+        """
         if isinstance(images, str):
             images = [images]
         probs = self.create_probabilities_for_images(images, self.txt_features)
@@ -282,7 +312,21 @@ class CustomLabelsClassifier(BaseClassifier):
 
 
 class CustomLabelsBinningClassifier(CustomLabelsClassifier):
+    """
+    A classifier that creates predictions for images based on custom labels, groups the labels, and calculates probabilities for each group.
+    """
+
     def __init__(self, cls_to_bin: dict, **kwargs):
+        """
+        Initializes the class with a dictionary mapping class labels to binary values.
+
+        Args:
+            cls_to_bin (dict): A dictionary where keys are class labels and values are binary values.
+            **kwargs: Additional keyword arguments passed to the superclass initializer.
+
+        Raises:
+            ValueError: If any value in `cls_to_bin` is empty, null, or NaN.
+        """
         super().__init__(cls_ary=cls_to_bin.keys(), **kwargs)
         self.cls_to_bin = cls_to_bin
         if any([pd.isna(x) or not x for x in cls_to_bin.values()]):
@@ -342,7 +386,13 @@ def join_names(classification_dict: dict[str, str]) -> str:
 
 
 class TreeOfLifeClassifier(BaseClassifier):
+    """
+    A classifier for predicting taxonomic ranks for images.
+    """
     def __init__(self, **kwargs):
+        """
+        See `BaseClassifier` for details on `**kwargs`.
+        """
         super().__init__(**kwargs)
         self.txt_embeddings = get_txt_emb().to(self.device)
         self.txt_names = get_txt_names()
@@ -363,13 +413,36 @@ class TreeOfLifeClassifier(BaseClassifier):
         name_ary = self.get_current_txt_names()[idx]
         return create_classification_dict(name_ary, rank)
 
-    def get_label_data(self):
+    def get_label_data(self) -> pd.DataFrame:
+        """
+        Retrieves label data for the tree of life embeddings as a pandas DataFrame.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing label data for TOL embeddings.
+        """
+
         data = []
         for name_ary in self.txt_names:
             data.append(create_classification_dict(names=name_ary, rank=Rank.SPECIES))
         return pd.DataFrame(data, copy=True)
     
-    def create_taxa_filter(self, rank: Rank, user_values: List[str]):
+    def create_taxa_filter(self, rank: Rank, user_values: List[str]) -> List[bool]:
+        """
+        Creates a filter for taxa based on the specified rank and user-provided values.
+        
+        Args:
+            rank (Rank): The taxonomic rank to filter by.
+            user_values (List[str]): A list of user-provided values to filter the taxa.
+
+        Returns:
+            List[bool]: A list of boolean values indicating whether each entry in the 
+                        label data matches any of the user-provided values.
+
+        Raises:
+            ValueError: If any of the user-provided values are not found in the label data 
+                        for the specified taxonomic rank.
+        """
+
         taxa_column = rank.get_label()
         label_data = self.get_label_data()
 
@@ -383,6 +456,17 @@ class TreeOfLifeClassifier(BaseClassifier):
         return label_data[taxa_column].isin(pd_user_values)
 
     def apply_filter(self, keep_labels_ary: List[bool]):
+        """
+        Filters the TOL embeddings based on the provided boolean array. See `create_taxa_filter()` for an easy way to create this parameter.
+
+        Args:
+            keep_labels_ary (List[bool]): A list of boolean values indicating which 
+                                          TOL embeddings to keep.
+
+        Raises:
+            ValueError: If the length of keep_labels_ary does not match the expected length.
+        """
+
         if len(keep_labels_ary) != len(self.txt_names):
             expected = len(self.txt_names)
             raise ValueError("Invalid keep_embeddings values. " + 
@@ -427,6 +511,19 @@ class TreeOfLifeClassifier(BaseClassifier):
 
     @torch.no_grad()
     def predict(self, images: List[str] | str | List[PIL.Image.Image], rank: Rank, min_prob: float = 1e-9, k: int = 5) -> dict[str, dict[str, float]]:
+        """
+        Predicts probabilities for supplied taxa rank for given images using the Tree of Life embeddings.
+
+        Parameters:
+            images (List[str] | str | List[PIL.Image.Image]): A list of image file paths, a single image file path, or a list of PIL Image objects.
+            rank (Rank): The rank at which to make predictions (e.g., species, genus).
+            min_prob (float, optional): The minimum probability threshold for predictions.
+            k (int, optional): The number of top predictions to return.
+
+        Returns:
+            List[dict]: A list of dicts with keys "file_name", taxon ranks, "common_name", and "score".
+        """
+
         if isinstance(images, str):
             images = [images]
         probs = self.create_probabilities_for_images(images, self.get_txt_embeddings())
