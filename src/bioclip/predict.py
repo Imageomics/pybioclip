@@ -236,11 +236,39 @@ class BaseClassifier(object):
 
 
 class CustomLabelsClassifier(BaseClassifier):
-    def __init__(self, cls_ary: List[str], **kwargs):
+    def __init__(self, cls_ary: List[str] = None, embeddings_path: str = None, **kwargs):
         super().__init__(**kwargs)
         self.tokenizer = create_bioclip_tokenizer(self.model_str)
-        self.classes = [cls.strip() for cls in cls_ary]
-        self.txt_features = self._get_txt_features(self.classes)
+        if embeddings_path:
+            if cls_ary: raise ValueError("Cannot provide both cls_ary and embeddings_path.")
+            self.load_embeddings(embeddings_path)
+        else:
+            if not cls_ary: raise ValueError("Must provide cls_ary or embeddings_path.")
+            self.classes = [cls.strip() for cls in cls_ary]
+            self.txt_features = self._get_txt_features(self.classes)
+
+    def save_embeddings(self, path: str):
+        """
+        Save the class labels and text features to a file numpy file.
+        Parameters:
+        path (str): The file path where the class labels and embeddings will be saved.
+        """
+        with open(path, 'wb') as outfile:
+            np.save(outfile, np.array(self.classes))
+            np.save(outfile, self.txt_features.cpu().numpy())
+
+    def load_embeddings(self, path: str):
+        """
+        Load embeddings and class labels from a numpy file created with save_embeddings.
+        Args:
+            path (str): The file path to the numpy embeddings file to load.
+        Raises:
+            FileNotFoundError: If the specified file does not exist.
+            IOError: If there is an error reading the file.
+        """
+        with open(path, 'rb') as infile:
+            self.classes = np.load(infile).tolist()
+            self.txt_features = torch.from_numpy(np.load(infile)).to(self.device)
 
     @torch.no_grad()
     def _get_txt_features(self, classnames):

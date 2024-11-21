@@ -209,6 +209,16 @@ class TestPredict(unittest.TestCase):
         self.assertEqual(classifier.get_txt_embeddings().shape, torch.Size([512, 1]))
         self.assertEqual(len(classifier.get_current_txt_names()), 1)
 
+    def test_save_load_embeddings(self):
+        classifier = CustomLabelsClassifier(cls_ary=['dog','cat','fish'])
+        num_labels = len(classifier.classes)
+        feature_shape = classifier.txt_features.shape
+        classifier.save_embeddings('/tmp/test_embeddings.npy')
+        classifier = CustomLabelsClassifier(embeddings_path='/tmp/test_embeddings.npy')
+        self.assertEqual(len(classifier.classes), num_labels)
+        self.assertEqual(classifier.txt_features.shape, feature_shape)
+        classifier.predict(images=[EXAMPLE_CAT_IMAGE2])
+
 
 class TestEmbed(unittest.TestCase):
     def test_get_image_features(self):
