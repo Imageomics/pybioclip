@@ -152,6 +152,9 @@ def create_classes_str(cls_file_path):
 
 
 def main():
+    # Prevent UnicodeEncodeError on Windows
+    if sys.platform == 'win32':
+        sys.stdout.reconfigure(encoding='utf-8')
     args = parse_args()
     if args.command == 'embed':
         embed(args.image_file,
