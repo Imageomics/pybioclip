@@ -34,8 +34,16 @@ dependencies = [
   'pandas',
 ]
 
+[project.optional-dependencies]
+docs = [
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocs-material-extensions",
+    "mkdocstrings-python"
+]
+
 [project.urls]
-Documentation = "https://github.com/Imageomics/pybioclip#readme"
+Documentation = "https://imageomics.github.io/pybioclip/"
 Issues = "https://github.com/Imageomics/pybioclip/issues"
 Source = "https://github.com/Imageomics/pybioclip"
 
