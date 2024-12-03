@@ -1,6 +1,3 @@
-from bioclip import TreeOfLifeClassifier, Rank, CustomLabelsClassifier, CustomLabelsBinningClassifier
-from .predict import BIOCLIP_MODEL_STR
-import open_clip as oc
 import os
 import json
 import sys
@@ -8,6 +5,7 @@ import prettytable as pt
 import pandas as pd
 import argparse
 
+DEFAULT_MODEL_STR = "hf-hub:imageomics/bioclip"
 
 def write_results(data, format, output):
     df = pd.DataFrame(data)
@@ -45,10 +43,16 @@ def predict(image_file: list[str],
             format: str,
             output: str,
             cls_str: str,
-            rank: Rank,
+            rank: "Rank",
             bins_path: str,
             k: int,
             **kwargs):
+    from bioclip.predict import (
+        TreeOfLifeClassifier, 
+        CustomLabelsClassifier, 
+        CustomLabelsBinningClassifier,
+        Rank
+        )
     if cls_str:
         classifier = CustomLabelsClassifier(cls_ary=cls_str.split(','), **kwargs)
         predictions = classifier.predict(images=image_file, k=k)
@@ -65,6 +69,7 @@ def predict(image_file: list[str],
 
 
 def embed(image_file: list[str], output: str, **kwargs):
+    from bioclip.predict import TreeOfLifeClassifier
     classifier = TreeOfLifeClassifier(**kwargs)
     images_dict = {}
     data = {
@@ -87,7 +92,7 @@ def create_parser():
 
     device_arg = {'default':'cpu', 'help': 'device to use (cpu or cuda or mps), default: cpu'}
     output_arg = {'default': 'stdout', 'help': 'print output to file, default: stdout'}
-    model_arg = {'help': f'model identifier (see command list-models); default: {BIOCLIP_MODEL_STR}'}
+    model_arg = {'help': f'model identifier (see command list-models); default: {DEFAULT_MODEL_STR}'}
     pretrained_arg = {'help': 'pretrained model checkpoint as tag or file, depends on model; '
                               'needed only if more than one is available (see command list-models)'}
 
@@ -98,7 +103,7 @@ def create_parser():
     predict_parser.add_argument('--output', **output_arg)
     cls_group = predict_parser.add_mutually_exclusive_group(required=False)
     cls_group.add_argument('--rank', choices=['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'],
-                                help='rank of the classification, default: species (when)')
+                                help='rank of the classification, default: species')
     cls_help = "classes to predict: either a comma separated list or a path to a text file of classes (one per line), when specified the --rank and --bins arguments are not allowed."
     cls_group.add_argument('--cls', help=cls_help)
     cls_group.add_argument('--bins', help='path to CSV file with two columns with the first being classes and second being bin names, when specified the --cls argument is not allowed.')
@@ -123,7 +128,7 @@ def create_parser():
                                              'Note that this will only list models known to open_clip; '
                                              'any model identifier loadable by open_clip, such as from hf-hub, file, etc '
                                              'should also be usable for --model in the embed and predict commands. '
-                                             f'(The default model {BIOCLIP_MODEL_STR} is one example.)')
+                                             f'(The default model {DEFAULT_MODEL_STR} is one example.)')
     list_parser.add_argument('--model', help='list available tags for pretrained model checkpoint(s) for specified model')
 
     return parser
@@ -136,8 +141,12 @@ def parse_args(input_args=None):
             # tree of life class list mode
             if args.model or args.pretrained:
                 raise ValueError("Custom model or checkpoints currently not supported for Tree-of-Life prediction")
-            if not args.rank:
-                args.rank = 'species'
+            
+            # Set default rank if not provided
+            args.rank = args.rank or 'species'
+
+            from bioclip.predict import Rank
+
             args.rank = Rank[args.rank.upper()]
             if not args.k:
                 args.k = 5
@@ -174,6 +183,7 @@ def main():
                 model_str=args.model,
                 pretrained_str=args.pretrained)
     elif args.command == 'list-models':
+        import open_clip as oc
         if args.model:
             for tag in oc.list_pretrained_tags_by_model(args.model):
                 print(tag)
