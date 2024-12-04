@@ -465,6 +465,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#predict-using-a-tol-subset" class="md-nav__link">
+    <span class="md-ellipsis">
+      Predict using a TOL subset
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -839,6 +848,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#predict-using-a-tol-subset" class="md-nav__link">
+    <span class="md-ellipsis">
+      Predict using a TOL subset
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -991,6 +1009,26 @@ Felis-catus.jpeg,Animalia,Chordata,Mammalia,Carnivora,Felidae,Felis,bieti,Felis 
 | Ursus-arctos.jpeg | Animalia | Chordata | Mammalia | Artiodactyla | Cervidae | Cervus | 0.00032594642834737897 |
 | Ursus-arctos.jpeg | Animalia | Chordata | Mammalia | Artiodactyla | Cervidae | Alces  | 7.803700282238424e-05  |
 +-------------------+----------+----------+----------+--------------+----------+--------+------------------------+
+</code></pre></div></p>
+<div class="admonition info">
+<p class="admonition-title">Documentation</p>
+<p>The <a href="../command-line-help/#bioclip-predict">bioclip predict documentation</a> describes all arguments supported by <code>bioclip predict</code> command.</p>
+</div>
+<h3 id="predict-using-a-tol-subset">Predict using a TOL subset</h3>
+<p>The <code>predict</code> command has support for a <code>--subset &lt;csv-path&gt;</code> argument. The first column in the CSV file must be named kingdom, phylum, class, order, family, genus, or species. The values must match the TOL labels otherwise an error occurs. See the <a href="../command-line-help/#bioclip-list-tol-taxa">bioclip list-tol-taxa</a> command to create a CSV of TOL labels.</p>
+<p>In this example we create a CSV to subset TOL to two orders.
+Create a CSV named <code>orders.csv</code> with the following content:
+<div class="highlight"><pre><span></span><code>order
+Artiodactyla
+Rodentia
+</code></pre></div></p>
+<div class="highlight"><pre><span></span><code><span class="go">bioclip predict --subset orders.csv Ursus-arctos.jpeg</span>
+</code></pre></div>
+<p>Output:
+<div class="highlight"><pre><span></span><code>file_name,kingdom,phylum,class,order,family,genus,species_epithet,species,common_name,score
+Ursus-arctos.jpeg,Animalia,Chordata,Mammalia,Artiodactyla,Cervidae,Cervus,canadensis sibericus,Cervus canadensis sibericus,,0.7347981333732605
+Ursus-arctos.jpeg,Animalia,Chordata,Mammalia,Artiodactyla,Cervidae,Alces,alces,Alces alces,European elk,0.17302176356315613
+...
 </code></pre></div></p>
 <div class="admonition info">
 <p class="admonition-title">Documentation</p>
