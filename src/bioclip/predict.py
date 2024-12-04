@@ -143,6 +143,15 @@ class Rank(Enum):
         return self.name.lower()
 
 
+def get_rank_labels() -> List[str]:
+    """
+    Retrieve a list of labels for the items in Rank.
+    Returns:
+        list: A list of labels corresponding to each rank in the Rank.
+    """
+    return [rank.get_label() for rank in Rank]
+
+
 # The datafile of names ('txt_emb_species.json') contains species epithet.
 # To create a label for species we concatenate the genus and species epithet.
 SPECIES_LABEL = Rank.SPECIES.get_label()
@@ -466,6 +475,30 @@ class TreeOfLifeClassifier(BaseClassifier):
             raise ValueError(f"Unknown {taxa_column} received: {bad_species}. Only known {taxa_column} may be used.")
 
         return label_data[taxa_column].isin(pd_user_values)
+
+    def create_taxa_filter_from_csv(self, csv_path: str):
+        """
+        Creates a taxa filter from a CSV file.
+        This method reads a CSV file, validates the name of the first column
+        against allowed rank labels, and creates a taxa filter based on the
+        values in that column.
+        Args:
+            csv_path (str): The file path to the CSV file.
+        Returns:
+            A taxa filter object created using the specified rank and values
+            from the CSV file.
+        Raises:
+            ValueError: If the first column name of the CSV file is not one of
+            the allowed rank labels.
+        """
+        df = pd.read_csv(csv_path)
+        column_name = str(df.columns[0]).lower()
+        allowed_column_names = get_rank_labels()
+        if column_name not in allowed_column_names:
+            columns = ','.join(allowed_column_names)
+            raise ValueError(f"The first column of {csv_path} is named '{column_name}' but must be one of {columns}.")
+        filter_rank = Rank[column_name.upper()]
+        return self.create_taxa_filter(filter_rank, df[column_name].values)
 
     def apply_filter(self, keep_labels_ary: List[bool]):
         """

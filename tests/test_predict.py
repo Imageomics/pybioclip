@@ -1,5 +1,6 @@
 import unittest
-from bioclip.predict import TreeOfLifeClassifier, Rank
+from unittest.mock import patch, mock_open
+from bioclip.predict import TreeOfLifeClassifier, Rank, get_rank_labels
 from bioclip.predict import CustomLabelsClassifier
 from bioclip.predict import CustomLabelsBinningClassifier
 import os
@@ -215,6 +216,25 @@ class TestPredict(unittest.TestCase):
         img_features = torch.stack([classifier.preprocess(img)])
         result = classifier.forward(x=img_features)
         self.assertEqual(result.shape, torch.Size([1, len(classifier.txt_names)]))
+
+    def test_create_taxa_filter_from_csv(self):
+        classifier = TreeOfLifeClassifier()
+        csv_content = 'species\nUrsus arctos\nUrsus americanus'
+        with patch("builtins.open", mock_open(read_data=csv_content)):
+            taxa_filter = classifier.create_taxa_filter_from_csv('somefile.csv')
+        self.assertEqual(len(taxa_filter), len(classifier.txt_names))
+        # Should have two embeddings since we asked for two species
+        self.assertEqual(sum(taxa_filter), 2)
+
+        csv_content = 'species\nUrsus arctos\nUrsus fakename'
+        with self.assertRaises(ValueError) as raised_exception:
+            with patch("builtins.open", mock_open(read_data=csv_content)):
+                taxa_filter = classifier.create_taxa_filter_from_csv('somefile.csv')
+        self.assertEqual(str(raised_exception.exception),
+                         'Unknown species received: Ursus fakename. Only known species may be used.')
+
+    def test_get_rank_labels(self):
+        self.assertEqual(','.join(get_rank_labels()), 'kingdom,phylum,class,order,family,genus,species')
 
 
 class TestEmbed(unittest.TestCase):

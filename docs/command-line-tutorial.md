@@ -67,6 +67,34 @@ Output:
 !!! info "Documentation"
     The [bioclip predict documentation](command-line-help.md/#bioclip-predict) describes all arguments supported by `bioclip predict` command.
 
+### Predict using a TOL subset
+The `predict` command has support for a `--subset <csv-path>` argument. The first column in the CSV file must be named kingdom, phylum, class, order, family, genus, or species. The values must match the TOL labels otherwise an error occurs. See the [bioclip list-tol-taxa](command-line-help.md/#bioclip-list-tol-taxa) command to create a CSV of TOL labels.
+
+In this example we create a CSV to subset TOL to two orders.
+Create a CSV named `orders.csv` with the following content:
+```
+order
+Artiodactyla
+Rodentia
+```
+
+```console
+bioclip predict --subset orders.csv Ursus-arctos.jpeg
+```
+
+Output:
+```
+file_name,kingdom,phylum,class,order,family,genus,species_epithet,species,common_name,score
+Ursus-arctos.jpeg,Animalia,Chordata,Mammalia,Artiodactyla,Cervidae,Cervus,canadensis sibericus,Cervus canadensis sibericus,,0.7347981333732605
+Ursus-arctos.jpeg,Animalia,Chordata,Mammalia,Artiodactyla,Cervidae,Alces,alces,Alces alces,European elk,0.17302176356315613
+...
+```
+
+!!! info "Documentation"
+    The [bioclip predict documentation](command-line-help.md/#bioclip-predict) describes all arguments supported by `bioclip predict` command.
+
+
+
 ## Custom Label Predictions
 To predict with custom labels using the `bioclip predict` command the `--cls` or `--bins` arguments must be used.
 
