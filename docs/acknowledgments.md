@@ -4,4 +4,4 @@ The [Imageomics Institute](https://imageomics.org/) is supported by the National
 
 ---
 
-The [prediction code in this repo](src/bioclip/predict.py) is based on work by [@samuelstevens](https://github.com/samuelstevens) in [bioclip-demo](https://huggingface.co/spaces/imageomics/bioclip-demo/tree/ef075807a55687b320427196ac1662b9383f988f).
+The [prediction code in pybioclip](https://github.com/Imageomics/pybioclip/blob/main/src/bioclip/predict.py) is based on work by [@samuelstevens](https://github.com/samuelstevens) in [bioclip-demo](https://huggingface.co/spaces/imageomics/bioclip-demo/tree/ef075807a55687b320427196ac1662b9383f988f).
