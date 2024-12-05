@@ -603,6 +603,24 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#volumes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Volumes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#maclinux-cpu-usage" class="md-nav__link">
     <span class="md-ellipsis">
       Mac/Linux CPU Usage
@@ -722,6 +740,24 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#volumes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Volumes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#maclinux-cpu-usage" class="md-nav__link">
     <span class="md-ellipsis">
       Mac/Linux CPU Usage
@@ -777,21 +813,42 @@
 
 <h1 id="docker-container">Docker Container</h1>
 <p>A docker container for pybioclip is hosted at <a href="https://github.com/Imageomics/pybioclip/pkgs/container/pybioclip">ghcr.io</a>.
-This container has CPU support for Mac, Windows, and Linux. GPU(CUDA) support is only for Windows and Linux.
-In order to access your images the docker container requires you to <a href="https://docs.docker.com/engine/storage/volumes">mount a volume</a>. To avoid redownloading various bioclip files mounting a volume to hold a <code>.cache</code> directory is recommended. By default the working and home directories for this container are both set to <code>/home/bcuser</code>.</p>
-<p>All examples below require an image file named <a href="https://huggingface.co/spaces/imageomics/bioclip-demo/blob/main/examples/Ursus-arctos.jpeg">Ursus-arctos.jpeg</a> in the current directory.</p>
+This container has CPU support for Mac, Windows, and Linux. GPU(CUDA) support is only for Windows and Linux.</p>
+<h3 id="volumes">Volumes</h3>
+<p>In order to access files the docker container requires you to <a href="https://docs.docker.com/engine/storage/volumes">mount a volume</a>.
+The working and home directories in this container are both set to <code>/home/bcuser</code>.
+Minimally you need to mount a volume into this directory so pybioclip can read your images.
+When running pybioclip the software will download various BioCLIP files into a <code>/home/bcuser/.cache</code> subdirectory. If you want to store the <code>.cache</code> folder in your home directory you will need to mount that directory (<code>~/.cache</code>) into the container at <code>/home/bcuser/.cache</code>.</p>
+<h3 id="setup">Setup</h3>
+<p>The examples below require an image file named <a href="https://huggingface.co/spaces/imageomics/bioclip-demo/blob/ef075807a55687b320427196ac1662b9383f988f/examples/Ursus-arctos.jpeg">Ursus-arctos.jpeg</a> in the current directory.</p>
 <h2 id="maclinux-cpu-usage">Mac/Linux CPU Usage</h2>
-<div class="highlight"><pre><span></span><code><span class="go">docker run --platform linux/amd64 -v $(pwd):/home/bcuser -it ghcr.io/imageomics/pybioclip:1.0.0 bioclip predict Ursus-arctos.jpeg</span>
-</code></pre></div>
+<p>The following command will create predictions for the <code>Ursus-arctos.jpeg</code> image in the current directory.
+The command mounts the current directory into the container at <code>/home/bcuser</code>.
+The command mounts the <code>~/.cache</code> directory into the container to cache BioCLIP files in your home directory.
+<div class="highlight"><pre><span></span><code><span class="go">docker run --platform linux/amd64 \</span>
+<span class="go">           -v $(pwd):/home/bcuser \</span>
+<span class="go">           -v ~/.cache:/home/bcuser/.cache \</span>
+<span class="go">           --rm ghcr.io/imageomics/pybioclip:1.1.0 \</span>
+<span class="go">           bioclip predict Ursus-arctos.jpeg</span>
+</code></pre></div></p>
 <h2 id="linux-gpu-usage">Linux GPU Usage</h2>
-<div class="highlight"><pre><span></span><code><span class="go">docker run --gpus all --platform linux/amd64 -v $(pwd):/home/bcuser -it ghcr.io/imageomics/pybioclip:1.0.0 bioclip predict --device cuda Ursus-arctos.jpeg</span>
-</code></pre></div>
+<p>The following command will create predictions using a GPU for the <code>Ursus-arctos.jpeg</code> image in the current directory.
+<div class="highlight"><pre><span></span><code><span class="go">docker run --gpus all \</span>
+<span class="go">           --platform linux/amd64 \</span>
+<span class="go">           -v $(pwd):/home/bcuser \</span>
+<span class="go">           -v ~/.cache:/home/bcuser/.cache \</span>
+<span class="go">           --rm ghcr.io/imageomics/pybioclip:1.1.0 \</span>
+<span class="go">           bioclip predict --device cuda Ursus-arctos.jpeg</span>
+</code></pre></div></p>
 <h2 id="windows-cpu-usage">Windows CPU Usage</h2>
-<div class="highlight"><pre><span></span><code><span class="go">docker run -it -v %cd%:/home/bcuser ghcr.io/imageomics/pybioclip:1.0.0 bioclip predict Ursus-arctos.jpeg</span>
-</code></pre></div>
+<p>The following command will create predictions for the <code>Ursus-arctos.jpeg</code> image in the current directory.
+Since this command does not mount <code>/home/bcuser/.cache</code> in the container the <code>.cache</code> directory will be created within the current directory.
+<div class="highlight"><pre><span></span><code><span class="go">docker run --rm -v %cd%:/home/bcuser ghcr.io/imageomics/pybioclip:1.0.0 bioclip predict Ursus-arctos.jpeg</span>
+</code></pre></div></p>
 <h2 id="windows-gpu-usage">Windows GPU Usage</h2>
-<div class="highlight"><pre><span></span><code><span class="go">docker run -it --gpus all -v %cd%:/home/bcuser ghcr.io/imageomics/pybioclip bioclip:1.0.0 predict --device cuda Ursus-arctos.jpeg</span>
-</code></pre></div>
+<p>The following command will create predictions using a GPU for the <code>Ursus-arctos.jpeg</code> image in the current directory.
+<div class="highlight"><pre><span></span><code><span class="go">docker run --rm --gpus all -v %cd%:/home/bcuser ghcr.io/imageomics/pybioclip bioclip:1.0.0 predict --device cuda Ursus-arctos.jpeg</span>
+</code></pre></div></p>
 
 
 
