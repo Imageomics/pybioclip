@@ -16,7 +16,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.48">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.49">
     
     
       
@@ -603,6 +603,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#fine-tune-with-svm" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fine-tune with SVM
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -875,6 +884,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#fine-tune-with-svm" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fine-tune with SVM
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -911,7 +929,7 @@
 <p>Before beginning this tutorial you need to <a href="../#installation">install pybioclip</a> and download two example images: <a href="https://huggingface.co/spaces/imageomics/bioclip-demo/blob/ef075807a55687b320427196ac1662b9383f988f/examples/Ursus-arctos.jpeg"><code>Ursus-arctos.jpeg</code></a> 
 and <a href="https://huggingface.co/spaces/imageomics/bioclip-demo/blob/ef075807a55687b320427196ac1662b9383f988f/examples/Felis-catus.jpeg"><code>Felis-catus.jpeg</code></a>.</p>
 <h2 id="predict-species-classification">Predict species classification</h2>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">bioclip</span> <span class="kn">import</span> <span class="n">TreeOfLifeClassifier</span><span class="p">,</span> <span class="n">Rank</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bioclip</span><span class="w"> </span><span class="kn">import</span> <span class="n">TreeOfLifeClassifier</span><span class="p">,</span> <span class="n">Rank</span>
 
 <span class="n">classifier</span> <span class="o">=</span> <span class="n">TreeOfLifeClassifier</span><span class="p">()</span>
 <span class="n">predictions</span> <span class="o">=</span> <span class="n">classifier</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="s2">&quot;Ursus-arctos.jpeg&quot;</span><span class="p">,</span> <span class="n">Rank</span><span class="o">.</span><span class="n">SPECIES</span><span class="p">)</span>
@@ -941,8 +959,8 @@ Ursus americanus - 0.0005009894957765937
 }]
 </code></pre></div></p>
 <p>The output from the predict function can be converted into a <a href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html">pandas DataFrame</a> like so:
-<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">bioclip</span> <span class="kn">import</span> <span class="n">TreeOfLifeClassifier</span><span class="p">,</span> <span class="n">Rank</span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">bioclip</span><span class="w"> </span><span class="kn">import</span> <span class="n">TreeOfLifeClassifier</span><span class="p">,</span> <span class="n">Rank</span>
 
 <span class="n">classifier</span> <span class="o">=</span> <span class="n">TreeOfLifeClassifier</span><span class="p">()</span>
 <span class="n">predictions</span> <span class="o">=</span> <span class="n">classifier</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="s2">&quot;Ursus-arctos.jpeg&quot;</span><span class="p">,</span> <span class="n">Rank</span><span class="o">.</span><span class="n">SPECIES</span><span class="p">)</span>
@@ -954,7 +972,7 @@ Ursus americanus - 0.0005009894957765937
 <p>The <a href="../python-api/#bioclip.TreeOfLifeClassifier">TreeOfLifeClassifier docs</a> contains details about the arguments supported by the constructor and the <code>predict()</code> method.</p>
 </div>
 <h2 id="predict-from-a-list-of-classes">Predict from a list of classes</h2>
-<p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">bioclip</span> <span class="kn">import</span> <span class="n">CustomLabelsClassifier</span>
+<p><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bioclip</span><span class="w"> </span><span class="kn">import</span> <span class="n">CustomLabelsClassifier</span>
 
 <span class="n">classifier</span> <span class="o">=</span> <span class="n">CustomLabelsClassifier</span><span class="p">([</span><span class="s2">&quot;duck&quot;</span><span class="p">,</span><span class="s2">&quot;fish&quot;</span><span class="p">,</span><span class="s2">&quot;bear&quot;</span><span class="p">])</span>
 <span class="n">predictions</span> <span class="o">=</span> <span class="n">classifier</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="s2">&quot;Ursus-arctos.jpeg&quot;</span><span class="p">)</span>
@@ -973,7 +991,7 @@ bear 1.0
 <h3 id="predict-using-a-custom-model">Predict using a Custom Model</h3>
 <p>To predict with a custom model the <code>model_str</code> and <code>pretrained_str</code> arguments must be specified.
 In this example the <a href="https://huggingface.co/laion/CLIP-ViT-B-16-laion2B-s34B-b88K">CLIP-ViT-B-16-laion2B-s34B-b88K</a> model is used.
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">bioclip</span> <span class="kn">import</span> <span class="n">CustomLabelsClassifier</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bioclip</span><span class="w"> </span><span class="kn">import</span> <span class="n">CustomLabelsClassifier</span>
 
 <span class="n">classifier</span> <span class="o">=</span> <span class="n">CustomLabelsClassifier</span><span class="p">(</span>
     <span class="n">cls_ary</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;duck&quot;</span><span class="p">,</span><span class="s2">&quot;fish&quot;</span><span class="p">,</span><span class="s2">&quot;bear&quot;</span><span class="p">],</span>
@@ -984,7 +1002,7 @@ In this example the <a href="https://huggingface.co/laion/CLIP-ViT-B-16-laion2B-
 </code></pre></div></p>
 <p>See <a href="../command-line-tutorial/#predict-using-a-custom-model">this tutorial</a> for instructions for listing available pretrained models.</p>
 <h2 id="predict-from-a-list-of-classes-with-binning">Predict from a list of classes with binning</h2>
-<p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">bioclip</span> <span class="kn">import</span> <span class="n">CustomLabelsBinningClassifier</span>
+<p><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bioclip</span><span class="w"> </span><span class="kn">import</span> <span class="n">CustomLabelsBinningClassifier</span>
 
 <span class="n">classifier</span> <span class="o">=</span> <span class="n">CustomLabelsBinningClassifier</span><span class="p">(</span><span class="n">cls_to_bin</span><span class="o">=</span><span class="p">{</span>
   <span class="s1">&#39;dog&#39;</span><span class="p">:</span> <span class="s1">&#39;small&#39;</span><span class="p">,</span>
@@ -1023,6 +1041,11 @@ small 7.165559509303421e-05
 <h3 id="experiment-with-grad-cam">Experiment with <a href="https://github.com/jacobgil/pytorch-grad-cam">grad-cam</a></h3>
 <p><a href="https://github.com/Imageomics/pybioclip/blob/main/examples/GradCamExperiment.ipynb">GradCamExperiment.ipynb</a>  applies GradCAM AI explainability to BioCLIP. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/GradCamExperiment.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></p>
+<h3 id="fine-tune-with-svm">Fine-tune with SVM</h3>
+<p><a href="https://github.com/Imageomics/pybioclip/blob/main/examples/FineTuneSVM.ipynb">FineTuneSVM.ipynb</a> Fine-tunes  BioCLIP by combining an <a href="https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC">SVM</a> with BioCLIP image embeddings. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/FineTuneSVM.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+As can be seen from comparing the confusion matrices, fine-tuning an SVM classifier on BioCLIP image embeddings may yield better results than using BioCLIP in "zero-shot mode", i.e., predicting on a list of custom labels.</p>
+<p>This work is based on code from <a href="https://github.com/samuelstevens/biobench">biobench</a>. </p>
 <h2 id="pil-images">PIL Images</h2>
 <p>The predict() functions used in all the examples above allow passing a list of paths or a list of <a href="https://pillow.readthedocs.io/en/stable/reference/Image.html">PIL Images</a>.
 When a list of PIL images is passed the index of the image will be filled in for <code>file_name</code>. This is because PIL images may not have an associated file name.</p>
@@ -1075,7 +1098,7 @@ When a list of PIL images is passed the index of the image will be filled in for
     <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.83f73b43.min.js"></script>
+      <script src="../assets/javascripts/bundle.88dd0f4e.min.js"></script>
       
     
   </body>
