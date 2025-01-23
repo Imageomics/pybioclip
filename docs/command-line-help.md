@@ -7,6 +7,7 @@ usage: bioclip predict [-h] [--format {table,csv}] [--output OUTPUT]
                        [--rank {kingdom,phylum,class,order,family,genus,species} |
                         --cls CLS | --bins BINS | --subset SUBSET] [--k K]
                        [--device DEVICE] [--model MODEL] [--pretrained PRETRAINED]
+                       [--batch-size BATCH_SIZE]
                        image_file [image_file ...]
 
 positional arguments:
@@ -40,6 +41,8 @@ options:
                         pretrained model checkpoint as tag or file, depends on
                         model; needed only if more than one is available
                         (see command list-models)
+  --batch-size BATCH_SIZE
+                        Number of images to process in a batch, default: 10
 ```
 
 ## bioclip embed

@@ -34,13 +34,15 @@ class TestParser(unittest.TestCase):
         self.assertEqual(args.cls, None)
         self.assertEqual(args.device, 'cuda')
         self.assertEqual(args.subset, None)
+        self.assertEqual(args.batch_size, 10)
 
         # test tree of life subset
         args = parse_args(['predict', 'image.jpg', '--subset', 'somefile.csv'])
         self.assertEqual(args.subset, 'somefile.csv')
 
         # test custom class list version of predict
-        args = parse_args(['predict', 'image.jpg', '--format', 'table', '--output', 'output.csv', '--cls', 'class1,class2', '--device', 'cuda'])
+        args = parse_args(['predict', 'image.jpg', '--format', 'table', '--output', 'output.csv',
+                           '--cls', 'class1,class2', '--device', 'cuda', '--batch-size', '5'])
         self.assertEqual(args.command, 'predict')
         self.assertEqual(args.image_file, ['image.jpg'])
         self.assertEqual(args.format, 'table')
@@ -50,6 +52,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(args.cls, 'class1,class2')
         self.assertEqual(args.bins, None)
         self.assertEqual(args.device, 'cuda')
+        self.assertEqual(args.batch_size, 5)
 
         # test binning version of predict
         args = parse_args(['predict', 'image.jpg', '--format', 'table', '--output', 'output.csv', '--bins', 'bins.csv', '--device', 'cuda'])
@@ -117,11 +120,12 @@ class TestParser(unittest.TestCase):
     def test_predict_no_class(self, mock_parse_args, mock_predict):
         mock_parse_args.return_value = argparse.Namespace(command='predict', image_file='image.jpg', format='csv',
                                                           output='stdout', rank=Rank.SPECIES, k=5, cls=None, device='cpu',
-                                                          model=None, pretrained=None, bins=None, subset=None)
+                                                          model=None, pretrained=None, bins=None, subset=None,
+                                                          batch_size=None)
         main()
         mock_predict.assert_called_with('image.jpg', format='csv', output='stdout', cls_str=None, rank=Rank.SPECIES,
                                         bins_path=None, k=5, device='cpu', model_str=None, pretrained_str=None,
-                                        subset=None)
+                                        subset=None, batch_size=None)
 
     @patch('bioclip.__main__.predict')
     @patch('bioclip.__main__.parse_args')
@@ -131,11 +135,11 @@ class TestParser(unittest.TestCase):
         mock_parse_args.return_value = argparse.Namespace(command='predict', image_file='image.jpg', format='csv',
                                                           output='stdout', rank=Rank.SPECIES, k=5, cls='dog,fish,bird',
                                                           device='cpu', model=None, pretrained=None, bins=None,
-                                                          subset=None)
+                                                          subset=None, batch_size=None)
         main()
         mock_predict.assert_called_with('image.jpg', format='csv', output='stdout', cls_str='dog,fish,bird', rank=Rank.SPECIES,
                                         bins_path=None, k=5, device='cpu', model_str=None, pretrained_str=None,
-                                        subset=None)
+                                        subset=None, batch_size=None)
 
     @patch('bioclip.__main__.predict')
     @patch('bioclip.__main__.parse_args')
@@ -145,12 +149,12 @@ class TestParser(unittest.TestCase):
         mock_parse_args.return_value = argparse.Namespace(command='predict', image_file='image.jpg', format='csv', 
                                                           output='stdout', rank=Rank.SPECIES, k=5, cls='somefile.txt',
                                                           device='cpu', model=None, pretrained=None, bins=None,
-                                                          subset=None)
+                                                          subset=None, batch_size=None)
         with patch("builtins.open", mock_open(read_data='dog\nfish\nbird')) as mock_file:
             main()
         mock_predict.assert_called_with('image.jpg', format='csv', output='stdout', cls_str='dog,fish,bird', rank=Rank.SPECIES,
                                         bins_path=None, k=5, device='cpu', model_str=None, pretrained_str=None,
-                                        subset=None)
+                                        subset=None, batch_size=None)
 
     @patch('bioclip.__main__.predict')
     @patch('bioclip.__main__.parse_args')
@@ -160,12 +164,13 @@ class TestParser(unittest.TestCase):
         mock_parse_args.return_value = argparse.Namespace(command='predict', image_file='image.jpg', format='csv', 
                                                           output='stdout', rank=None, k=5, cls=None, 
                                                           device='cpu', model=None, pretrained=None,
-                                                          bins='some.csv', subset=None)
+                                                          bins='some.csv', subset=None,
+                                                          batch_size=None)
         with patch("builtins.open", mock_open(read_data='dog\nfish\nbird')) as mock_file:
             main()
         mock_predict.assert_called_with('image.jpg', format='csv', output='stdout', cls_str=None, rank=None,
                                         bins_path='some.csv', k=5, device='cpu', model_str=None,
-                                        pretrained_str=None, subset=None)
+                                        pretrained_str=None, subset=None, batch_size=None)
 
     @patch('bioclip.__main__.predict')
     @patch('bioclip.__main__.parse_args')
@@ -175,11 +180,12 @@ class TestParser(unittest.TestCase):
         mock_parse_args.return_value = argparse.Namespace(command='predict', image_file='image.jpg', format='csv',
                                                           output='stdout', rank=None, k=5, cls=None,
                                                           device='cpu', model=None, pretrained=None,
-                                                          bins=None, subset='somefile.csv')
+                                                          bins=None, subset='somefile.csv',
+                                                          batch_size=None)
         main()
         mock_predict.assert_called_with('image.jpg', format='csv', output='stdout', cls_str=None, rank=None,
                                         bins_path=None, k=5, device='cpu', model_str=None,
-                                        pretrained_str=None, subset='somefile.csv')
+                                        pretrained_str=None, subset='somefile.csv', batch_size=None)
 
     @patch('bioclip.__main__.os.path')
     def test_parse_bins_csv_file_missing(self, mock_path):

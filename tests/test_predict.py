@@ -201,6 +201,23 @@ class TestPredict(unittest.TestCase):
         names = set([pred['classification'] for pred in prediction_ary])
         self.assertEqual(names, set(['one', 'two']))
 
+    def test_predict_with_batch_size(self):
+        classifier = TreeOfLifeClassifier()
+        classifier.create_probabilities_for_images = Mock()
+        classifier.create_probabilities_for_images.return_value = {
+            EXAMPLE_CAT_IMAGE: torch.tensor([1, 0, 0, 0, 0]),
+            EXAMPLE_CAT_IMAGE2: torch.tensor([1, 0, 0, 0, 0]),
+        }
+        prediction_ary = classifier.predict(images=[EXAMPLE_CAT_IMAGE, EXAMPLE_CAT_IMAGE2],
+                                            rank=Rank.SPECIES, batch_size=1)
+        self.assertEqual(classifier.create_probabilities_for_images.call_count, 2)
+        self.assertEqual(len(prediction_ary), 10)
+
+        classifier.create_probabilities_for_images.reset_mock()
+        prediction_ary = classifier.predict(images=[EXAMPLE_CAT_IMAGE, EXAMPLE_CAT_IMAGE2],
+                                            rank=Rank.SPECIES, batch_size=2)
+        self.assertEqual(classifier.create_probabilities_for_images.call_count, 1)
+
     def test_get_label_data(self):
         classifier = TreeOfLifeClassifier()
         df = classifier.get_label_data()
