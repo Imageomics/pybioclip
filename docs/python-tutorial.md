@@ -136,12 +136,19 @@ small 7.165559509303421e-05
 [GradCamExperiment.ipynb](https://github.com/Imageomics/pybioclip/blob/main/examples/GradCamExperiment.ipynb)  applies GradCAM AI explainability to BioCLIP. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/GradCamExperiment.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
-### Fine-tune with SVM
-[FineTuneSVM.ipynb](https://github.com/Imageomics/pybioclip/blob/main/examples/FineTuneSVM.ipynb) Fine-tunes  BioCLIP by combining an [SVM](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC) with BioCLIP image embeddings. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/FineTuneSVM.ipynb">
-  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
-As can be seen from comparing the confusion matrices, fine-tuning an SVM classifier on BioCLIP image embeddings may yield better results than using BioCLIP in "zero-shot mode", i.e., predicting on a list of custom labels.
+### Fine-tune
+The following notebooks show methods to fine-tune BioCLIP for classification.
 
-This work is based on code from [biobench](https://github.com/samuelstevens/biobench). 
+- [FineTuneSVM.ipynb](https://github.com/Imageomics/pybioclip/blob/main/examples/FineTuneSVM.ipynb) fine-tunes  BioCLIP by combining an [SVM](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC) with BioCLIP image embeddings. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/FineTuneSVM.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+
+- [FineTuneRidgeClassifier.ipynb](https://github.com/Imageomics/pybioclip/blob/main/examples/FineTuneRidgeClassifier.ipynb)
+fine-tunes BioCLIP by combining a [RidgeClassifier](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.RidgeClassifier.html) with BioCLIP image embeddings. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/FineTuneRidgeClassifier.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+
+As can be seen from comparing the confusion matrices in the notebooks, fine-tuning may yield better results than using BioCLIP in "zero-shot mode", i.e., predicting on a list of custom labels.
+
+This work is based on code from [biobench](https://github.com/samuelstevens/biobench).
 
 ## PIL Images
 The predict() functions used in all the examples above allow passing a list of paths or a list of [PIL Images](https://pillow.readthedocs.io/en/stable/reference/Image.html).
