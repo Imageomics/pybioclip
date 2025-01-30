@@ -137,6 +137,7 @@ small 7.165559509303421e-05
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
 ### Fine-tune
+#### Notebooks
 The following notebooks show methods to fine-tune BioCLIP for classification.
 
 - [FineTuneSVM.ipynb](https://github.com/Imageomics/pybioclip/blob/main/examples/FineTuneSVM.ipynb) fine-tunes  BioCLIP by combining an [SVM](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC) with BioCLIP image embeddings. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/FineTuneSVM.ipynb">
@@ -153,6 +154,18 @@ fine-tunes BioCLIP by combining a [SimpleShot](https://arxiv.org/abs/1911.04623)
 As can be seen from comparing the confusion matrices in the notebooks, fine-tuning may yield better results than using BioCLIP in "zero-shot mode", i.e., predicting on a list of custom labels.
 
 This work is based on code from [biobench](https://github.com/samuelstevens/biobench).
+
+#### Comparison of methods
+
+| Method | Maximum Classes | Minimum Training Data |
+|---|---|---|
+| SVM | ~20 | 5+ examples |
+| Ridge Classifier | No maximum | 10+ examples per class |
+| SimpleShot | No maximum | 1+ example per class |
+
+- **SVMs** can support linear and non-linear boundaries and are suitable for binary classification or fewer than ~20 classes (because you train a one-vs-rest for each class).
+- **Ridge classifiers** are best for linear classification tasks. They require training but are powerful classifiers for many, many tasks, especially with sufficient data.
+- **SimpleShot** is extremely data-efficient and works well for multiple (20+) classes.
 
 ## PIL Images
 The predict() functions used in all the examples above allow passing a list of paths or a list of [PIL Images](https://pillow.readthedocs.io/en/stable/reference/Image.html).
