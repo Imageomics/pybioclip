@@ -575,10 +575,11 @@ class TreeOfLifeClassifier(BaseClassifier):
         result = []
         for i, image in enumerate(images):
             key = self.make_key(image, i)
+            image_probs = probs[key].cpu()
             if rank == Rank.SPECIES:
-                result.extend(self.format_species_probs(key, probs[key], k))
+                result.extend(self.format_species_probs(key, image_probs, k))
             else:
-                result.extend(self.format_grouped_probs(key, probs[key], rank, min_prob, k))
+                result.extend(self.format_grouped_probs(key, image_probs, rank, min_prob, k))
         return result
 
 

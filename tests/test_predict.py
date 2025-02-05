@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, mock_open
+from unittest.mock import patch, mock_open, Mock, ANY
 from bioclip.predict import TreeOfLifeClassifier, Rank, get_rank_labels
 from bioclip.predict import CustomLabelsClassifier
 from bioclip.predict import CustomLabelsBinningClassifier
@@ -66,6 +66,34 @@ class TestPredict(unittest.TestCase):
             'score': unittest.mock.ANY
         }
         self.assertEqual(prediction_ary[0], prediction_dict)
+
+    def test_tree_of_life_classifier_groups_probs_on_cpu(self):
+        # Ensure that the probabilities are moved to the cpu
+        # before grouping to avoid performance issues
+        classifier = TreeOfLifeClassifier()
+
+        # Have create_probabilities_for_images return mock probs
+        # with values returned from cpu()
+        probs = Mock()
+        probs.cpu.return_value = torch.Tensor([0.1, 0.2, 0.3])
+        classifier.create_probabilities_for_images = Mock()
+        classifier.create_probabilities_for_images.return_value = {
+            EXAMPLE_CAT_IMAGE: probs
+        }
+
+        # Mock format_grouped_probs so we can check the parameters
+        classifier.format_grouped_probs = Mock()
+        classifier.format_grouped_probs.return_value = []
+
+        classifier.predict(images=[EXAMPLE_CAT_IMAGE], rank=Rank.CLASS, k=2)
+
+        # Ensure that the probabilities were moved to the cpu
+        classifier.format_grouped_probs.assert_called_with(
+            EXAMPLE_CAT_IMAGE,
+            probs.cpu.return_value,
+            Rank.CLASS,
+            ANY, 2
+        )
 
     def test_custom_labels_classifier(self):
         classifier = CustomLabelsClassifier(cls_ary=['cat', 'dog'])
