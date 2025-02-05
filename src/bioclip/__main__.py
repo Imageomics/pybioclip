@@ -49,22 +49,23 @@ def predict(image_file: list[str],
             bins_path: str,
             k: int,
             subset: str,
+            batch_size: int,
             **kwargs):
     if cls_str:
         classifier = CustomLabelsClassifier(cls_ary=cls_str.split(','), **kwargs)
-        predictions = classifier.predict(images=image_file, k=k)
+        predictions = classifier.predict(images=image_file, k=k, batch_size=batch_size)
         write_results(predictions, format, output)
     elif bins_path:
         cls_to_bin = parse_bins_csv(bins_path)
         classifier = CustomLabelsBinningClassifier(cls_to_bin=cls_to_bin, **kwargs)
-        predictions = classifier.predict(images=image_file, k=k)
+        predictions = classifier.predict(images=image_file, k=k, batch_size=batch_size)
         write_results(predictions, format, output)
     else:
         classifier = TreeOfLifeClassifier(**kwargs)
         if subset:
             filter = classifier.create_taxa_filter_from_csv(subset)
             classifier.apply_filter(filter)
-        predictions = classifier.predict(images=image_file, rank=rank, k=k)
+        predictions = classifier.predict(images=image_file, rank=rank, k=k, batch_size=batch_size)
         write_results(predictions, format, output)
 
 
@@ -94,6 +95,8 @@ def create_parser():
     model_arg = {'help': f'model identifier (see command list-models); default: {BIOCLIP_MODEL_STR}'}
     pretrained_arg = {'help': 'pretrained model checkpoint as tag or file, depends on model; '
                               'needed only if more than one is available (see command list-models)'}
+    batch_size_arg = {'default': 10, 'type': int,
+                      'help': 'Number of images to process in a batch, default: 10'}
 
     # Predict command
     predict_parser = subparsers.add_parser('predict', help='Use BioCLIP to generate predictions for image files.')
@@ -114,6 +117,7 @@ def create_parser():
     predict_parser.add_argument('--device', **device_arg)
     predict_parser.add_argument('--model', **model_arg)
     predict_parser.add_argument('--pretrained', **pretrained_arg)
+    predict_parser.add_argument('--batch-size', **batch_size_arg)
 
     # Embed command
     embed_parser = subparsers.add_parser('embed', help='Use BioCLIP to generate embeddings for image files.')
@@ -186,7 +190,8 @@ def main():
                 device=args.device,
                 model_str=args.model,
                 pretrained_str=args.pretrained,
-                subset=args.subset)
+                subset=args.subset,
+                batch_size=args.batch_size)
     elif args.command == 'list-models':
         if args.model:
             for tag in oc.list_pretrained_tags_by_model(args.model):

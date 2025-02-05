@@ -1,5 +1,6 @@
 import os
 import json
+from tqdm import tqdm
 import torch
 from torchvision import transforms
 import open_clip as oc
@@ -128,7 +129,6 @@ def get_txt_names():
         txt_names = json.load(fd)
     return txt_names
 
-
 class Rank(Enum):
     """Rank for the Tree of Life classification."""
     KINGDOM = 0
@@ -253,6 +253,21 @@ class BaseClassifier(nn.Module):
             result[key] = probs[i]
         return result
 
+    def create_batched_probabilities_for_images(self, images: List[str] | List[PIL.Image.Image],
+                                                txt_features: torch.Tensor,
+                                                batch_size: int | None) -> dict[str, torch.Tensor]:
+        if not batch_size:
+            batch_size = len(images)
+        result = {}
+        total_images = len(images)
+        with tqdm(total=total_images, unit="images") as progress_bar:
+            for i in range(0, len(images), batch_size):
+                grouped_images = images[i:i + batch_size]
+                probs = self.create_probabilities_for_images(grouped_images, txt_features)
+                result.update(probs)
+                progress_bar.update(len(grouped_images))
+        return result
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Given an input tensor representing multiple images, return probabilities for each class for each image.
@@ -297,20 +312,23 @@ class CustomLabelsClassifier(BaseClassifier):
         return all_features
 
     @torch.no_grad()
-    def predict(self, images: List[str] | str | List[PIL.Image.Image], k: int = None) -> dict[str, float]:
+    def predict(self, images: List[str] | str | List[PIL.Image.Image], k: int = None,
+                batch_size: int = 10) -> dict[str, float]:
         """
         Predicts the probabilities for the given images.
 
         Parameters:
             images (List[str] | str | List[PIL.Image.Image]): A list of image file paths, a single image file path, or a list of PIL Image objects.
             k (int, optional): The number of top probabilities to return. If not specified or if greater than the number of classes, all probabilities are returned.
+            batch_size (int, optional): The number of images to process in a batch.
 
         Returns:
             List[dict]: A list of dicts with keys "file_name" and the custom class labels.
         """
         if isinstance(images, str):
             images = [images]
-        probs = self.create_probabilities_for_images(images, self.txt_embeddings)
+        probs = self.create_batched_probabilities_for_images(images, self.txt_embeddings,
+                                                             batch_size=batch_size)
         result = []
         for i, image in enumerate(images):
             key = self.make_key(image, i)
@@ -555,7 +573,8 @@ class TreeOfLifeClassifier(BaseClassifier):
         return prediction_ary
 
     @torch.no_grad()
-    def predict(self, images: List[str] | str | List[PIL.Image.Image], rank: Rank, min_prob: float = 1e-9, k: int = 5) -> dict[str, dict[str, float]]:
+    def predict(self, images: List[str] | str | List[PIL.Image.Image], rank: Rank, 
+                min_prob: float = 1e-9, k: int = 5, batch_size: int = 10) -> dict[str, dict[str, float]]:
         """
         Predicts probabilities for supplied taxa rank for given images using the Tree of Life embeddings.
 
@@ -564,6 +583,7 @@ class TreeOfLifeClassifier(BaseClassifier):
             rank (Rank): The rank at which to make predictions (e.g., species, genus).
             min_prob (float, optional): The minimum probability threshold for predictions.
             k (int, optional): The number of top predictions to return.
+            batch_size (int, optional): The number of images to process in a batch.
 
         Returns:
             List[dict]: A list of dicts with keys "file_name", taxon ranks, "common_name", and "score".
@@ -571,7 +591,8 @@ class TreeOfLifeClassifier(BaseClassifier):
 
         if isinstance(images, str):
             images = [images]
-        probs = self.create_probabilities_for_images(images, self.get_txt_embeddings())
+        probs = self.create_batched_probabilities_for_images(images, self.get_txt_embeddings(),
+                                                             batch_size=batch_size)
         result = []
         for i, image in enumerate(images):
             key = self.make_key(image, i)
