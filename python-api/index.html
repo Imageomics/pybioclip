@@ -16,7 +16,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.50">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.2">
     
     
       
@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.a40c8224.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.d7758b05.min.css">
       
       
 
@@ -325,6 +325,7 @@
   
   <span class="md-ellipsis">
     Home
+    
   </span>
   
 
@@ -358,6 +359,7 @@
   
   <span class="md-ellipsis">
     Command Line Usage
+    
   </span>
   
 
@@ -383,6 +385,7 @@
   
   <span class="md-ellipsis">
     Tutorial
+    
   </span>
   
 
@@ -404,6 +407,7 @@
   
   <span class="md-ellipsis">
     Help
+    
   </span>
   
 
@@ -450,6 +454,7 @@
   
   <span class="md-ellipsis">
     Python Usage
+    
   </span>
   
 
@@ -475,6 +480,7 @@
   
   <span class="md-ellipsis">
     Tutorial
+    
   </span>
   
 
@@ -505,6 +511,7 @@
   
   <span class="md-ellipsis">
     API
+    
   </span>
   
 
@@ -516,6 +523,7 @@
   
   <span class="md-ellipsis">
     API
+    
   </span>
   
 
@@ -694,6 +702,7 @@
   
   <span class="md-ellipsis">
     Containers
+    
   </span>
   
 
@@ -719,6 +728,7 @@
   
   <span class="md-ellipsis">
     Docker
+    
   </span>
   
 
@@ -740,6 +750,7 @@
   
   <span class="md-ellipsis">
     Apptainer/Singularity
+    
   </span>
   
 
@@ -768,6 +779,7 @@
   
   <span class="md-ellipsis">
     Acknowledgments
+    
   </span>
   
 
@@ -932,6 +944,7 @@
               <article class="md-content__inner md-typeset">
                 
                   
+
 
   
   
@@ -1127,7 +1140,8 @@
 <span class="normal">579</span>
 <span class="normal">580</span>
 <span class="normal">581</span>
-<span class="normal">582</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
+<span class="normal">582</span>
+<span class="normal">583</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">images</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">List</span><span class="p">[</span><span class="n">PIL</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">Image</span><span class="p">],</span> <span class="n">rank</span><span class="p">:</span> <span class="n">Rank</span><span class="p">,</span> <span class="n">min_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Predicts probabilities for supplied taxa rank for given images using the Tree of Life embeddings.</span>
@@ -1148,10 +1162,11 @@
     <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">images</span><span class="p">):</span>
         <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_key</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+        <span class="n">image_probs</span> <span class="o">=</span> <span class="n">probs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="n">Rank</span><span class="o">.</span><span class="n">SPECIES</span><span class="p">:</span>
-            <span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">format_species_probs</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">probs</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">k</span><span class="p">))</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">format_species_probs</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">image_probs</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">format_grouped_probs</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">probs</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">rank</span><span class="p">,</span> <span class="n">min_prob</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">format_grouped_probs</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">image_probs</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">min_prob</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">result</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -2148,7 +2163,7 @@ Returns:
     <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.60a45f97.min.js"></script>
+      <script src="../assets/javascripts/bundle.f13b1293.min.js"></script>
       
     
   </body>
