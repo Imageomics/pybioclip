@@ -544,6 +544,8 @@ class TreeOfLifeClassifier(BaseClassifier):
         self._subset_txt_names = names
 
     def format_species_probs(self, image_key: str, probs: torch.Tensor, k: int = 5) -> List[dict[str, float]]:
+        # Prevent error when probs is smaller than k
+        k = min(k, probs.shape[0])
         topk = probs.topk(k)
         result = []
         for i, prob in zip(topk.indices, topk.values):
