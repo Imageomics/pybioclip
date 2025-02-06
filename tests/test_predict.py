@@ -281,6 +281,19 @@ class TestPredict(unittest.TestCase):
     def test_get_rank_labels(self):
         self.assertEqual(','.join(get_rank_labels()), 'kingdom,phylum,class,order,family,genus,species')
 
+    def test_format_species_probs_too_few_species(self):
+        classifier = TreeOfLifeClassifier()
+
+        # test when k < number of probabilities
+        probs = torch.tensor([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7])
+        top_probs = classifier.format_species_probs(EXAMPLE_CAT_IMAGE, probs, k=5)
+        self.assertEqual(len(top_probs), 5)
+        self.assertEqual(top_probs[0]['file_name'], EXAMPLE_CAT_IMAGE)
+
+        # test when k > number of probabilities
+        probs = torch.tensor([0.1, 0.2, 0.3, 0.4])
+        top_probs = classifier.format_species_probs(EXAMPLE_CAT_IMAGE, probs, k=5)
+
 
 class TestEmbed(unittest.TestCase):
     def test_get_image_features(self):
