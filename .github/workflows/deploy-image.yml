@@ -72,7 +72,7 @@ jobs:
       - name: Setup apptainer executable
         uses: eWaterCycle/setup-apptainer@v2
         with:
-          apptainer-version: 1.3.3
+          apptainer-version: 1.3.6
 
       - name: Build an apptainer image
         run: apptainer build --build-arg PYBIOCLIP_VERSION=${{ steps.meta.outputs.version }} apptainer.sif apptainer.def
