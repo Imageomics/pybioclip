@@ -52,6 +52,21 @@ class TestPredict(unittest.TestCase):
                                             rank=Rank.SPECIES)
         self.assertEqual(len(prediction_ary), 10)
 
+    def test_tree_of_life_classifier_multiple_pil_batching(self):
+        classifier = TreeOfLifeClassifier()
+        img1 = PIL.Image.open(EXAMPLE_CAT_IMAGE)
+        img2 = PIL.Image.open(EXAMPLE_CAT_IMAGE2)
+
+        prediction_ary = classifier.predict(images=[img1, img2],
+                                            rank=Rank.SPECIES,
+                                            batch_size=1)
+
+        self.assertEqual(len(prediction_ary), 10)
+        for i in range(0, 5):
+            self.assertEqual(prediction_ary[i]['file_name'], '0')
+        for i in range(5, 10):
+            self.assertEqual(prediction_ary[i]['file_name'], '1')
+
     def test_tree_of_life_classifier_family(self):
         classifier = TreeOfLifeClassifier()
         prediction_ary = classifier.predict(images=[EXAMPLE_CAT_IMAGE], rank=Rank.FAMILY, k=2)
