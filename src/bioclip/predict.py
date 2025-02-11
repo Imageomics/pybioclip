@@ -243,8 +243,8 @@ class BaseClassifier(nn.Module):
         return F.softmax(logits, dim=1)
 
     def create_probabilities_for_images(self, images: List[str] | List[PIL.Image.Image],
+                                        keys: List[str],
                                         txt_features: torch.Tensor) -> dict[str, torch.Tensor]:
-        keys = [self.make_key(image, i) for i,image in enumerate(images)]
         images = [self.ensure_rgb_image(image) for image in images]
         img_features = self.create_image_features(images)
         probs = self.create_probabilities(img_features, txt_features)
@@ -258,12 +258,14 @@ class BaseClassifier(nn.Module):
                                                 batch_size: int | None) -> dict[str, torch.Tensor]:
         if not batch_size:
             batch_size = len(images)
+        keys = [self.make_key(image, i) for i,image in enumerate(images)]
         result = {}
         total_images = len(images)
         with tqdm(total=total_images, unit="images") as progress_bar:
             for i in range(0, len(images), batch_size):
                 grouped_images = images[i:i + batch_size]
-                probs = self.create_probabilities_for_images(grouped_images, txt_features)
+                grouped_keys = keys[i:i + batch_size]
+                probs = self.create_probabilities_for_images(grouped_images, grouped_keys, txt_features)
                 result.update(probs)
                 progress_bar.update(len(grouped_images))
         return result
