@@ -146,6 +146,10 @@ The following notebooks show methods to fine-tune BioCLIP for classification.
 fine-tunes BioCLIP by combining a [RidgeClassifier](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.RidgeClassifier.html) with BioCLIP image embeddings. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/FineTuneRidgeClassifier.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
+- [FineTuneSimpleShot.ipynb](https://github.com/Imageomics/pybioclip/blob/main/examples/FineTuneSimpleShot.ipynb)
+fine-tunes BioCLIP by combining a [SimpleShot](https://arxiv.org/abs/1911.04623) classifier with BioCLIP image embeddings. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/FineTuneSimpleShot.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+
 As can be seen from comparing the confusion matrices in the notebooks, fine-tuning may yield better results than using BioCLIP in "zero-shot mode", i.e., predicting on a list of custom labels.
 
 This work is based on code from [biobench](https://github.com/samuelstevens/biobench).
