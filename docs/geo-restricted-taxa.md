@@ -10,7 +10,7 @@
 
 One way to populate the restricted set of terms is to use taxa that are known to have been observed in a specific geographic region.
 
-There are many ways to abtain a list with this constraint. Two noteworthy methods are:
+There are many ways to obtain a list with this constraint. Two noteworthy methods are:
 
 - Using the [Global Biodiversity Information Facility (GBIF)](https://www.gbif.org/) to download a list of taxa that have been observed in a specific geographic region.
 - Using [Map of Life (MOL)](https://mol.org/) to download a list of taxa that have been observed in a specific geographic region.
@@ -19,7 +19,7 @@ In our examples, we will use the image below of the nēnē, or the Hawaiian goos
 
 **Save this image to your working directory as `nene.jpg` for the example.**
 
-![Image title](https://inaturalist-open-data.s3.amazonaws.com/photos/13264181/medium.jpg){ loading=lazy }
+![picture of a nene](https://inaturalist-open-data.s3.amazonaws.com/photos/13264181/medium.jpg){ loading=lazy }
 /// caption
 [© Kevin Schafer](https://www.inaturalist.org/photos/13264181)
 ///
@@ -130,7 +130,7 @@ We can imagine that all we know about the image is that it was taken on one of t
         
     Obtain the TOL subset.
     ```console
-    bioclip list-tol-subset > tol_subset.csv
+    bioclip list-tol-taxa > tol_subset.csv
     ```
     
     Filter the TOL subset to include only the geographically restricted list in [hawaii_bird_species_list.txt](assets/hawaii_bird_species_list.txt). For example, with Pandas in Python:
@@ -169,8 +169,8 @@ We can imagine that all we know about the image is that it was taken on one of t
     Advantages of this approach:
     
     - Significant speedup in prediction time because the embeddings are precomputed.
-    - The predictions are more accurate than open-ended prediction along because they are limited to species that are known to be present in the geographic region.
-    - In the case of an anomoalous occurrence, we have BioCLIP's first best guess handy that is not constrained by the geographical list.
+    - The predictions are more accurate than open-ended prediction alone because they are limited to species that are known to be present in the geographic region.
+    - In the case of an anomalous occurrence, we have BioCLIP's first best guess handy that is not constrained by the geographical list.
     - Using higher taxa in the subset list: If you know that your image or image set is from one family of organisms, or if you know it belongs to a certain order but some other order has species that look confusingly similar, then you may be well served using a higher-level taxon.
 
     Disadvantages of this approach:
@@ -234,7 +234,7 @@ We can imagine that all we know about the image is that it was taken on one of t
     +-----------+----------------+---------------------+
     ```
 
-!!! example "Example: Predict a custom binned clasification of an image using the binned list of families."
+!!! example "Example: Predict a custom [binned classification](https://imageomics.github.io/pybioclip/command-line-tutorial/#predict-from-a-binning-csv) of an image using the binned list of families."
     Using [hawaii_bird_family_bins_list.csv](assets/hawaii_bird_family_bins_list.csv):
     ```console
     bioclip predict --k 3 --format table --bins hawaii_bird_family_bins_list.csv nene.jpg
