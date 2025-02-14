@@ -119,12 +119,12 @@ We can imagine that all we know about the image is that it was taken on one of t
     ```
     Advantages of this approach:
 
-    - The predictions are more accurate because they are limited to species that are known to be present in the geographic region.
+    - **Prediction accuracy**: The predictions are more accurate because they are limited to species that are known to be present in the geographic region.
     
     Disadvantages of this approach:
 
-    - The prediction is slow because the embeddings must be calculated for all species in the list. See the following examples for approaches to speed up prediction.
-    - The predictions are limited to the species in the list, which may not include the correct species if it is an anomolous occurrence.
+    - **Performance**: The prediction is slow because the embeddings must be calculated for all species in the list. See the following examples for approaches to speed up prediction.
+    - **Potential misses**: The predictions are limited to the species in the list, which may not include the correct species if it is an anomalous occurrence.
 
 !!! example "Example: Predict the species of an image by combining the geographically restricted list with the precomputed embeddings of the [TOL subset](https://imageomics.github.io/pybioclip//command-line-tutorial/#predict-using-a-tol-subset) of taxa."
         
@@ -168,28 +168,27 @@ We can imagine that all we know about the image is that it was taken on one of t
 
     Advantages of this approach:
     
-    - Significant speedup in prediction time because the embeddings are precomputed.
-    - The predictions are more accurate than open-ended prediction alone because they are limited to species that are known to be present in the geographic region.
-    - In the case of an anomalous occurrence, we have BioCLIP's first best guess handy that is not constrained by the geographical list.
-    - Using higher taxa in the subset list: If you know that your image or image set is from one family of organisms, or if you know it belongs to a certain order but some other order has species that look confusingly similar, then you may be well served using a higher-level taxon.
+    - **Performance**: Significant speedup in prediction time because the embeddings are precomputed.
+    - **Prediction accuracy**: The predictions are more accurate than open-ended prediction alone because they are limited to species that are known to be present in the geographic region.
 
     Disadvantages of this approach:
 
-    - Only taxa in the TOL subset can be included in the geographically restricted list, which may exclude entries present in the external list.
-    - Using higher taxa in the subset list: The predictions are provided to the species level, even if the geographically restricted subset file lists only higher taxa. For example, if you want to remove taxa that don't live in your geographic area from prediction, and higher taxa include species that do and do not live in the area, then the species in the higher taxa will be included in the prediction. In this case, it's not advisable to use higher taxa in the geographically restricted list.
+    - **Potential misses**: Only taxa in the TOL subset can be included in the geographically restricted list, which may exclude entries present in the external list.
 
 !!! example "Example: Predict the species of an image combining open-ended classification with the geographically restricted list using [custom labels](https://imageomics.github.io/pybioclip/command-line-tutorial/#predict-from-a-list-of-classes)."
+
+    This approach will produce two outputs, an unconstrained open-ended prediction and a prediction constrained by the geographically restricted list for comparison.
     
     Predict the top 20 species with open-ended classification, saving the predictions to a file.
     ```console
-    bioclip predict --k 20 nene.jpg > bioclip_predictions.csv
+    bioclip predict --k 20 nene.jpg > bioclip_species_predictions_oe.csv
     ```
     Filter the predictions using the geographically restricted list of species in [hawaii_bird_species_list.txt](assets/hawaii_bird_species_list.txt). E.g. using Pandas in Python.
     ```python
     import pandas as pd
 
     # Load the open-ended predictions.
-    df_predictions = pd.read_csv('bioclip_predictions.csv')
+    df_predictions = pd.read_csv('bioclip_species_predictions_oe.csv')
 
     # Load the geographically restricted list of species.
     df_hawaii_species = pd.read_csv('hawaii_bird_species_list.txt', header=None, names=['species'])
@@ -216,6 +215,15 @@ We can imagine that all we know about the image is that it was taken on one of t
     |  nene.jpg |   Anser cygnoides   | 0.02564687840640545 |
     +-----------+---------------------+---------------------+
     ```
+    Advantages of this approach:
+    
+    - **Anomaly detection**: In the case of an anomalous occurrence--a true sighting of an organism that has not been recorded in that region previously--we have BioCLIP's first best guess handy in `bioclip_species_predictions_oe.csv`, which is not constrained by the geographical list. This may be useful for flagging a novel invasive species or otherwise undocumented sighting.
+    - **Performance**: The long geographically restricted list is reasonably pruned, which speeds up prediction, giving `bioclip_species_predictions_filtered.txt`.
+    - **Balanced approach**: This may be a good balanced approach if there is uncertainty about the origin of the organism in the image.
+
+    Disadvantages of this approach:
+
+    - **Potential misses**: The primary filter is the open-ended classification, which may not include the correct prediction if `-k` is set too low or in challenging cases.
 
 !!! example "Example: Predict the family of an image among bird families in Hawai'i as [custom labels](https://imageomics.github.io/pybioclip/command-line-tutorial/#custom-label-predictions)."
     Using [hawaii_bird_families_list.txt](assets/hawaii_bird_families_list.txt):
