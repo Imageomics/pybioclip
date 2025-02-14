@@ -12,6 +12,8 @@ nav:
      - Docker: docker.md
      - Apptainer/Singularity: apptainer.md
    - Acknowledgments: acknowledgments.md
+   - Applications:
+     - Geo-Restricted Taxon List Predictions: geo-restricted-taxa.md
 theme: 
   name: material
   features:
@@ -32,6 +34,10 @@ plugins:
 markdown_extensions:
   - admonition
   - attr_list
+  - md_in_html
+  - pymdownx.blocks.caption
+  - pymdownx.details
   - pymdownx.superfences
+
 extra_css:
 - css/mkdocstrings.css
