@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, mock_open
+from unittest.mock import patch, mock_open, Mock, ANY
 from bioclip.predict import TreeOfLifeClassifier, Rank, get_rank_labels
 from bioclip.predict import CustomLabelsClassifier
 from bioclip.predict import CustomLabelsBinningClassifier
@@ -52,6 +52,21 @@ class TestPredict(unittest.TestCase):
                                             rank=Rank.SPECIES)
         self.assertEqual(len(prediction_ary), 10)
 
+    def test_tree_of_life_classifier_multiple_pil_batching(self):
+        classifier = TreeOfLifeClassifier()
+        img1 = PIL.Image.open(EXAMPLE_CAT_IMAGE)
+        img2 = PIL.Image.open(EXAMPLE_CAT_IMAGE2)
+
+        prediction_ary = classifier.predict(images=[img1, img2],
+                                            rank=Rank.SPECIES,
+                                            batch_size=1)
+
+        self.assertEqual(len(prediction_ary), 10)
+        for i in range(0, 5):
+            self.assertEqual(prediction_ary[i]['file_name'], '0')
+        for i in range(5, 10):
+            self.assertEqual(prediction_ary[i]['file_name'], '1')
+
     def test_tree_of_life_classifier_family(self):
         classifier = TreeOfLifeClassifier()
         prediction_ary = classifier.predict(images=[EXAMPLE_CAT_IMAGE], rank=Rank.FAMILY, k=2)
@@ -66,6 +81,34 @@ class TestPredict(unittest.TestCase):
             'score': unittest.mock.ANY
         }
         self.assertEqual(prediction_ary[0], prediction_dict)
+
+    def test_tree_of_life_classifier_groups_probs_on_cpu(self):
+        # Ensure that the probabilities are moved to the cpu
+        # before grouping to avoid performance issues
+        classifier = TreeOfLifeClassifier()
+
+        # Have create_probabilities_for_images return mock probs
+        # with values returned from cpu()
+        probs = Mock()
+        probs.cpu.return_value = torch.Tensor([0.1, 0.2, 0.3])
+        classifier.create_probabilities_for_images = Mock()
+        classifier.create_probabilities_for_images.return_value = {
+            EXAMPLE_CAT_IMAGE: probs
+        }
+
+        # Mock format_grouped_probs so we can check the parameters
+        classifier.format_grouped_probs = Mock()
+        classifier.format_grouped_probs.return_value = []
+
+        classifier.predict(images=[EXAMPLE_CAT_IMAGE], rank=Rank.CLASS, k=2)
+
+        # Ensure that the probabilities were moved to the cpu
+        classifier.format_grouped_probs.assert_called_with(
+            EXAMPLE_CAT_IMAGE,
+            probs.cpu.return_value,
+            Rank.CLASS,
+            ANY, 2
+        )
 
     def test_custom_labels_classifier(self):
         classifier = CustomLabelsClassifier(cls_ary=['cat', 'dog'])
@@ -173,6 +216,23 @@ class TestPredict(unittest.TestCase):
         names = set([pred['classification'] for pred in prediction_ary])
         self.assertEqual(names, set(['one', 'two']))
 
+    def test_predict_with_batch_size(self):
+        classifier = TreeOfLifeClassifier()
+        classifier.create_probabilities_for_images = Mock()
+        classifier.create_probabilities_for_images.return_value = {
+            EXAMPLE_CAT_IMAGE: torch.tensor([1, 0, 0, 0, 0]),
+            EXAMPLE_CAT_IMAGE2: torch.tensor([1, 0, 0, 0, 0]),
+        }
+        prediction_ary = classifier.predict(images=[EXAMPLE_CAT_IMAGE, EXAMPLE_CAT_IMAGE2],
+                                            rank=Rank.SPECIES, batch_size=1)
+        self.assertEqual(classifier.create_probabilities_for_images.call_count, 2)
+        self.assertEqual(len(prediction_ary), 10)
+
+        classifier.create_probabilities_for_images.reset_mock()
+        prediction_ary = classifier.predict(images=[EXAMPLE_CAT_IMAGE, EXAMPLE_CAT_IMAGE2],
+                                            rank=Rank.SPECIES, batch_size=2)
+        self.assertEqual(classifier.create_probabilities_for_images.call_count, 1)
+
     def test_get_label_data(self):
         classifier = TreeOfLifeClassifier()
         df = classifier.get_label_data()
@@ -235,6 +295,19 @@ class TestPredict(unittest.TestCase):
 
     def test_get_rank_labels(self):
         self.assertEqual(','.join(get_rank_labels()), 'kingdom,phylum,class,order,family,genus,species')
+
+    def test_format_species_probs_too_few_species(self):
+        classifier = TreeOfLifeClassifier()
+
+        # test when k < number of probabilities
+        probs = torch.tensor([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7])
+        top_probs = classifier.format_species_probs(EXAMPLE_CAT_IMAGE, probs, k=5)
+        self.assertEqual(len(top_probs), 5)
+        self.assertEqual(top_probs[0]['file_name'], EXAMPLE_CAT_IMAGE)
+
+        # test when k > number of probabilities
+        probs = torch.tensor([0.1, 0.2, 0.3, 0.4])
+        top_probs = classifier.format_species_probs(EXAMPLE_CAT_IMAGE, probs, k=5)
 
 
 class TestEmbed(unittest.TestCase):
