@@ -1,4 +1,4 @@
-# Improving Prediction Performance
+# Improving Prediction Accuracy
 
 ## Prediction Using a Geographically Restricted List
 
@@ -40,7 +40,7 @@ Once you have an account, log in to manage data downloads from your profile.
 !!! example "Example: filter for all occurrences of birds in the islands of Hawai'i with GBIF."
 
     !!! note 
-        Rather than creating a new download, you may use [https://doi.org/10.15468/dl.469rtz](https://doi.org/10.15468/dl.469rtz), which was prepared for this example using the steps below. Taxa have been extracted from the species list in this download and are available in:
+        Rather than creating a new download, you may use [https://doi.org/10.15468/dl.469rtz](https://doi.org/10.15468/dl.469rtz), which was prepared for this example using the steps below. The information in this download may be different from a download you create, as more data is being added to GBIF regularly. Taxa have been extracted from the species list in this download and are available in:
 
         - [hawaii_bird_species_list.txt](assets/hawaii_bird_species_list.txt)
         - [hawaii_bird_families_list.txt](assets/hawaii_bird_families_list.txt)
@@ -67,7 +67,9 @@ Once you have an account, log in to manage data downloads from your profile.
         - You may extract contents of the CSV to a text file as you see fit for use with `pybioclip`, as we have with `hawaii_bird_species_list.txt`, `hawaii_bird_families_list.txt`, and `hawaii_bird_family_bins_list.csv`.
 
 #### MOL Web Interface Tutorial
-There are no prerequisites. An account with MOL is optional and not required for downloading data.
+There are no prerequisites. An account with MOL is optional and not required for downloading data. 
+
+Note that any URL shared for a filter applied to MOL will yield filter results as of the date the URL is used (rather than the date you applied the filter). You should host your own copy of the data if you need to ensure the data is static.
 
 !!! example "Example: filter for all species of birds in the islands of Hawai'i with MOL."
     1. Visit [https://mol.org/](https://mol.org/) and click `Regions`.
