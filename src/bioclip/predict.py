@@ -212,7 +212,7 @@ class BaseClassifier(nn.Module):
         return img.convert("RGB")
 
     @staticmethod
-    def make_key(image: Union[str , PIL.Image.Image], idx: int) -> str:
+    def make_key(image: Union[str, PIL.Image.Image], idx: int) -> str:
         if isinstance(image, PIL.Image.Image):
             return f"{idx}"
         else:
