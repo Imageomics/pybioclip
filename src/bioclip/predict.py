@@ -176,7 +176,7 @@ preprocess_img = transforms.Compose(
 
 
 class BaseClassifier(nn.Module):
-    def __init__(self, model_str: str = BIOCLIP_MODEL_STR, pretrained_str: Union[str, None] = None, device: Union[str, torch.device] = 'cpu'):
+    def __init__(self, model_str: str = BIOCLIP_MODEL_STR, pretrained_str: str | None = None, device: Union[str, torch.device] = 'cpu'):
         """
         Initializes the prediction model.
 
@@ -189,7 +189,7 @@ class BaseClassifier(nn.Module):
         self.device = device
         self.load_pretrained_model(model_str=model_str, pretrained_str=pretrained_str)
 
-    def load_pretrained_model(self, model_str: str = BIOCLIP_MODEL_STR, pretrained_str: Union[str, None] = None):
+    def load_pretrained_model(self, model_str: str = BIOCLIP_MODEL_STR, pretrained_str: str | None = None):
         self.model_str = model_str or BIOCLIP_MODEL_STR
         pretrained_tags = oc.list_pretrained_tags_by_model(self.model_str)
         if pretrained_str is None and len(pretrained_tags) > 0:
@@ -204,7 +204,7 @@ class BaseClassifier(nn.Module):
         self.preprocess = preprocess_img if self.model_str == BIOCLIP_MODEL_STR else preprocess
 
     @staticmethod
-    def ensure_rgb_image(image: Union[str, PIL.Image.Image]) -> PIL.Image.Image:
+    def ensure_rgb_image(image: str | PIL.Image.Image) -> PIL.Image.Image:
         if isinstance(image, PIL.Image.Image):
             img = image
         else:
@@ -212,7 +212,7 @@ class BaseClassifier(nn.Module):
         return img.convert("RGB")
 
     @staticmethod
-    def make_key(image: Union[str, PIL.Image.Image], idx: int) -> str:
+    def make_key(image: str | PIL.Image.Image, idx: int) -> str:
         if isinstance(image, PIL.Image.Image):
             return f"{idx}"
         else:
@@ -232,7 +232,7 @@ class BaseClassifier(nn.Module):
             return img_features
 
     @torch.no_grad()
-    def create_image_features_for_image(self, image: Union[str, PIL.Image.Image], normalize: bool) -> torch.Tensor:
+    def create_image_features_for_image(self, image: str | PIL.Image.Image, normalize: bool) -> torch.Tensor:
         img = self.ensure_rgb_image(image)
         result = self.create_image_features([img], normalize=normalize)
         return result[0]
@@ -242,7 +242,7 @@ class BaseClassifier(nn.Module):
         logits = (self.model.logit_scale.exp() * img_features @ txt_features)
         return F.softmax(logits, dim=1)
 
-    def create_probabilities_for_images(self, images: Union[List[str], List[PIL.Image.Image]],
+    def create_probabilities_for_images(self, images: List[str] | List[PIL.Image.Image],
                                         keys: List[str],
                                         txt_features: torch.Tensor) -> dict[str, torch.Tensor]:
         images = [self.ensure_rgb_image(image) for image in images]
@@ -253,9 +253,9 @@ class BaseClassifier(nn.Module):
             result[key] = probs[i]
         return result
 
-    def create_batched_probabilities_for_images(self, images: Union[List[str], List[PIL.Image.Image]],
+    def create_batched_probabilities_for_images(self, images: List[str] | List[PIL.Image.Image],
                                                 txt_features: torch.Tensor,
-                                                batch_size: Union[int, None]) -> dict[str, torch.Tensor]:
+                                                batch_size: int | None) -> dict[str, torch.Tensor]:
         if not batch_size:
             batch_size = len(images)
         keys = [self.make_key(image, i) for i,image in enumerate(images)]
@@ -314,13 +314,13 @@ class CustomLabelsClassifier(BaseClassifier):
         return all_features
 
     @torch.no_grad()
-    def predict(self, images: Union[List[str], str, List[PIL.Image.Image]], k: int = None,
+    def predict(self, images: List[str] | str | List[PIL.Image.Image], k: int = None,
                 batch_size: int = 10) -> dict[str, float]:
         """
         Predicts the probabilities for the given images.
 
         Parameters:
-            images (Union[List[str], str, List[PIL.Image.Image]]): A list of image file paths, a single image file path, or a list of PIL Image objects.
+            images (List[str] | str | List[PIL.Image.Image]): A list of image file paths, a single image file path, or a list of PIL Image objects.
             k (int, optional): The number of top probabilities to return. If not specified or if greater than the number of classes, all probabilities are returned.
             batch_size (int, optional): The number of images to process in a batch.
 
@@ -577,13 +577,13 @@ class TreeOfLifeClassifier(BaseClassifier):
         return prediction_ary
 
     @torch.no_grad()
-    def predict(self, images: Union[List[str], str, List[PIL.Image.Image]], rank: Rank, 
+    def predict(self, images: List[str] | str | List[PIL.Image.Image], rank: Rank, 
                 min_prob: float = 1e-9, k: int = 5, batch_size: int = 10) -> dict[str, dict[str, float]]:
         """
         Predicts probabilities for supplied taxa rank for given images using the Tree of Life embeddings.
 
         Parameters:
-            images (Union[List[str], str, List[PIL.Image.Image]]): A list of image file paths, a single image file path, or a list of PIL Image objects.
+            images (List[str] | str | List[PIL.Image.Image]): A list of image file paths, a single image file path, or a list of PIL Image objects.
             rank (Rank): The rank at which to make predictions (e.g., species, genus).
             min_prob (float, optional): The minimum probability threshold for predictions.
             k (int, optional): The number of top predictions to return.
