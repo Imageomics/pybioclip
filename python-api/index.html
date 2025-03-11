@@ -1051,12 +1051,18 @@
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="bioclip.predict.BaseClassifier" href="#bioclip.predict.BaseClassifier">BaseClassifier</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="bioclip.predict.BaseClassifier(model_str=BIOCLIP_MODEL_STR, pretrained_str=None, device='cpu') (bioclip.predict.BaseClassifier)" href="#bioclip.predict.BaseClassifier">BaseClassifier</a></code></p>
 
 
         <p>A classifier for predicting taxonomic ranks for images.</p>
 
         <p>See <code>BaseClassifier</code> for details on <code>**kwargs</code>.</p>
+
+
+
+
+
+
 
                   <details class="quote">
                     <summary>Source code in <code>src/bioclip/predict.py</code></summary>
@@ -1118,9 +1124,11 @@
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>images</code></td>
             <td>
-                  <code><span title="typing.List">List</span>[str] | str | <span title="typing.List">List</span>[<span title="PIL.Image.Image">Image</span>]</code>
+                <code>images</code>
+            </td>
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="str">str</span>] | <span title="str">str</span> | <span title="typing.List">List</span>[<span title="PIL.Image.Image">Image</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1132,9 +1140,11 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>rank</code></td>
             <td>
-                  <code><a class="autorefs autorefs-internal" title="bioclip.predict.Rank" href="#bioclip.Rank">Rank</a></code>
+                <code>rank</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="bioclip.Rank (bioclip.predict.Rank)" href="#bioclip.Rank">Rank</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1146,9 +1156,11 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>min_prob</code></td>
             <td>
-                  <code>float</code>
+                <code>min_prob</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1160,9 +1172,11 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>k</code></td>
             <td>
-                  <code>int</code>
+                <code>k</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1174,9 +1188,11 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>batch_size</code></td>
             <td>
-                  <code>int</code>
+                <code>batch_size</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1202,7 +1218,7 @@
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code>dict[str, dict[str, float]]</code>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="dict">dict</span>[<span title="str">str</span>, <span title="float">float</span>]]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1212,6 +1228,7 @@
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>src/bioclip/predict.py</code></summary>
@@ -1316,6 +1333,7 @@
       </tbody>
     </table>
 
+
             <details class="quote">
               <summary>Source code in <code>src/bioclip/predict.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">457</span>
@@ -1373,9 +1391,11 @@
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>rank</code></td>
             <td>
-                  <code><a class="autorefs autorefs-internal" title="bioclip.predict.Rank" href="#bioclip.Rank">Rank</a></code>
+                <code>rank</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="bioclip.Rank (bioclip.predict.Rank)" href="#bioclip.Rank">Rank</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1387,9 +1407,11 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>user_values</code></td>
             <td>
-                  <code><span title="typing.List">List</span>[str]</code>
+                <code>user_values</code>
+            </td>
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="str">str</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1415,7 +1437,7 @@
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.List">List</span>[bool]</code>
+                  <code><span title="typing.List">List</span>[<span title="bool">bool</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1439,7 +1461,7 @@
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code>ValueError</code>
+                  <code><span title="ValueError">ValueError</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1450,6 +1472,7 @@
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>src/bioclip/predict.py</code></summary>
@@ -1540,9 +1563,11 @@
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>keep_labels_ary</code></td>
             <td>
-                  <code><span title="typing.List">List</span>[bool]</code>
+                <code>keep_labels_ary</code>
+            </td>
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="bool">bool</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1569,7 +1594,7 @@
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code>ValueError</code>
+                  <code><span title="ValueError">ValueError</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1579,6 +1604,7 @@
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>src/bioclip/predict.py</code></summary>
@@ -1662,6 +1688,12 @@
 
 
 
+
+
+
+
+
+
   <div class="doc doc-children">
 
 
@@ -1701,7 +1733,7 @@
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="bioclip.predict.BaseClassifier" href="#bioclip.predict.BaseClassifier">BaseClassifier</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="bioclip.predict.BaseClassifier(model_str=BIOCLIP_MODEL_STR, pretrained_str=None, device='cpu') (bioclip.predict.BaseClassifier)" href="#bioclip.predict.BaseClassifier">BaseClassifier</a></code></p>
 
 
         <p>A classifier that predicts from a list of custom labels for images.</p>
@@ -1721,9 +1753,11 @@
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>cls_ary</code></td>
             <td>
-                  <code><span title="typing.List">List</span>[str]</code>
+                <code>cls_ary</code>
+            </td>
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="str">str</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1736,6 +1770,12 @@
           </tr>
       </tbody>
     </table>
+
+
+
+
+
+
 
                   <details class="quote">
                     <summary>Source code in <code>src/bioclip/predict.py</code></summary>
@@ -1801,9 +1841,11 @@
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>images</code></td>
             <td>
-                  <code><span title="typing.List">List</span>[str] | str | <span title="typing.List">List</span>[<span title="PIL.Image.Image">Image</span>]</code>
+                <code>images</code>
+            </td>
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="str">str</span>] | <span title="str">str</span> | <span title="typing.List">List</span>[<span title="PIL.Image.Image">Image</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1815,9 +1857,11 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>k</code></td>
             <td>
-                  <code>int</code>
+                <code>k</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1829,9 +1873,11 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>batch_size</code></td>
             <td>
-                  <code>int</code>
+                <code>batch_size</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1857,7 +1903,7 @@
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code>dict[str, float]</code>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1867,6 +1913,7 @@
           </tr>
       </tbody>
     </table>
+
 
             <details class="quote">
               <summary>Source code in <code>src/bioclip/predict.py</code></summary>
@@ -1947,7 +1994,7 @@
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="bioclip.predict.CustomLabelsClassifier" href="#bioclip.CustomLabelsClassifier">CustomLabelsClassifier</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="bioclip.CustomLabelsClassifier(cls_ary, **kwargs) (bioclip.predict.CustomLabelsClassifier)" href="#bioclip.CustomLabelsClassifier">CustomLabelsClassifier</a></code></p>
 
 
         <p>A classifier that creates predictions for images based on custom labels, groups the labels, and calculates probabilities for each group.</p>
@@ -1967,9 +2014,11 @@
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>cls_to_bin</code></td>
             <td>
-                  <code>dict</code>
+                <code>cls_to_bin</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1981,7 +2030,9 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>**kwargs</code></td>
+            <td>
+                <code>**kwargs</code>
+            </td>
             <td>
             </td>
             <td>
@@ -2008,7 +2059,7 @@
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code>ValueError</code>
+                  <code><span title="ValueError">ValueError</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2018,6 +2069,12 @@
           </tr>
       </tbody>
     </table>
+
+
+
+
+
+
 
                   <details class="quote">
                     <summary>Source code in <code>src/bioclip/predict.py</code></summary>
@@ -2103,9 +2160,11 @@
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>model_str</code></td>
             <td>
-                  <code>str</code>
+                <code>model_str</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2117,9 +2176,11 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>pretrained_str</code></td>
             <td>
-                  <code>str</code>
+                <code>pretrained_str</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2131,9 +2192,11 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>device</code></td>
             <td>
-                  <code><span title="typing.Union">Union</span>[str, <span title="torch.device">device</span>]</code>
+                <code>device</code>
+            </td>
+            <td>
+                  <code><span title="typing.Union">Union</span>[<span title="str">str</span>, <span title="torch.device">device</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2146,6 +2209,12 @@
           </tr>
       </tbody>
     </table>
+
+
+
+
+
+
 
                   <details class="quote">
                     <summary>Source code in <code>src/bioclip/predict.py</code></summary>
@@ -2203,6 +2272,7 @@ Args:
     x (torch.Tensor): Input tensor representing the multiple images.
 Returns:
     torch.Tensor: Softmax probabilities of the logits for each class for each image.</p>
+
 
             <details class="quote">
               <summary>Source code in <code>src/bioclip/predict.py</code></summary>
