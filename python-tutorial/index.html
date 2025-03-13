@@ -16,7 +16,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.8">
     
     
       
@@ -635,6 +635,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Fine-tune">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#notebooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notebooks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparison-of-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparison of methods
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -989,6 +1013,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Fine-tune">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#notebooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notebooks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparison-of-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparison of methods
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -1141,6 +1189,7 @@ small 7.165559509303421e-05
 <p><a href="https://github.com/Imageomics/pybioclip/blob/main/examples/GradCamExperiment.ipynb">GradCamExperiment.ipynb</a>  applies GradCAM AI explainability to BioCLIP. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/GradCamExperiment.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></p>
 <h3 id="fine-tune">Fine-tune</h3>
+<h4 id="notebooks">Notebooks</h4>
 <p>The following notebooks show methods to fine-tune BioCLIP for classification.</p>
 <ul>
 <li>
@@ -1160,6 +1209,38 @@ fine-tunes BioCLIP by combining a <a href="https://arxiv.org/abs/1911.04623">Sim
 </ul>
 <p>As can be seen from comparing the confusion matrices in the notebooks, fine-tuning may yield better results than using BioCLIP in "zero-shot mode", i.e., predicting on a list of custom labels.</p>
 <p>This work is based on code from <a href="https://github.com/samuelstevens/biobench">biobench</a>.</p>
+<h4 id="comparison-of-methods">Comparison of methods</h4>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Maximum Classes</th>
+<th>Minimum Training Data</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SVM</td>
+<td>~20</td>
+<td>5+ examples</td>
+</tr>
+<tr>
+<td>Ridge Classifier</td>
+<td>No maximum</td>
+<td>10+ examples per class</td>
+</tr>
+<tr>
+<td>SimpleShot</td>
+<td>No maximum</td>
+<td>1+ example per class</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>SVMs</strong> can support linear and non-linear boundaries and are suitable for binary classification or fewer than ~20 classes (because you train a one-vs-rest for each class).</li>
+<li><strong>Ridge classifiers</strong> are best for linear classification tasks. They require training but are powerful classifiers for many, many tasks, especially with sufficient data.</li>
+<li><strong>SimpleShot</strong> is extremely data-efficient and works well for multiple (20+) classes.</li>
+</ul>
 <h2 id="pil-images">PIL Images</h2>
 <p>The predict() functions used in all the examples above allow passing a list of paths or a list of <a href="https://pillow.readthedocs.io/en/stable/reference/Image.html">PIL Images</a>.
 When a list of PIL images is passed the index of the image will be filled in for <code>file_name</code>. This is because PIL images may not have an associated file name.</p>
