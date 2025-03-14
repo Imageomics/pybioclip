@@ -15,9 +15,9 @@ identifiers:
   - description: "The GitHub release URL of tag 1.3.2."
     type: url
     value: "https://github.com/Imageomics/pybioclip/releases/tag/1.3.2"
-  - description: "The GitHub URL of the commit tagged with 1.3.0."
+  - description: "The GitHub URL of the commit tagged with 1.3.2."
     type: url
-    value: "https://github.com/Imageomics/pybioclip/tree/66eb15e308bc88d17d5af8e8fa0180f6b2519cf1"
+    value: "https://github.com/Imageomics/pybioclip/tree/c318c6c9f2bc75c4da6ac060927623de69331344"
 repository-code: 'https://github.com/Imageomics/pybioclip'
 url: 'https://github.com/Imageomics/pybioclip'
 abstract: Python package and command line tool that simplifies using the BioCLIP foundation model.
