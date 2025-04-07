@@ -14,7 +14,6 @@ bioclip predict Ursus-arctos.jpeg
 ```
 Output:
 ```
-bioclip predict Ursus-arctos.jpeg
 file_name,kingdom,phylum,class,order,family,genus,species_epithet,species,common_name,score
 Ursus-arctos.jpeg,Animalia,Chordata,Mammalia,Carnivora,Ursidae,Ursus,arctos,Ursus arctos,Kodiak bear,0.9356034994125366
 Ursus-arctos.jpeg,Animalia,Chordata,Mammalia,Carnivora,Ursidae,Ursus,arctos syriacus,Ursus arctos syriacus,syrian brown bear,0.05616999790072441
