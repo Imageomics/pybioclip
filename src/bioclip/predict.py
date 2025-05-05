@@ -14,6 +14,7 @@ import PIL.Image
 from huggingface_hub import hf_hub_download
 from typing import Union, List
 from enum import Enum
+import contextlib
 
 
 HF_DATAFILE_REPO = "imageomics/bioclip-demo"
@@ -176,7 +177,8 @@ preprocess_img = transforms.Compose(
 
 
 class BaseClassifier(nn.Module):
-    def __init__(self, model_str: str = BIOCLIP_MODEL_STR, pretrained_str: str | None = None, device: Union[str, torch.device] = 'cpu'):
+    def __init__(self, model_str: str = BIOCLIP_MODEL_STR, pretrained_str: str | None = None,
+                 device: Union[str, torch.device] = 'cpu', enable_autocast: bool = False):
         """
         Initializes the prediction model.
 
@@ -187,6 +189,8 @@ class BaseClassifier(nn.Module):
         """
         super().__init__()
         self.device = device
+        self.enable_autocast = enable_autocast
+        self.autocast = torch.autocast
         self.load_pretrained_model(model_str=model_str, pretrained_str=pretrained_str)
 
     def load_pretrained_model(self, model_str: str = BIOCLIP_MODEL_STR, pretrained_str: str | None = None):
@@ -202,6 +206,12 @@ class BaseClassifier(nn.Module):
                                                             return_transform=True)
         self.model = torch.compile(model.to(self.device))
         self.preprocess = preprocess_img if self.model_str == BIOCLIP_MODEL_STR else preprocess
+
+    def autocast_if_enabled(self, *args, **kwargs):
+        if self.enable_autocast:
+            return torch.autocast(*args, **kwargs)
+        else:
+            return contextlib.nullcontext(*args, **kwargs)
 
     @staticmethod
     def ensure_rgb_image(image: str | PIL.Image.Image) -> PIL.Image.Image:
@@ -246,8 +256,9 @@ class BaseClassifier(nn.Module):
                                         keys: List[str],
                                         txt_features: torch.Tensor) -> dict[str, torch.Tensor]:
         images = [self.ensure_rgb_image(image) for image in images]
-        img_features = self.create_image_features(images)
-        probs = self.create_probabilities(img_features, txt_features)
+        with self.autocast_if_enabled(self.device):
+            img_features = self.create_image_features(images)
+            probs = self.create_probabilities(img_features, txt_features)
         result = {}
         for i, key in enumerate(keys):
             result[key] = probs[i]

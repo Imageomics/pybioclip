@@ -1,0 +1,7 @@
+{
+    "num_images": [100],
+    "autocast": [false, true],
+    "device": ["mps"],
+    "batch_size": [5, 10],
+    "attempts": 2
+}
