@@ -8,6 +8,7 @@ import time
 import json
 import pandas as pd
 import datetime
+from torch.profiler import profile, record_function, ProfilerActivity
 
 
 PROFILE_CONFIG_PATH = "profile.json"
@@ -37,14 +38,18 @@ def read_profile_configs() -> List[Config]:
 def profile_prediction(device, use_autocast, batch_size, image_paths, attempt):
     classifier = TreeOfLifeClassifier(device=device, enable_autocast=use_autocast)
     
-    #if use_autocast:
-    #    classifier.txt_embeddings = classifier.txt_embeddings.to(torch.get_autocast_dtype(device))
 
+    with profile(activities=[ProfilerActivity.CPU,ProfilerActivity.CUDA], record_shapes=True) as prof:
+        with record_function("model_inference"):
+            #if use_autocast:
+            #    classifier.txt_embeddings = classifier.txt_embeddings.to(torch.get_autocast_dtype(device))
+            start_time = time.time()
+            
 
-    start_time = time.time()
+            classifier.predict(image_paths, Rank.SPECIES, k=1, batch_size=batch_size)
+            end_time = time.time()
 
-    classifier.predict(image_paths, Rank.SPECIES, k=1, batch_size=batch_size)
-    end_time = time.time()
+    print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=10))
 
     elapsed = end_time - start_time
     images_per_second = len(image_paths) / elapsed
