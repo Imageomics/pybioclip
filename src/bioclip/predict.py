@@ -16,8 +16,8 @@ from typing import Union, List
 from enum import Enum
 
 
-HF_DATAFILE_REPO = "imageomics/bioclip-demo"
-HF_DATAFILE_REPO_TYPE = "space"
+HF_DATAFILE_REPO = "imageomics/TreeOfLife-10M"
+HF_DATAFILE_REPO_TYPE = "dataset"
 BIOCLIP_MODEL_STR = "hf-hub:imageomics/bioclip"
 PRED_FILENAME_KEY = "file_name"
 PRED_CLASSICATION_KEY = "classification"
@@ -119,12 +119,12 @@ def get_cached_datafile(filename:str):
 
 
 def get_txt_emb():
-    txt_emb_npy = get_cached_datafile("txt_emb_species.npy")
+    txt_emb_npy = get_cached_datafile("embeddings/txt_emb_species.npy")
     return torch.from_numpy(np.load(txt_emb_npy))
 
 
 def get_txt_names():
-    txt_names_json = get_cached_datafile("txt_emb_species.json")
+    txt_names_json = get_cached_datafile("embeddings/txt_emb_species.json")
     with open(txt_names_json) as fd:
         txt_names = json.load(fd)
     return txt_names
