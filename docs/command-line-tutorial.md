@@ -4,7 +4,7 @@ Before beginning this tutorial you need to [install pybioclip](index.md#installa
 and [`Felis-catus.jpeg`](https://huggingface.co/spaces/imageomics/bioclip-demo/blob/ef075807a55687b320427196ac1662b9383f988f/examples/Felis-catus.jpeg).
 
 ## Tree Of Life Predictions
-The `bioclip predict` command, when not supplying a custom list of labels, will create a prediction based on the [BioCLIP tree of life embeddings](https://huggingface.co/spaces/imageomics/bioclip-demo/blob/main/txt_emb_species.npy).
+The `bioclip predict` command, when not supplying a custom list of labels, will create a prediction based on the [BioCLIP 2 TreeOfLife-200M embeddings](https://huggingface.co/datasets/imageomics/TreeOfLife-200M/tree/main/embeddings).
 
 ### Predict species for an image
 
@@ -92,6 +92,15 @@ Ursus-arctos.jpeg,Animalia,Chordata,Mammalia,Artiodactyla,Cervidae,Alces,alces,A
 !!! info "Documentation"
     The [bioclip predict documentation](command-line-help.md/#bioclip-predict) describes all arguments supported by `bioclip predict` command.
 
+### Use Original BioCLIP Model
+By default the [BioCLIP 2](https://huggingface.co/imageomics/bioclip-2) model is used.
+The original [BioCLIP](https://huggingface.co/imageomics/bioclip) model can be used by including a `--model hf-hub:imageomics/bioclip` argument for either the `predict` or `embed` commands.
+Example:
+```console
+bioclip predict --model hf-hub:imageomics/bioclip Ursus-arctos.jpeg
+```
+
+When using the original BioCLIP model for TreeOfLife predictions the [TreeOfLife-10M embeddings](https://huggingface.co/datasets/imageomics/TreeOfLife-10M/tree/main/embeddings) are used.
 
 
 ## Custom Label Predictions
@@ -181,7 +190,7 @@ bioclip embed Ursus-arctos.jpeg
 Output:
 ```
 {
-    "model": "hf-hub:imageomics/bioclip",
+    "model": "hf-hub:imageomics/bioclip-2",
     "embeddings": {
         "Ursus-arctos.jpeg": [
             -0.23633578419685364,
@@ -194,6 +203,7 @@ Output:
 ```
 !!! info "Documentation"
     The [bioclip embed documentation](command-line-help.md/#bioclip-embed) describes all arguments supported by `bioclip embed` command.
+
 
 ## View command line help
 ```console

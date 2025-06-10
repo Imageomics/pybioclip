@@ -1,5 +1,5 @@
 from bioclip import TreeOfLifeClassifier, Rank, CustomLabelsClassifier, CustomLabelsBinningClassifier
-from .predict import BIOCLIP_MODEL_STR, get_rank_labels
+from .predict import BIOCLIP_MODEL_STR, TOL_MODELS, ensure_tol_supported_model, get_rank_labels
 import open_clip as oc
 import os
 import json
@@ -148,8 +148,10 @@ def parse_args(input_args=None):
     if args.command == 'predict':
         if not args.cls and not args.bins:
             # tree of life class list mode
-            if args.model or args.pretrained:
-                raise ValueError("Custom model or checkpoints currently not supported for Tree-of-Life prediction")
+            if args.pretrained:
+                raise ValueError("Custom checkpoints are currently not supported for TreeOfLife prediction")
+            if args.model:
+                ensure_tol_supported_model(args.model)
             if not args.rank:
                 args.rank = 'species'
             args.rank = Rank[args.rank.upper()]
@@ -197,7 +199,7 @@ def main():
             for tag in oc.list_pretrained_tags_by_model(args.model):
                 print(tag)
         else:
-            for model_str in oc.list_models():
+            for model_str in list(TOL_MODELS.keys()) + oc.list_models():
                 print(f"\t{model_str}")
     elif args.command == 'list-tol-taxa':
         classifier = TreeOfLifeClassifier()

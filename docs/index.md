@@ -1,6 +1,7 @@
 # pybioclip
 
-Command line tool and python package to simplify the use of [BioCLIP](https://imageomics.github.io/bioclip/).
+Command line tool and python package to simplify the use of [BioCLIP](https://imageomics.github.io/bioclip/) and 
+[BioCLIP 2](https://imageomics.github.io/bioclip-2/) (default).
 
 Key features include:
 
