@@ -1,8 +1,11 @@
 import unittest
 from unittest.mock import patch, mock_open, Mock, ANY
-from bioclip.predict import TreeOfLifeClassifier, Rank, get_rank_labels
+from bioclip.predict import TreeOfLifeClassifier, BaseClassifier, Rank, get_rank_labels
 from bioclip.predict import CustomLabelsClassifier
 from bioclip.predict import CustomLabelsBinningClassifier
+from bioclip.predict import ensure_tol_supported_model
+from bioclip.predict import get_tol_repo_id
+from bioclip import BIOCLIP_V2_MODEL_STR, BIOCLIP_V1_MODEL_STR
 import os
 import torch
 import pandas as pd
@@ -26,9 +29,9 @@ class TestPredict(unittest.TestCase):
             'order': 'Carnivora',
             'family': 'Felidae',
             'genus': 'Felis',
-            'species_epithet': 'catus',
-            'species': 'Felis catus',
-            'common_name': 'Domestic Cat',
+            'species_epithet': unittest.mock.ANY,
+            'species': unittest.mock.ANY,
+            'common_name': unittest.mock.ANY,
             'score': unittest.mock.ANY
         }
         self.assertEqual(prediction_ary[0], prediction_dict)
@@ -243,7 +246,7 @@ class TestPredict(unittest.TestCase):
         classifier = TreeOfLifeClassifier()
         taxa_filter = classifier.create_taxa_filter(
             Rank.SPECIES,
-            user_values=['Ursus arctos', 'Ursus arctos bruinosus']
+            user_values=['Ursus arctos', 'Ursus americanus']
         )
         self.assertEqual(len(taxa_filter), len(classifier.txt_names))
         # Should have two embeddings since we asked for two species
@@ -267,7 +270,7 @@ class TestPredict(unittest.TestCase):
         # Test that if we filter a single species we get one embedding
         taxon_filter = classifier.get_label_data().species == 'Ursus arctos'
         classifier.apply_filter(taxon_filter)
-        self.assertEqual(classifier.get_txt_embeddings().shape, torch.Size([512, 1]))
+        self.assertEqual(classifier.get_txt_embeddings().shape, torch.Size([768, 1]))
         self.assertEqual(len(classifier.get_current_txt_names()), 1)
 
     def test_forward(self):
@@ -313,12 +316,39 @@ class TestPredict(unittest.TestCase):
 class TestEmbed(unittest.TestCase):
     def test_get_image_features(self):
         classifier = TreeOfLifeClassifier(device='cpu')
-        self.assertEqual(classifier.model_str, 'hf-hub:imageomics/bioclip')
+        self.assertEqual(classifier.model_str, 'hf-hub:imageomics/bioclip-2')
         features = classifier.create_image_features_for_image(EXAMPLE_CAT_IMAGE, normalize=False)
-        self.assertEqual(features.shape, torch.Size([512]))
+        self.assertEqual(features.shape, torch.Size([768]))
 
     def test_get_image_features_pil(self):
         classifier = TreeOfLifeClassifier(device='cpu')
-        self.assertEqual(classifier.model_str, 'hf-hub:imageomics/bioclip')
+        self.assertEqual(classifier.model_str, 'hf-hub:imageomics/bioclip-2')
         features = classifier.create_image_features_for_image(PIL.Image.open(EXAMPLE_CAT_IMAGE), normalize=False)
-        self.assertEqual(features.shape, torch.Size([512]))
+        self.assertEqual(features.shape, torch.Size([768]))
+
+
+class TestEnsureTolSupportedModel(unittest.TestCase):
+    def test_ensure_tol_supported_model_valid(self):
+        # Should not raise for supported models
+        try:
+            ensure_tol_supported_model(BIOCLIP_V1_MODEL_STR)
+            ensure_tol_supported_model(BIOCLIP_V2_MODEL_STR)
+        except Exception as e:
+            self.fail(f"ensure_tol_supported_model raised unexpectedly: {e}")
+
+    def test_ensure_tol_supported_model_invalid(self):
+        with self.assertRaises(ValueError) as cm:
+            ensure_tol_supported_model("hf-hub:some/unsupported-model")
+        self.assertIn("TreeOfLife predictions are only supported for the following models", str(cm.exception))
+
+    def test_get_tol_repo_id(self):
+        # Test for BIOCLIP_V2_MODEL_STR
+        self.assertEqual(get_tol_repo_id(BIOCLIP_V2_MODEL_STR), "imageomics/TreeOfLife-200M")
+
+        # Test for BIOCLIP_V1_MODEL_STR
+        self.assertEqual(get_tol_repo_id(BIOCLIP_V1_MODEL_STR), "imageomics/TreeOfLife-10M")
+
+        # Test for unsupported model string
+        with self.assertRaises(ValueError) as cm:
+            get_tol_repo_id("hf-hub:some/unsupported-model")
+        self.assertIn("TreeOfLife predictions are only supported for the following models", str(cm.exception))

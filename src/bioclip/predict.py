@@ -16,9 +16,17 @@ from typing import Union, List
 from enum import Enum
 
 
-HF_DATAFILE_REPO = "imageomics/TreeOfLife-10M"
+TOL10M_HF_DATAFILE_REPO = "imageomics/TreeOfLife-10M"
+TOL200M_HF_DATAFILE_REPO = "imageomics/TreeOfLife-200M"
 HF_DATAFILE_REPO_TYPE = "dataset"
-BIOCLIP_MODEL_STR = "hf-hub:imageomics/bioclip"
+
+BIOCLIP_V1_MODEL_STR = "hf-hub:imageomics/bioclip" # TODO
+BIOCLIP_V2_MODEL_STR = "hf-hub:imageomics/bioclip-2"
+BIOCLIP_MODEL_STR = BIOCLIP_V2_MODEL_STR
+TOL_MODELS = {
+    BIOCLIP_V1_MODEL_STR: TOL10M_HF_DATAFILE_REPO,
+    BIOCLIP_V2_MODEL_STR: TOL200M_HF_DATAFILE_REPO
+}
 PRED_FILENAME_KEY = "file_name"
 PRED_CLASSICATION_KEY = "classification"
 PRED_SCORE_KEY = "score"
@@ -114,20 +122,33 @@ OPENA_AI_IMAGENET_TEMPLATE = [
 ]
 
 
-def get_cached_datafile(filename:str):
-    return hf_hub_download(repo_id=HF_DATAFILE_REPO, filename=filename, repo_type=HF_DATAFILE_REPO_TYPE)
+def get_tol_repo_id(model_str: str) -> str:
+    """
+    Returns the repository ID for the TreeOfLife datafile based on the model string.
+    Args:
+        model_str (str): The model string to check.
+    Returns:
+        str: The Hugging Face repository ID for the TreeOfLife embeddings.
+    """
+    repo_id = TOL_MODELS.get(model_str)
+    if repo_id is None:
+        raise ValueError(f"TreeOfLife predictions are only supported for the following models: {', '.join(TOL_MODELS.keys())}")
+    return repo_id
 
 
-def get_txt_emb():
-    txt_emb_npy = get_cached_datafile("embeddings/txt_emb_species.npy")
-    return torch.from_numpy(np.load(txt_emb_npy))
+def ensure_tol_supported_model(model_str: str):
+    """
+    Ensures that the provided model string is one of the supported TreeOfLife models.
+    Raises a ValueError if the model is not supported.
 
+    Args:
+        model_str (str): The model string to check.
 
-def get_txt_names():
-    txt_names_json = get_cached_datafile("embeddings/txt_emb_species.json")
-    with open(txt_names_json) as fd:
-        txt_names = json.load(fd)
-    return txt_names
+    Raises:
+        ValueError: If the model string is not one of the supported TreeOfLife models.
+    """
+    get_tol_repo_id(model_str)  # This will raise ValueError if the model is not supported
+
 
 class Rank(Enum):
     """Rank for the Tree of Life classification."""
@@ -181,7 +202,7 @@ class BaseClassifier(nn.Module):
         Initializes the prediction model.
 
         Parameters:
-            model_str (str): The string identifier for the model to be used.
+            model_str (str): The string identifier for the model to be used (defaults to BIOCLIP_MODEL_STR).
             pretrained_str (str, optional): The string identifier for the pretrained model to be loaded.
             device (Union[str, torch.device]): The device on which the model will be run.
         """
@@ -201,7 +222,7 @@ class BaseClassifier(nn.Module):
                                                             device=self.device,
                                                             return_transform=True)
         self.model = torch.compile(model.to(self.device))
-        self.preprocess = preprocess_img if self.model_str == BIOCLIP_MODEL_STR else preprocess
+        self.preprocess = preprocess_img if self.model_str in TOL_MODELS else preprocess
 
     @staticmethod
     def ensure_rgb_image(image: str | PIL.Image.Image) -> PIL.Image.Image:
@@ -281,6 +302,36 @@ class BaseClassifier(nn.Module):
         img_features = self.model.encode_image(x)
         img_features = F.normalize(img_features, dim=-1)
         return self.create_probabilities(img_features, self.txt_embeddings)
+
+    def get_cached_datafile(self, filename: str) -> str:
+        """
+        Downloads a datafile from the Hugging Face hub and caches it locally.
+        Args:
+            filename (str): The name of the file to download from the datafile repository.
+        Returns:
+            str: The local path to the downloaded file.
+        """
+        return hf_hub_download(repo_id=get_tol_repo_id(self.model_str), filename=filename, repo_type=HF_DATAFILE_REPO_TYPE)
+
+    def get_txt_emb(self) -> torch.Tensor:
+        """
+        Retrieves TreeOfLife text embeddings for the current model from the associated Hugging Face dataset repo.
+        Returns:
+            torch.Tensor: A tensor containing the text embeddings for the tree of life.
+        """
+        txt_emb_npy = self.get_cached_datafile("embeddings/txt_emb_species.npy")
+        return torch.from_numpy(np.load(txt_emb_npy))
+
+    def get_txt_names(self) -> List[List[str]]:
+        """
+        Retrieves TreeOfLife text names for the current model from the  associated Hugging Face dataset repo.
+        Returns:
+            List[List[str]]: A list of lists, where each inner list contains names corresponding to the text embeddings.
+        """
+        txt_names_json = self.get_cached_datafile("embeddings/txt_emb_species.json")
+        with open(txt_names_json) as fd:
+            txt_names = json.load(fd)
+        return txt_names
 
 
 class CustomLabelsClassifier(BaseClassifier):
@@ -435,8 +486,8 @@ class TreeOfLifeClassifier(BaseClassifier):
         See `BaseClassifier` for details on `**kwargs`.
         """
         super().__init__(**kwargs)
-        self.txt_embeddings = get_txt_emb().to(self.device)
-        self.txt_names = get_txt_names()
+        self.txt_embeddings = self.get_txt_emb().to(self.device)
+        self.txt_names = self.get_txt_names()
         self._subset_txt_embeddings = None
         self._subset_txt_names = None
 

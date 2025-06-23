@@ -40,6 +40,10 @@ Output from the `predict()` method showing the dictionary structure:
 }]
 ```
 
+!!! info "Model and Embedding config"
+    By default the predictions use the [BioCLIP 2 model](https://huggingface.co/imageomics/bioclip-2) in combination with its [TreeOfLife-200M embeddings](https://huggingface.co/datasets/imageomics/TreeOfLife-200M/tree/main/embeddings). By setting the `model_str` parameter to `bioclip.BIOCLIP_V1_MODEL_STR` the original BioCLIP model will be used in combination with its [TreeOfLife-10M embeddings](https://huggingface.co/datasets/imageomics/TreeOfLife-10M/tree/main/embeddings).
+
+
 The output from the predict function can be converted into a [pandas DataFrame](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html) like so:
 ```python
 import pandas as pd
@@ -84,6 +88,17 @@ classifier = CustomLabelsClassifier(
     cls_ary = ["duck","fish","bear"],
     model_str='ViT-B-16',
     pretrained_str='laion2b_s34b_b88k')
+
+print(classifier.predict("Ursus-arctos.jpeg"))
+```
+
+### Predict with the original BioCLIP model
+```python
+from bioclip import CustomLabelsClassifier, BIOCLIP_V1_MODEL_STR
+
+classifier = CustomLabelsClassifier(
+    cls_ary = ["duck","fish","bear"],
+    model_str=BIOCLIP_V1_MODEL_STR)
 
 print(classifier.predict("Ursus-arctos.jpeg"))
 ```
