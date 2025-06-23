@@ -592,6 +592,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#predict-with-the-original-bioclip-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Predict with the original BioCLIP model
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -979,6 +988,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#predict-with-the-original-bioclip-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Predict with the original BioCLIP model
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1138,6 +1156,10 @@ Ursus americanus - 0.0005009894957765937
     &#39;score&#39;: 0.9356034994125366
 }]
 </code></pre></div></p>
+<div class="admonition info">
+<p class="admonition-title">Model and Embedding config</p>
+<p>By default the predictions use the <a href="https://huggingface.co/imageomics/bioclip-2">BioCLIP 2 model</a> in combination with its <a href="https://huggingface.co/datasets/imageomics/TreeOfLife-200M/tree/main/embeddings">TreeOfLife-200M embeddings</a>. By setting the <code>model_str</code> parameter to <code>bioclip.BIOCLIP_V1_MODEL_STR</code> the original BioCLIP model will be used in combination with its <a href="https://huggingface.co/datasets/imageomics/TreeOfLife-10M/tree/main/embeddings">TreeOfLife-10M embeddings</a>.</p>
+</div>
 <p>The output from the predict function can be converted into a <a href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html">pandas DataFrame</a> like so:
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">bioclip</span><span class="w"> </span><span class="kn">import</span> <span class="n">TreeOfLifeClassifier</span><span class="p">,</span> <span class="n">Rank</span>
@@ -1180,6 +1202,15 @@ In this example the <a href="https://huggingface.co/laion/CLIP-ViT-B-16-laion2B-
 
 <span class="nb">print</span><span class="p">(</span><span class="n">classifier</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="s2">&quot;Ursus-arctos.jpeg&quot;</span><span class="p">))</span>
 </code></pre></div></p>
+<h3 id="predict-with-the-original-bioclip-model">Predict with the original BioCLIP model</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bioclip</span><span class="w"> </span><span class="kn">import</span> <span class="n">CustomLabelsClassifier</span><span class="p">,</span> <span class="n">BIOCLIP_V1_MODEL_STR</span>
+
+<span class="n">classifier</span> <span class="o">=</span> <span class="n">CustomLabelsClassifier</span><span class="p">(</span>
+    <span class="n">cls_ary</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;duck&quot;</span><span class="p">,</span><span class="s2">&quot;fish&quot;</span><span class="p">,</span><span class="s2">&quot;bear&quot;</span><span class="p">],</span>
+    <span class="n">model_str</span><span class="o">=</span><span class="n">BIOCLIP_V1_MODEL_STR</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">classifier</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="s2">&quot;Ursus-arctos.jpeg&quot;</span><span class="p">))</span>
+</code></pre></div>
 <p>See <a href="../command-line-tutorial/#predict-using-a-custom-model">this tutorial</a> for instructions for listing available pretrained models.</p>
 <h2 id="predict-from-a-list-of-classes-with-binning">Predict from a list of classes with binning</h2>
 <p><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bioclip</span><span class="w"> </span><span class="kn">import</span> <span class="n">CustomLabelsBinningClassifier</span>

@@ -516,6 +516,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#use-original-bioclip-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use Original BioCLIP Model
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -988,6 +997,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#use-original-bioclip-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use Original BioCLIP Model
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1091,7 +1109,7 @@
 <p>Before beginning this tutorial you need to <a href="../#installation">install pybioclip</a> and download two example images: <a href="https://huggingface.co/spaces/imageomics/bioclip-demo/blob/ef075807a55687b320427196ac1662b9383f988f/examples/Ursus-arctos.jpeg"><code>Ursus-arctos.jpeg</code></a>
 and <a href="https://huggingface.co/spaces/imageomics/bioclip-demo/blob/ef075807a55687b320427196ac1662b9383f988f/examples/Felis-catus.jpeg"><code>Felis-catus.jpeg</code></a>.</p>
 <h2 id="tree-of-life-predictions">Tree Of Life Predictions</h2>
-<p>The <code>bioclip predict</code> command, when not supplying a custom list of labels, will create a prediction based on the <a href="https://huggingface.co/spaces/imageomics/bioclip-demo/blob/main/txt_emb_species.npy">BioCLIP tree of life embeddings</a>.</p>
+<p>The <code>bioclip predict</code> command, when not supplying a custom list of labels, will create a prediction based on the <a href="https://huggingface.co/datasets/imageomics/TreeOfLife-200M/tree/main/embeddings">BioCLIP 2 TreeOfLife-200M embeddings</a>.</p>
 <h3 id="predict-species-for-an-image">Predict species for an image</h3>
 <p>Predict species for an <code>Ursus-arctos.jpeg</code> file:
 <div class="highlight"><pre><span></span><code><span class="go">bioclip predict Ursus-arctos.jpeg</span>
@@ -1165,6 +1183,13 @@ Ursus-arctos.jpeg,Animalia,Chordata,Mammalia,Artiodactyla,Cervidae,Alces,alces,A
 <p class="admonition-title">Documentation</p>
 <p>The <a href="../command-line-help/#bioclip-predict">bioclip predict documentation</a> describes all arguments supported by <code>bioclip predict</code> command.</p>
 </div>
+<h3 id="use-original-bioclip-model">Use Original BioCLIP Model</h3>
+<p>By default the <a href="https://huggingface.co/imageomics/bioclip-2">BioCLIP 2</a> model is used.
+The original <a href="https://huggingface.co/imageomics/bioclip">BioCLIP</a> model can be used by including a <code>--model hf-hub:imageomics/bioclip</code> argument for either the <code>predict</code> or <code>embed</code> commands.
+Example:
+<div class="highlight"><pre><span></span><code><span class="go">bioclip predict --model hf-hub:imageomics/bioclip Ursus-arctos.jpeg</span>
+</code></pre></div></p>
+<p>When using the original BioCLIP model for TreeOfLife predictions the <a href="https://huggingface.co/datasets/imageomics/TreeOfLife-10M/tree/main/embeddings">TreeOfLife-10M embeddings</a> are used.</p>
 <h2 id="custom-label-predictions">Custom Label Predictions</h2>
 <p>To predict with custom labels using the <code>bioclip predict</code> command the <code>--cls</code> or <code>--bins</code> arguments must be used.</p>
 <h3 id="predict-from-a-list-of-classes">Predict from a list of classes</h3>
@@ -1235,7 +1260,7 @@ Ursus-arctos.jpeg,duck,2.7479762465532076e-08
 </code></pre></div>
 Output:
 <div class="highlight"><pre><span></span><code>{
-    &quot;model&quot;: &quot;hf-hub:imageomics/bioclip&quot;,
+    &quot;model&quot;: &quot;hf-hub:imageomics/bioclip-2&quot;,
     &quot;embeddings&quot;: {
         &quot;Ursus-arctos.jpeg&quot;: [
             -0.23633578419685364,
