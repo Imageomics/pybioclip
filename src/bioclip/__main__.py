@@ -1,5 +1,6 @@
 from bioclip import TreeOfLifeClassifier, Rank, CustomLabelsClassifier, CustomLabelsBinningClassifier
 from .predict import BIOCLIP_MODEL_STR, TOL_MODELS, ensure_tol_supported_model, get_rank_labels
+from .recorder import attach_prediction_recorder, save_recorded_predictions, verify_recorder_path
 import open_clip as oc
 import os
 import json
@@ -7,7 +8,7 @@ import sys
 import prettytable as pt
 import pandas as pd
 import argparse
-
+from typing import Union
 
 def write_results(data, format, output):
     df = pd.DataFrame(data)
@@ -50,23 +51,34 @@ def predict(image_file: list[str],
             k: int,
             subset: str,
             batch_size: int,
+            log: Union[str, None],
             **kwargs):
+    if log:
+        verify_recorder_path(log)
     if cls_str:
         classifier = CustomLabelsClassifier(cls_ary=cls_str.split(','), **kwargs)
+        if log:
+            attach_prediction_recorder(classifier, classes=cls_str)
         predictions = classifier.predict(images=image_file, k=k, batch_size=batch_size)
         write_results(predictions, format, output)
     elif bins_path:
         cls_to_bin = parse_bins_csv(bins_path)
         classifier = CustomLabelsBinningClassifier(cls_to_bin=cls_to_bin, **kwargs)
+        if log:
+            attach_prediction_recorder(classifier, bins_path=bins_path)
         predictions = classifier.predict(images=image_file, k=k, batch_size=batch_size)
         write_results(predictions, format, output)
     else:
         classifier = TreeOfLifeClassifier(**kwargs)
+        if log:
+            attach_prediction_recorder(classifier, tree_of_life_version=classifier.get_tol_repo_id(), subset=subset)
         if subset:
             filter = classifier.create_taxa_filter_from_csv(subset)
             classifier.apply_filter(filter)
         predictions = classifier.predict(images=image_file, rank=rank, k=k, batch_size=batch_size)
         write_results(predictions, format, output)
+    if log:
+        save_recorded_predictions(classifier, log)
 
 
 def embed(image_file: list[str], output: str, **kwargs):
@@ -118,6 +130,17 @@ def create_parser():
     predict_parser.add_argument('--model', **model_arg)
     predict_parser.add_argument('--pretrained', **pretrained_arg)
     predict_parser.add_argument('--batch-size', **batch_size_arg)
+    predict_parser.add_argument(
+        '--log',
+        metavar='LOG_FILE',
+        type=str,
+        default=None,
+        help=(
+            "Path to a file for recording prediction logs. "
+            "If the file extension is '.json', logs are written in machine-readable JSON for building a provenance chain; otherwise, logs are appended in a human-readable text format. "
+            "If not specified, no log is written."
+        )
+    )
 
     # Embed command
     embed_parser = subparsers.add_parser('embed', help='Use BioCLIP to generate embeddings for image files.')
@@ -193,7 +216,8 @@ def main():
                 model_str=args.model,
                 pretrained_str=args.pretrained,
                 subset=args.subset,
-                batch_size=args.batch_size)
+                batch_size=args.batch_size,
+                log=args.log)
     elif args.command == 'list-models':
         if args.model:
             for tag in oc.list_pretrained_tags_by_model(args.model):

@@ -209,6 +209,14 @@ class BaseClassifier(nn.Module):
         super().__init__()
         self.device = device
         self.load_pretrained_model(model_str=model_str, pretrained_str=pretrained_str)
+        self.recorder = None
+
+    def set_recorder(self, recorder):
+        self.recorder = recorder
+
+    def record_event(self, images, **kwargs):
+        if self.recorder:
+            self.recorder.add_prediction(images, **kwargs)
 
     def load_pretrained_model(self, model_str: str = BIOCLIP_MODEL_STR, pretrained_str: str | None = None):
         self.model_str = model_str or BIOCLIP_MODEL_STR
@@ -217,6 +225,7 @@ class BaseClassifier(nn.Module):
             if len(pretrained_tags) > 1:
                 raise ValueError(f"Multiple pretrained tags available {pretrained_tags}, must provide one")
             pretrained_str = pretrained_tags[0]
+        self.pretrained_str = pretrained_str
         model, preprocess = oc.create_model_from_pretrained(self.model_str,
                                                             pretrained=pretrained_str,
                                                             device=self.device,
@@ -303,6 +312,16 @@ class BaseClassifier(nn.Module):
         img_features = F.normalize(img_features, dim=-1)
         return self.create_probabilities(img_features, self.txt_embeddings)
 
+    def get_tol_repo_id(self) -> str:
+        """
+        Returns the repository ID for the TreeOfLife datafile based on the model string.
+        Raises:
+            ValueError: If the model string is not supported.
+        Returns:
+            str: The Hugging Face repository ID for the TreeOfLife embeddings.
+        """
+        return get_tol_repo_id(self.model_str)
+
     def get_cached_datafile(self, filename: str) -> str:
         """
         Downloads a datafile from the Hugging Face hub and caches it locally.
@@ -311,7 +330,7 @@ class BaseClassifier(nn.Module):
         Returns:
             str: The local path to the downloaded file.
         """
-        return hf_hub_download(repo_id=get_tol_repo_id(self.model_str), filename=filename, repo_type=HF_DATAFILE_REPO_TYPE)
+        return hf_hub_download(repo_id=self.get_tol_repo_id(), filename=filename, repo_type=HF_DATAFILE_REPO_TYPE)
 
     def get_txt_emb(self) -> torch.Tensor:
         """
@@ -389,6 +408,8 @@ class CustomLabelsClassifier(BaseClassifier):
             if not k or k > len(self.classes):
                 k = len(self.classes)
             result.extend(self.group_probs(key, img_probs, k))
+
+        self.record_event(images=images, k=k, batch_size=batch_size)
         return result
 
     def group_probs(self, image_key: str, img_probs: torch.Tensor, k: int = None) -> List[dict[str, float]]:
@@ -656,6 +677,7 @@ class TreeOfLifeClassifier(BaseClassifier):
                 result.extend(self.format_species_probs(key, image_probs, k))
             else:
                 result.extend(self.format_grouped_probs(key, image_probs, rank, min_prob, k))
+        self.record_event(images=images, rank=rank.get_label(), min_prob=min_prob, k=k, batch_size=batch_size)
         return result
 
 
