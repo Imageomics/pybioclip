@@ -103,6 +103,46 @@ bioclip predict --model hf-hub:imageomics/bioclip Ursus-arctos.jpeg
 When using the original BioCLIP model for TreeOfLife predictions the [TreeOfLife-10M embeddings](https://huggingface.co/datasets/imageomics/TreeOfLife-10M/tree/main/embeddings) are used.
 
 
+### Save a prediction log
+The `predict` command supports a `--log <path>` argument to save prediction details to a file.
+If the file extension is '.json', the log is written in JSON for building a provenance chain; otherwise,
+logs are appended in a human-readable text format. By default no log is written.
+
+Example usage:
+```console
+bioclip predict --log bioclip.json Ursus-arctos.jpeg
+```
+
+The resulting `bioclip.json` will contain structured information similar to:
+```json
+{
+    "pybioclip_version": "1.3.3",
+    "start": "2025-07-08T16:25:11",
+    "end": "2025-07-08T16:25:13",
+    "command_line": "bioclip predict --log bioclip.json Ursus-arctos.jpeg",
+    "model": "hf-hub:imageomics/bioclip-2",
+    "pretrained": null,
+    "device": "cpu",
+    "top_level_settings": {
+        "tree_of_life_version": "imageomics/TreeOfLife-200M",
+        "subset": null
+    },
+    "predictions": [
+        {
+            "images": [
+                "Ursus-arctos.jpeg"
+            ],
+            "details": {
+                "rank": "species",
+                "min_prob": 1e-09,
+                "k": 5,
+                "batch_size": 10
+            }
+        }
+    ]
+}
+```
+
 ## Custom Label Predictions
 To predict with custom labels using the `bioclip predict` command the `--cls` or `--bins` arguments must be used.
 

@@ -39,3 +39,10 @@
 ::: bioclip.predict.BaseClassifier
     options:
       show_root_heading: true
+
+::: bioclip.recorder
+    options:
+      show_root_heading: true
+      members:
+      - attach_prediction_recorder
+      - save_recorded_predictions
