@@ -2,7 +2,6 @@ import os
 import tempfile
 import unittest
 from bioclip import recorder
-import tempfile
 import json
 
 

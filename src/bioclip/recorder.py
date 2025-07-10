@@ -78,7 +78,6 @@ class PredictionRecorder:
         self.top_level_settings = top_level_settings
         self.start = datetime.now().isoformat(timespec="seconds")
         self.end = None
-        classifier.set_recorder(self)
 
     def add_prediction(self, images, **kwargs):
         """
@@ -113,7 +112,6 @@ class PredictionLogReport:
         self.start = recorder.start
         self.end = recorder.end
         self.command_line = command_line
-        self.dict = self.create_dictionary()
 
     def create_dictionary(self):
         """
@@ -139,7 +137,7 @@ class PredictionLogReport:
         return " ".join([word.capitalize() for word in key.split("_")])
 
     def _add_title(self, f):
-        title = f"** Prediction Log - pybioclip v{pybioclip_version} - {self.start} to {self. end} **"
+        title = f"** Prediction Log - pybioclip v{pybioclip_version} - {self.start} to {self.end} **"
         f.write("*" * len(title) + "\n")
         f.write(f"{title}\n")
         f.write("*" * len(title) + "\n")
@@ -154,7 +152,6 @@ class PredictionLogReport:
                 f.write(f"{self.format_key(k)}: {v}\n")
 
     def _add_predictions(self, f):
-        print("\n")
         for pred_dict in self.recorder.predictions:
             for k, v in pred_dict["details"].items():
                 f.write(f"{self.format_key(k)}: {v}\n")
