@@ -158,6 +158,17 @@ class TestRecorder(unittest.TestCase):
         self.assertEqual(rec.top_level_settings["param1"], 123)
         self.assertEqual(rec.top_level_settings["param2"], "abc")
 
+    def test_save_recorded_predictions_raises_when_json_exists(self):
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            clf = DummyClassifier()
+            rec = recorder.attach_prediction_recorder(clf)
+            rec.add_prediction(["img1.png"], label="dog")
+            out_path = os.path.join(tmpdirname, "report.json")
+            with open(out_path, "w") as f:
+                json.dump({"existing": "data"}, f)
+            with self.assertRaises(ValueError):
+                recorder.save_recorded_predictions(clf, out_path)
+
 
 if __name__ == "__main__":
     unittest.main()

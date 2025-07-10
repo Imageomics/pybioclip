@@ -50,7 +50,7 @@ def save_recorded_predictions(classifier: object, path: str, include_command_lin
     Args:
         classifier (object): The classifier instance (such as TreeOfLifeClassifier) with recorded predictions.
         path (str): The file path where the report will be saved.
-        include_command_line (bool): When True includes the python command line in the log file.
+        command_line (bool): When True includes the python command line in the log file.
 
     Raises:
         ValueError: If the output path extension is .json and the file already exists.
@@ -95,7 +95,7 @@ class PredictionRecorder:
 
         Args:
             path (str): The file path where the report will be saved.
-            include_command_line (bool): Whether to include command line settings in the report.
+            command_line (str): The command line used to run the predictions.
         """
         report = PredictionLogReport(self, command_line)
         report.save(path)
