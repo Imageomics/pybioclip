@@ -1,4 +1,5 @@
 from bioclip import TreeOfLifeClassifier, Rank, CustomLabelsClassifier, CustomLabelsBinningClassifier
+from .__about__ import __version__ as pybioclip_version
 from .predict import BIOCLIP_MODEL_STR, TOL_MODELS, ensure_tol_supported_model, get_rank_labels
 import open_clip as oc
 import os
@@ -88,6 +89,7 @@ def embed(image_file: list[str], output: str, **kwargs):
 
 def create_parser():
     parser = argparse.ArgumentParser(prog='bioclip', description='BioCLIP command line interface')
+    parser.add_argument('--version', action='version', version=f'pybioclip {pybioclip_version}')
     subparsers = parser.add_subparsers(title='commands', dest='command')
 
     device_arg = {'default':'cpu', 'help': 'device to use (cpu or cuda or mps), default: cpu'}
