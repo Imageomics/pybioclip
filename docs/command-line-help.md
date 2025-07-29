@@ -43,6 +43,11 @@ options:
                         (see command list-models)
   --batch-size BATCH_SIZE
                         Number of images to process in a batch, default: 10
+  --log LOG_FILE        Path to a file for recording prediction logs.
+                        If the file extension is '.json', the log is written
+                        in JSON for building a provenance chain; otherwise, 
+                        logs are appended in a human-readable text format.
+                        If not specified, no log is written.
 ```
 
 ## bioclip embed
