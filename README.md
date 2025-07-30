@@ -22,9 +22,9 @@ Our code (this repository):
 @software{Bradley_pybioclip_2025,
 author = {Bradley, John and Lapp, Hilmar and Campolongo, Elizabeth G.},
 doi = {10.5281/zenodo.13151194},
-month = jun,
+month = jul,
 title = {{pybioclip}},
-version = {1.3.3},
+version = {2.0.0},
 year = {2025}
 }
 ```
