@@ -107,12 +107,20 @@ class TestParser(unittest.TestCase):
         self.assertEqual(args.image_file, ['image.jpg'])
         self.assertEqual(args.output, 'stdout')
         self.assertEqual(args.device, 'cpu')
+        self.assertEqual(args.batch_size, 10)
 
         args = parse_args(['embed', '--output', 'data.json', '--device', 'cuda', 'image.jpg', 'image2.png'])
         self.assertEqual(args.command, 'embed')
         self.assertEqual(args.image_file, ['image.jpg', 'image2.png'])
         self.assertEqual(args.output, 'data.json')
         self.assertEqual(args.device, 'cuda')
+        self.assertEqual(args.batch_size, 10)
+
+        # test embed with batch size
+        args = parse_args(['embed', '--batch-size', '5', 'image.jpg', 'image2.png'])
+        self.assertEqual(args.command, 'embed')
+        self.assertEqual(args.image_file, ['image.jpg', 'image2.png'])
+        self.assertEqual(args.batch_size, 5)
 
         args = parse_args(['list-tol-taxa'])
         self.assertEqual(args.command, 'list-tol-taxa')
@@ -193,6 +201,26 @@ class TestParser(unittest.TestCase):
         mock_predict.assert_called_with('image.jpg', format='csv', output='stdout', cls_str=None, rank=None,
                                         bins_path=None, k=5, device='cpu', model_str=None,
                                         pretrained_str=None, subset='somefile.csv', batch_size=None, log=None)
+
+    @patch('bioclip.__main__.embed')
+    @patch('bioclip.__main__.parse_args')
+    def test_embed_with_batch_size(self, mock_parse_args, mock_embed):
+        mock_parse_args.return_value = argparse.Namespace(command='embed', image_file=['image.jpg', 'image2.png'],
+                                                          output='stdout', device='cpu', model=None, pretrained=None,
+                                                          batch_size=5)
+        main()
+        mock_embed.assert_called_with(['image.jpg', 'image2.png'], 'stdout', batch_size=5, device='cpu',
+                                      model_str=None, pretrained_str=None)
+
+    @patch('bioclip.__main__.embed')
+    @patch('bioclip.__main__.parse_args')
+    def test_embed_default_batch_size(self, mock_parse_args, mock_embed):
+        mock_parse_args.return_value = argparse.Namespace(command='embed', image_file=['image.jpg'],
+                                                          output='data.json', device='cuda', model=None, pretrained=None,
+                                                          batch_size=10)
+        main()
+        mock_embed.assert_called_with(['image.jpg'], 'data.json', batch_size=10, device='cuda',
+                                      model_str=None, pretrained_str=None)
 
     @patch('bioclip.__main__.os.path')
     def test_parse_bins_csv_file_missing(self, mock_path):

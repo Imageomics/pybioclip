@@ -10,6 +10,7 @@ import prettytable as pt
 import pandas as pd
 import argparse
 from typing import Union
+from tqdm import tqdm
 
 def write_results(data, format, output):
     df = pd.DataFrame(data)
@@ -82,16 +83,26 @@ def predict(image_file: list[str],
         save_recorded_predictions(classifier, log)
 
 
-def embed(image_file: list[str], output: str, **kwargs):
+def embed(image_file: list[str], output: str, batch_size: int = 10, **kwargs):
     classifier = TreeOfLifeClassifier(**kwargs)
     images_dict = {}
     data = {
         "model": classifier.model_str,
         "embeddings": images_dict
     }
-    for image_path in image_file:
-        features = classifier.create_image_features_for_image(image=image_path, normalize=False)
-        images_dict[image_path] = features.tolist()
+    
+    total_images = len(image_file)
+    with tqdm(total=total_images, unit="images") as progress_bar:
+        for i in range(0, len(image_file), batch_size):
+            batch_paths = image_file[i:i + batch_size]
+            batch_images = [classifier.ensure_rgb_image(path) for path in batch_paths]
+            batch_features = classifier.create_image_features(batch_images, normalize=False)
+            
+            for j, image_path in enumerate(batch_paths):
+                images_dict[image_path] = batch_features[j].tolist()
+            
+            progress_bar.update(len(batch_paths))
+    
     if output == 'stdout':
         print(json.dumps(data, indent=4))
     else:
@@ -151,6 +162,7 @@ def create_parser():
     embed_parser.add_argument('--device', **device_arg)
     embed_parser.add_argument('--model', **model_arg)
     embed_parser.add_argument('--pretrained', **pretrained_arg)
+    embed_parser.add_argument('--batch-size', **batch_size_arg)
 
     # List command
     list_parser = subparsers.add_parser('list-models',
@@ -200,6 +212,7 @@ def main():
     if args.command == 'embed':
         embed(args.image_file,
               args.output,
+              batch_size=args.batch_size,
               device=args.device,
               model_str=args.model,
               pretrained_str=args.pretrained)
