@@ -12,6 +12,9 @@ import argparse
 from typing import Union
 from tqdm import tqdm
 
+# Default batch size for processing images
+DEFAULT_BATCH_SIZE = 10
+
 def write_results(data, format, output):
     df = pd.DataFrame(data)
     if output == 'stdout':
@@ -83,7 +86,7 @@ def predict(image_file: list[str],
         save_recorded_predictions(classifier, log)
 
 
-def embed(image_file: list[str], output: str, batch_size: int = 10, **kwargs):
+def embed(image_file: list[str], output: str, batch_size: int = DEFAULT_BATCH_SIZE, **kwargs):
     classifier = TreeOfLifeClassifier(**kwargs)
     images_dict = {}
     data = {
@@ -120,8 +123,8 @@ def create_parser():
     model_arg = {'help': f'model identifier (see command list-models); default: {BIOCLIP_MODEL_STR}'}
     pretrained_arg = {'help': 'pretrained model checkpoint as tag or file, depends on model; '
                               'needed only if more than one is available (see command list-models)'}
-    batch_size_arg = {'default': 10, 'type': int,
-                      'help': 'Number of images to process in a batch, default: 10'}
+    batch_size_arg = {'default': DEFAULT_BATCH_SIZE, 'type': int,
+                      'help': f'Number of images to process in a batch, default: {DEFAULT_BATCH_SIZE}'}
 
     # Predict command
     predict_parser = subparsers.add_parser('predict', help='Use BioCLIP to generate predictions for image files.')
