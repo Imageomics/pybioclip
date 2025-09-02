@@ -10,6 +10,10 @@ import prettytable as pt
 import pandas as pd
 import argparse
 from typing import Union
+from tqdm import tqdm
+
+# Default batch size for processing images
+DEFAULT_BATCH_SIZE = 10
 
 def write_results(data, format, output):
     df = pd.DataFrame(data)
@@ -82,16 +86,26 @@ def predict(image_file: list[str],
         save_recorded_predictions(classifier, log)
 
 
-def embed(image_file: list[str], output: str, **kwargs):
+def embed(image_file: list[str], output: str, batch_size: int = DEFAULT_BATCH_SIZE, **kwargs):
     classifier = TreeOfLifeClassifier(**kwargs)
     images_dict = {}
     data = {
         "model": classifier.model_str,
         "embeddings": images_dict
     }
-    for image_path in image_file:
-        features = classifier.create_image_features_for_image(image=image_path, normalize=False)
-        images_dict[image_path] = features.tolist()
+    
+    total_images = len(image_file)
+    with tqdm(total=total_images, unit="images") as progress_bar:
+        for i in range(0, len(image_file), batch_size):
+            batch_paths = image_file[i:i + batch_size]
+            batch_images = [classifier.ensure_rgb_image(path) for path in batch_paths]
+            batch_features = classifier.create_image_features(batch_images, normalize=False)
+            
+            for j, image_path in enumerate(batch_paths):
+                images_dict[image_path] = batch_features[j].tolist()
+            
+            progress_bar.update(len(batch_paths))
+    
     if output == 'stdout':
         print(json.dumps(data, indent=4))
     else:
@@ -109,8 +123,8 @@ def create_parser():
     model_arg = {'help': f'model identifier (see command list-models); default: {BIOCLIP_MODEL_STR}'}
     pretrained_arg = {'help': 'pretrained model checkpoint as tag or file, depends on model; '
                               'needed only if more than one is available (see command list-models)'}
-    batch_size_arg = {'default': 10, 'type': int,
-                      'help': 'Number of images to process in a batch, default: 10'}
+    batch_size_arg = {'default': DEFAULT_BATCH_SIZE, 'type': int,
+                      'help': f'Number of images to process in a batch, default: {DEFAULT_BATCH_SIZE}'}
 
     # Predict command
     predict_parser = subparsers.add_parser('predict', help='Use BioCLIP to generate predictions for image files.')
@@ -151,6 +165,7 @@ def create_parser():
     embed_parser.add_argument('--device', **device_arg)
     embed_parser.add_argument('--model', **model_arg)
     embed_parser.add_argument('--pretrained', **pretrained_arg)
+    embed_parser.add_argument('--batch-size', **batch_size_arg)
 
     # List command
     list_parser = subparsers.add_parser('list-models',
@@ -200,6 +215,7 @@ def main():
     if args.command == 'embed':
         embed(args.image_file,
               args.output,
+              batch_size=args.batch_size,
               device=args.device,
               model_str=args.model,
               pretrained_str=args.pretrained)
