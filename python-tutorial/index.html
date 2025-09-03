@@ -662,13 +662,13 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fine-tune" class="md-nav__link">
+  <a href="#lightweight-classifiers" class="md-nav__link">
     <span class="md-ellipsis">
-      Fine-tune
+      Lightweight Classifiers
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Fine-tune">
+    <nav class="md-nav" aria-label="Lightweight Classifiers">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1058,13 +1058,13 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fine-tune" class="md-nav__link">
+  <a href="#lightweight-classifiers" class="md-nav__link">
     <span class="md-ellipsis">
-      Fine-tune
+      Lightweight Classifiers
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Fine-tune">
+    <nav class="md-nav" aria-label="Lightweight Classifiers">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1252,26 +1252,27 @@ small 7.165559509303421e-05
 <h3 id="experiment-with-grad-cam">Experiment with <a href="https://github.com/jacobgil/pytorch-grad-cam">grad-cam</a></h3>
 <p><a href="https://github.com/Imageomics/pybioclip/blob/main/examples/GradCamExperiment.ipynb">GradCamExperiment.ipynb</a>  applies GradCAM AI explainability to BioCLIP. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/GradCamExperiment.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></p>
-<h3 id="fine-tune">Fine-tune</h3>
+<h3 id="lightweight-classifiers">Lightweight Classifiers</h3>
 <h4 id="notebooks">Notebooks</h4>
-<p>The following notebooks show methods to fine-tune BioCLIP for classification.</p>
+<p>These notebooks implement Few-shot classification strategies with BioCLIP embeddings.
+These methods use the frozen BioCLIP model to generate embeddings, then train lightweight classifiers (e.g. SVM, Ridge, SimpleShot) on a small number of labeled examples per class.</p>
 <ul>
 <li>
-<p><a href="https://github.com/Imageomics/pybioclip/blob/main/examples/FineTuneSVM.ipynb">FineTuneSVM.ipynb</a> fine-tunes  BioCLIP by combining an <a href="https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC">SVM</a> with BioCLIP image embeddings. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/FineTuneSVM.ipynb">
+<p><a href="https://github.com/Imageomics/pybioclip/blob/main/examples/FewShotSVM.ipynb">FewShotSVM.ipynb</a> trains a <a href="https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC">SVM classifier</a> on BioCLIP image embeddings with labels. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/FewShotSVM.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></p>
 </li>
 <li>
-<p><a href="https://github.com/Imageomics/pybioclip/blob/main/examples/FineTuneRidgeClassifier.ipynb">FineTuneRidgeClassifier.ipynb</a>
-fine-tunes BioCLIP by combining a <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.RidgeClassifier.html">RidgeClassifier</a> with BioCLIP image embeddings. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/FineTuneRidgeClassifier.ipynb">
+<p><a href="https://github.com/Imageomics/pybioclip/blob/main/examples/FewShotRidgeClassifier.ipynb">FewShotRidgeClassifier.ipynb</a>
+trains a <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.RidgeClassifier.html">RidgeClassifier</a> on BioCLIP image embeddings with labels. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/FewShotRidgeClassifier.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></p>
 </li>
 <li>
-<p><a href="https://github.com/Imageomics/pybioclip/blob/main/examples/FineTuneSimpleShot.ipynb">FineTuneSimpleShot.ipynb</a>
-fine-tunes BioCLIP by combining a <a href="https://arxiv.org/abs/1911.04623">SimpleShot</a> classifier with BioCLIP image embeddings. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/FineTuneSimpleShot.ipynb">
+<p><a href="https://github.com/Imageomics/pybioclip/blob/main/examples/FewShotSimpleShot.ipynb">FewShotSimpleShot.ipynb</a>
+trains a <a href="https://arxiv.org/abs/1911.04623">SimpleShot</a> classifier on BioCLIP image embeddings with labels. <a target="_blank" href="https://colab.research.google.com/github/Imageomics/pybioclip/blob/main/examples/FewShotSimpleShot.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></p>
 </li>
 </ul>
-<p>As can be seen from comparing the confusion matrices in the notebooks, fine-tuning may yield better results than using BioCLIP in "zero-shot mode", i.e., predicting on a list of custom labels.</p>
+<p>As can be seen from comparing the confusion matrices in the notebooks, lightweight classifiers may yield better results than using BioCLIP in "zero-shot mode", i.e., predicting on a list of custom labels.</p>
 <p>This work is based on code from <a href="https://github.com/samuelstevens/biobench">biobench</a>.</p>
 <h4 id="comparison-of-methods">Comparison of methods</h4>
 <table>
