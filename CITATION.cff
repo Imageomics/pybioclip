@@ -12,9 +12,9 @@ authors:
 identifiers:
   - type: doi
     value: 10.5281/zenodo.13151194
-  - description: "The GitHub release URL of tag 2.0.0."
+  - description: "The GitHub release URL of tag 2.1.0."
     type: url
-    value: "https://github.com/Imageomics/pybioclip/releases/tag/2.0.0"
+    value: "https://github.com/Imageomics/pybioclip/releases/tag/2.1.0"
   - description: "The GitHub URL of the commit tagged with 1.3.2."
     type: url
     value: "https://github.com/Imageomics/pybioclip/tree/c318c6c9f2bc75c4da6ac060927623de69331344"
@@ -43,8 +43,8 @@ keywords:
   - genus
   - "image classification"
 license: MIT
-version: 2.0.0
-date-released: '2025-07-30'
+version: 2.1.0
+date-released: '2025-09-12'
 references:
 - type: conference-paper
   title: "BioCLIP: A Vision Foundation Model for the Tree of Life"
