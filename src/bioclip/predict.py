@@ -348,7 +348,7 @@ class BaseClassifier(nn.Module):
             List[List[str]]: A list of lists, where each inner list contains names corresponding to the text embeddings.
         """
         txt_names_json = self.get_cached_datafile("embeddings/txt_emb_species.json")
-        with open(txt_names_json) as fd:
+        with open(txt_names_json, encoding="utf-8") as fd:
             txt_names = json.load(fd)
         return txt_names
 

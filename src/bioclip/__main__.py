@@ -202,7 +202,7 @@ def parse_args(input_args=None):
 
 def create_classes_str(cls_file_path):
     """Reads a file with one class per line and returns a comma separated string of classes"""
-    with open(cls_file_path, 'r') as cls_file:
+    with open(cls_file_path, 'r', encoding="utf-8") as cls_file:
         cls_str = [item.strip() for item in cls_file.readlines()]
     return ",".join(cls_str)
 
