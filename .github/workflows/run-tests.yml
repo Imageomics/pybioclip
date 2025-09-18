@@ -26,7 +26,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           python -m pip install --upgrade pip
-          pip install --index-url https://download.pytorch.org/whl/cpu .
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+          pip install .
       - name: Install dependencies Windows
         if: runner.os == 'Windows'
         run: |
