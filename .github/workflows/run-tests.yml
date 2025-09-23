@@ -34,5 +34,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install .
       - name: Run tests
+        env:
+          HF_HUB_DISABLE_XET: "1"
         run: |
           python -m unittest
