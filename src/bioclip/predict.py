@@ -277,7 +277,9 @@ class BaseClassifier(nn.Module):
                                         txt_features: torch.Tensor) -> dict[str, torch.Tensor]:
         images = [self.ensure_rgb_image(image) for image in images]
         img_features = self.create_image_features(images)
-        probs = self.create_probabilities(img_features, txt_features)
+        probs_gpu = self.create_probabilities(img_features, txt_features)
+        probs = probs_gpu.detach().cpu()
+        del probs_gpu, img_features
         result = {}
         for i, key in enumerate(keys):
             result[key] = probs[i]
