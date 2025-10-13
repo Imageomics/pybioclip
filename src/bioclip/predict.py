@@ -278,6 +278,8 @@ class BaseClassifier(nn.Module):
         images = [self.ensure_rgb_image(image) for image in images]
         img_features = self.create_image_features(images)
         probs = self.create_probabilities(img_features, txt_features)
+        # prevent accumulation of GPU VRAM
+        probs = probs.detach().cpu()
         result = {}
         for i, key in enumerate(keys):
             result[key] = probs[i]
