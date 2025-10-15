@@ -20,9 +20,16 @@ jobs:
           cache: 'pip'
       - uses: actions/cache@v4
         with:
-          path: ~/.cache/huggingface 
+          path: ~/.cache/huggingface/hub 
           key: ${{ runner.os }}-bioclip-files
-      - name: Install dependencies
+      - name: Install dependencies Linux
+        if: runner.os == 'Linux'
+        run: |
+          python -m pip install --upgrade pip
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+          pip install .
+      - name: Install dependencies Windows
+        if: runner.os == 'Windows'
         run: |
           python -m pip install --upgrade pip
           pip install .
