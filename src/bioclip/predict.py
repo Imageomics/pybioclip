@@ -12,7 +12,7 @@ import collections
 import heapq
 import PIL.Image
 from huggingface_hub import hf_hub_download
-from typing import Union, List
+from typing import Union, List, Callable, Optional
 from enum import Enum
 
 
@@ -287,19 +287,25 @@ class BaseClassifier(nn.Module):
 
     def create_batched_probabilities_for_images(self, images: List[str] | List[PIL.Image.Image],
                                                 txt_features: torch.Tensor,
-                                                batch_size: int | None) -> dict[str, torch.Tensor]:
+                                                batch_size: int | None,
+                                                callback: Optional[Callable[[int, int], None]] = None) -> dict[str, torch.Tensor]:
         if not batch_size:
             batch_size = len(images)
         keys = [self.make_key(image, i) for i,image in enumerate(images)]
         result = {}
         total_images = len(images)
-        with tqdm(total=total_images, unit="images") as progress_bar:
+        disable_tqdm = callback is not None
+        with tqdm(total=total_images, unit="images", disable=disable_tqdm) as progress_bar:
             for i in range(0, len(images), batch_size):
                 grouped_images = images[i:i + batch_size]
                 grouped_keys = keys[i:i + batch_size]
                 probs = self.create_probabilities_for_images(grouped_images, grouped_keys, txt_features)
                 result.update(probs)
-                progress_bar.update(len(grouped_images))
+                if callback:
+                    processed = i + len(grouped_images)
+                    callback(processed, total_images)
+                else:
+                    progress_bar.update(len(grouped_images))
         return result
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -387,7 +393,7 @@ class CustomLabelsClassifier(BaseClassifier):
 
     @torch.no_grad()
     def predict(self, images: List[str] | str | List[PIL.Image.Image], k: int = None,
-                batch_size: int = 10) -> dict[str, float]:
+                batch_size: int = 10, callback: Optional[Callable[[int, int], None]] = None) -> dict[str, float]:
         """
         Predicts the probabilities for the given images.
 
@@ -395,6 +401,7 @@ class CustomLabelsClassifier(BaseClassifier):
             images (List[str] | str | List[PIL.Image.Image]): A list of image file paths, a single image file path, or a list of PIL Image objects.
             k (int, optional): The number of top probabilities to return. If not specified or if greater than the number of classes, all probabilities are returned.
             batch_size (int, optional): The number of images to process in a batch.
+            callback (Callable[[int, int], None], optional): A callback function that takes two integers (processed, total) to report progress.
 
         Returns:
             List[dict]: A list of dicts with keys "file_name" and the custom class labels.
@@ -402,7 +409,8 @@ class CustomLabelsClassifier(BaseClassifier):
         if isinstance(images, str):
             images = [images]
         probs = self.create_batched_probabilities_for_images(images, self.txt_embeddings,
-                                                             batch_size=batch_size)
+                                                             batch_size=batch_size,
+                                                             callback=callback)
         result = []
         for i, image in enumerate(images):
             key = self.make_key(image, i)
@@ -540,21 +548,21 @@ class TreeOfLifeClassifier(BaseClassifier):
         for name_ary in self.txt_names:
             data.append(create_classification_dict(names=name_ary, rank=Rank.SPECIES))
         return pd.DataFrame(data, copy=True)
-    
+
     def create_taxa_filter(self, rank: Rank, user_values: List[str]) -> List[bool]:
         """
         Creates a filter for taxa based on the specified rank and user-provided values.
-        
+
         Args:
             rank (Rank): The taxonomic rank to filter by.
             user_values (List[str]): A list of user-provided values to filter the taxa.
 
         Returns:
-            List[bool]: A list of boolean values indicating whether each entry in the 
+            List[bool]: A list of boolean values indicating whether each entry in the
                         label data matches any of the user-provided values.
 
         Raises:
-            ValueError: If any of the user-provided values are not found in the label data 
+            ValueError: If any of the user-provided values are not found in the label data
                         for the specified taxonomic rank.
         """
 
@@ -599,7 +607,7 @@ class TreeOfLifeClassifier(BaseClassifier):
         Filters the TOL embeddings based on the provided boolean array. See `create_taxa_filter()` for an easy way to create this parameter.
 
         Args:
-            keep_labels_ary (List[bool]): A list of boolean values indicating which 
+            keep_labels_ary (List[bool]): A list of boolean values indicating which
                                           TOL embeddings to keep.
 
         Raises:
@@ -608,7 +616,7 @@ class TreeOfLifeClassifier(BaseClassifier):
 
         if len(keep_labels_ary) != len(self.txt_names):
             expected = len(self.txt_names)
-            raise ValueError("Invalid keep_embeddings values. " + 
+            raise ValueError("Invalid keep_embeddings values. " +
                              f"This parameter should be a list containing {expected} items.")
         embeddings = []
         names = []
@@ -651,8 +659,9 @@ class TreeOfLifeClassifier(BaseClassifier):
         return prediction_ary
 
     @torch.no_grad()
-    def predict(self, images: List[str] | str | List[PIL.Image.Image], rank: Rank, 
-                min_prob: float = 1e-9, k: int = 5, batch_size: int = 10) -> dict[str, dict[str, float]]:
+    def predict(self, images: List[str] | str | List[PIL.Image.Image], rank: Rank,
+                min_prob: float = 1e-9, k: int = 5, batch_size: int = 10,
+                callback: Optional[Callable[[int, int], None]] = None) -> dict[str, dict[str, float]]:
         """
         Predicts probabilities for supplied taxa rank for given images using the Tree of Life embeddings.
 
@@ -662,6 +671,7 @@ class TreeOfLifeClassifier(BaseClassifier):
             min_prob (float, optional): The minimum probability threshold for predictions.
             k (int, optional): The number of top predictions to return.
             batch_size (int, optional): The number of images to process in a batch.
+            callback (Callable[[int, int], None], optional): A callback function that takes two integers (processed, total) to report progress.
 
         Returns:
             List[dict]: A list of dicts with keys "file_name", taxon ranks, "common_name", and "score".
@@ -670,7 +680,8 @@ class TreeOfLifeClassifier(BaseClassifier):
         if isinstance(images, str):
             images = [images]
         probs = self.create_batched_probabilities_for_images(images, self.get_txt_embeddings(),
-                                                             batch_size=batch_size)
+                                                             batch_size=batch_size,
+                                                             callback=callback)
         result = []
         for i, image in enumerate(images):
             key = self.make_key(image, i)
