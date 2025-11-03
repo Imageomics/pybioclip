@@ -295,7 +295,7 @@ class TestPredict(unittest.TestCase):
         classifier.predict(images=[EXAMPLE_CAT_IMAGE, EXAMPLE_CAT_IMAGE2, EXAMPLE_CAT_IMAGE],
                            batch_size=2, callback=test_callback)
 
-        # Verify that 2 batches generate 2 callback calls
+        # Verify that with 3 images and batch_size=2 (2 batches: [2,1]), the callback is called once per batch (2 calls)
         self.assertEqual(len(callback_calls), 2)
         self.assertEqual(callback_calls[0], (2, 3))
         self.assertEqual(callback_calls[1], (3, 3))
