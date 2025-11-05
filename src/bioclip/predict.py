@@ -548,21 +548,21 @@ class TreeOfLifeClassifier(BaseClassifier):
         for name_ary in self.txt_names:
             data.append(create_classification_dict(names=name_ary, rank=Rank.SPECIES))
         return pd.DataFrame(data, copy=True)
-
+    
     def create_taxa_filter(self, rank: Rank, user_values: List[str]) -> List[bool]:
         """
         Creates a filter for taxa based on the specified rank and user-provided values.
-
+        
         Args:
             rank (Rank): The taxonomic rank to filter by.
             user_values (List[str]): A list of user-provided values to filter the taxa.
 
         Returns:
-            List[bool]: A list of boolean values indicating whether each entry in the
+            List[bool]: A list of boolean values indicating whether each entry in the 
                         label data matches any of the user-provided values.
 
         Raises:
-            ValueError: If any of the user-provided values are not found in the label data
+            ValueError: If any of the user-provided values are not found in the label data 
                         for the specified taxonomic rank.
         """
 
@@ -607,7 +607,7 @@ class TreeOfLifeClassifier(BaseClassifier):
         Filters the TOL embeddings based on the provided boolean array. See `create_taxa_filter()` for an easy way to create this parameter.
 
         Args:
-            keep_labels_ary (List[bool]): A list of boolean values indicating which
+            keep_labels_ary (List[bool]): A list of boolean values indicating which 
                                           TOL embeddings to keep.
 
         Raises:
@@ -616,7 +616,7 @@ class TreeOfLifeClassifier(BaseClassifier):
 
         if len(keep_labels_ary) != len(self.txt_names):
             expected = len(self.txt_names)
-            raise ValueError("Invalid keep_embeddings values. " +
+            raise ValueError("Invalid keep_embeddings values. " + 
                              f"This parameter should be a list containing {expected} items.")
         embeddings = []
         names = []
@@ -659,7 +659,7 @@ class TreeOfLifeClassifier(BaseClassifier):
         return prediction_ary
 
     @torch.no_grad()
-    def predict(self, images: List[str] | str | List[PIL.Image.Image], rank: Rank,
+    def predict(self, images: List[str] | str | List[PIL.Image.Image], rank: Rank, 
                 min_prob: float = 1e-9, k: int = 5, batch_size: int = 10,
                 callback: Optional[Callable[[int, int], None]] = None) -> dict[str, dict[str, float]]:
         """
