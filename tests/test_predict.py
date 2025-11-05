@@ -236,6 +236,70 @@ class TestPredict(unittest.TestCase):
                                             rank=Rank.SPECIES, batch_size=2)
         self.assertEqual(classifier.create_probabilities_for_images.call_count, 1)
 
+    def test_predict_with_callback(self):
+        """Test callback is invoked with correct parameters"""
+        classifier = TreeOfLifeClassifier()
+        callback_calls = []
+
+        def test_callback(processed, total):
+            callback_calls.append((processed, total))
+
+        classifier.predict(images=[EXAMPLE_CAT_IMAGE, EXAMPLE_CAT_IMAGE2],
+                           rank=Rank.SPECIES, batch_size=1, callback=test_callback)
+
+        # Verify callback was called with correct progression
+        self.assertEqual(len(callback_calls), 2)
+        self.assertEqual(callback_calls, [(1, 2), (2, 2)])
+        # Verify final call shows completion
+        self.assertEqual(callback_calls[-1][0], callback_calls[-1][1])
+
+    def test_predict_callback_disables_tqdm(self):
+        """Test tqdm is disabled when callback is provided"""
+        classifier = CustomLabelsClassifier(cls_ary=['cat', 'dog'])
+
+        with patch('bioclip.predict.tqdm') as mock_tqdm:
+            mock_progress = Mock()
+            mock_tqdm.return_value.__enter__.return_value = mock_progress
+            classifier.predict(images=[EXAMPLE_CAT_IMAGE], callback=lambda p, t: None)
+
+            # Verify tqdm was called with 'disable=True'
+            mock_tqdm.assert_called_once()
+            call_kwargs = mock_tqdm.call_args[1]
+            self.assertTrue(call_kwargs.get('disable'))
+            mock_progress.update.assert_not_called()
+
+    def test_predict_without_callback_uses_tqdm(self):
+        """Test tqdm is enabled when no callback provided"""
+        classifier = CustomLabelsClassifier(cls_ary=['cat', 'dog'])
+
+        with patch('bioclip.predict.tqdm') as mock_tqdm:
+            mock_progress = Mock()
+            mock_tqdm.return_value.__enter__.return_value = mock_progress
+            classifier.predict(images=[EXAMPLE_CAT_IMAGE])
+
+            # Verify tqdm was called with 'disable=False'
+            mock_tqdm.assert_called_once()
+            call_kwargs = mock_tqdm.call_args[1]
+            self.assertFalse(call_kwargs.get('disable'))
+            self.assertGreater(mock_progress.update.call_count, 0)
+
+    def test_predict_callback_with_multiple_batches(self):
+        """Test callback is invoked correctly with multiple batches"""
+        classifier = CustomLabelsClassifier(cls_ary=['cat', 'dog'])
+        callback_calls = []
+
+        def test_callback(processed, total):
+            callback_calls.append((processed, total))
+
+        # Use 3 images with batch_size=2 to ensure multiple batches
+        classifier.predict(images=[EXAMPLE_CAT_IMAGE, EXAMPLE_CAT_IMAGE2, EXAMPLE_CAT_IMAGE],
+                           batch_size=2, callback=test_callback)
+
+        # Verify that with 3 images and batch_size=2 (2 batches: [2,1]), the callback is called once per batch (2 calls)
+        self.assertEqual(len(callback_calls), 2)
+        self.assertEqual(callback_calls[0], (2, 3))
+        self.assertEqual(callback_calls[1], (3, 3))
+
     def test_get_label_data(self):
         classifier = TreeOfLifeClassifier()
         df = classifier.get_label_data()
