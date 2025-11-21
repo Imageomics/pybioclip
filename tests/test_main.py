@@ -130,6 +130,10 @@ class TestParser(unittest.TestCase):
         self.assertEqual(args.command, 'list-tol-taxa')
         self.assertEqual(args.model, 'hf-hub:imageomics/bioclip')
 
+        # test error when using unsupported model with list-tol-taxa
+        with self.assertRaises(ValueError):
+            parse_args(['list-tol-taxa', '--model', 'unsupported-model'])
+
 
     def test_create_classes_str(self):
         data = "class1\nclass2\nclass3"

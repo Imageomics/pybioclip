@@ -198,6 +198,9 @@ def parse_args(input_args=None):
             args.rank = Rank[args.rank.upper()]
             if not args.k:
                 args.k = 5
+    elif args.command == 'list-tol-taxa':
+        if args.model:
+            ensure_tol_supported_model(args.model)
     return args
 
 
