@@ -124,6 +124,12 @@ class TestParser(unittest.TestCase):
 
         args = parse_args(['list-tol-taxa'])
         self.assertEqual(args.command, 'list-tol-taxa')
+        self.assertEqual(args.model, None)
+
+        args = parse_args(['list-tol-taxa', '--model', 'hf-hub:imageomics/bioclip'])
+        self.assertEqual(args.command, 'list-tol-taxa')
+        self.assertEqual(args.model, 'hf-hub:imageomics/bioclip')
+
 
     def test_create_classes_str(self):
         data = "class1\nclass2\nclass3"
