@@ -6,7 +6,7 @@
 
 -----
 
-Command line tool and python package to simplify using [BioCLIP](https://imageomics.github.io/bioclip/), including for taxonomic or other label prediction on (and thus annotation or labeling of) images, as well as for generating semantic embeddings for images. No particular understanding of ML or computer vision is required to use it. It also implements a number of performance optimizations for batches of images or custom class lists, which should be particularly useful for integration into computational workflows.
+Command line tool and python package to simplify using [BioCLIP](https://imageomics.github.io/bioclip-2/) (current and earlier versions), including for taxonomic or other label prediction on (and thus annotation or labeling of) images, as well as for generating semantic embeddings for images. No particular understanding of ML or computer vision is required to use it. It also implements a number of performance optimizations for batches of images or custom class lists, which should be particularly useful for integration into computational workflows.
 
 ## Documentation
 See the [pybioclip documentation website](https://imageomics.github.io/pybioclip/) for requirements, installation instructions, and tutorials.
@@ -18,7 +18,7 @@ See the [pybioclip documentation website](https://imageomics.github.io/pybioclip
 ## Citation
 
 Our code (this repository):
-```
+```bibtex
 @software{Bradley_pybioclip_2025,
 author = {Bradley, John and Lapp, Hilmar and Campolongo, Elizabeth G.},
 doi = {10.5281/zenodo.13151194},
@@ -29,8 +29,21 @@ year = {2025}
 }
 ```
 
-BioCLIP paper:
+BioCLIP 2 paper:
+```bibtex
+@article{gu2025bioclip,
+      title = {{B}io{CLIP} 2: Emergent Properties from Scaling Hierarchical Contrastive Learning}, 
+      author = {Jianyang Gu and Samuel Stevens and Elizabeth G Campolongo and Matthew J Thompson and Net Zhang and Jiaman Wu and Andrei Kopanev and Zheda Mai and Alexander E. White and James Balhoff and Wasila M Dahdul and Daniel Rubenstein and Hilmar Lapp and Tanya Berger-Wolf and Wei-Lun Chao and Yu Su},
+      year = {2025},
+      eprint={2505.23883},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2505.23883},
+}
 ```
+
+Original BioCLIP paper:
+```bibtex
 @inproceedings{stevens2024bioclip,
   title = {{B}io{CLIP}: A Vision Foundation Model for the Tree of Life}, 
   author = {Samuel Stevens and Jiaman Wu and Matthew J Thompson and Elizabeth G Campolongo and Chan Hee Song and David Edward Carlyn and Li Dong and Wasila M Dahdul and Charles Stewart and Tanya Berger-Wolf and Wei-Lun Chao and Yu Su},
@@ -40,7 +53,7 @@ BioCLIP paper:
 ```
 
 Also consider citing the BioCLIP code:
-```
+```bibtex
 @software{bioclip2023code,
   author = {Samuel Stevens and Jiaman Wu and Matthew J. Thompson and Elizabeth G. Campolongo and Chan Hee Song and David Edward Carlyn},
   doi = {10.5281/zenodo.10895871},
