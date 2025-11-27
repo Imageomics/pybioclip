@@ -178,7 +178,7 @@ def create_parser():
     list_parser.add_argument('--model', help='list available tags for pretrained model checkpoint(s) for specified model')
 
     # List TOL taxa command
-    list_tol_taxa_parser = subparsers.add_parser('list-tol-taxa', help='Print a CSV of the taxa embedding labels included with the tree of life model to the terminal.')
+    list_tol_taxa_parser = subparsers.add_parser('list-tol-taxa', help=f'Print a CSV of the taxa embedding labels included with the specified model to the terminal; default: taxa in {BIOCLIP_MODEL_STR}')
     list_tol_taxa_parser.add_argument('--model', **model_arg)
 
     return parser
