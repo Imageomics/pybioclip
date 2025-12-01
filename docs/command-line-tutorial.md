@@ -94,13 +94,18 @@ Ursus-arctos.jpeg,Animalia,Chordata,Mammalia,Artiodactyla,Cervidae,Alces,alces,A
 
 ### Use Original BioCLIP Model
 By default the [BioCLIP 2](https://huggingface.co/imageomics/bioclip-2) model is used.
-The original [BioCLIP](https://huggingface.co/imageomics/bioclip) model can be used by including a `--model hf-hub:imageomics/bioclip` argument for either the `predict` or `embed` commands.
+The original [BioCLIP](https://huggingface.co/imageomics/bioclip) model can be used by including a `--model hf-hub:imageomics/bioclip` argument for the `predict`, `embed`, or `list-tol-taxa` commands.
 Example:
 ```console
 bioclip predict --model hf-hub:imageomics/bioclip Ursus-arctos.jpeg
 ```
 
 When using the original BioCLIP model for TreeOfLife predictions the [TreeOfLife-10M embeddings](https://huggingface.co/datasets/imageomics/TreeOfLife-10M/tree/main/embeddings) are used.
+
+To list the taxa available in the original BioCLIP model:
+```console
+bioclip list-tol-taxa --model hf-hub:imageomics/bioclip
+```
 
 
 ### Save a prediction log

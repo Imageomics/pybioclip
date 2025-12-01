@@ -178,7 +178,8 @@ def create_parser():
     list_parser.add_argument('--model', help='list available tags for pretrained model checkpoint(s) for specified model')
 
     # List TOL taxa command
-    subparsers.add_parser('list-tol-taxa', help='Print a CSV of the taxa embedding labels included with the tree of life model to the terminal.')
+    list_tol_taxa_parser = subparsers.add_parser('list-tol-taxa', help=f'Print a CSV of the taxa embedding labels included with the specified model to the terminal; default: taxa in {BIOCLIP_MODEL_STR}')
+    list_tol_taxa_parser.add_argument('--model', **model_arg)
 
     return parser
 
@@ -197,6 +198,9 @@ def parse_args(input_args=None):
             args.rank = Rank[args.rank.upper()]
             if not args.k:
                 args.k = 5
+    elif args.command == 'list-tol-taxa':
+        if args.model:
+            ensure_tol_supported_model(args.model)
     return args
 
 
@@ -244,7 +248,7 @@ def main():
             for model_str in list(TOL_MODELS.keys()) + oc.list_models():
                 print(f"\t{model_str}")
     elif args.command == 'list-tol-taxa':
-        classifier = TreeOfLifeClassifier()
+        classifier = TreeOfLifeClassifier(model_str=args.model)
         df = classifier.get_label_data()
         # Removing newline from print since to_csv already adds one
         print(df.to_csv(index=False), end='')

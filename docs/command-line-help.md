@@ -90,8 +90,9 @@ options:
 ## bioclip list-tol-taxa
 Print a CSV of the taxa embedding labels included with the tree of life model to the terminal.
 ```
-usage: bioclip list-tol-taxa [-h]
+usage: bioclip list-tol-taxa [-h] [--model MODEL]
 
 options:
-  -h, --help  show this help message and exit
+  -h, --help     show this help message and exit
+  --model MODEL  model identifier (see command list-models); default: hf-hub:imageomics/bioclip-2
 ```
