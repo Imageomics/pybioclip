@@ -28,7 +28,7 @@ options:
   --bins BINS           path to CSV file with two columns with the first being
                         classes and second being bin names, when specified the
                         --rank, --cls, and --subset arguments are not allowed.
-  --subset SUBSET       path to CSV file used to subset the tree of life
+  --subset SUBSET       path to CSV file used to subset the TreeOfLife taxa
                         embeddings. CSV first column must be named one of
                         kingdom,phylum,class,order,family,genus,species. When
                         specified the --rank, --bins, and --cls arguments are
@@ -88,7 +88,9 @@ options:
 ```
 
 ## bioclip list-tol-taxa
-Print a CSV of the taxa embedding labels included with the tree of life model to the terminal.
+Outputs a CSV of the taxa embedding labels included with the selected (or default) TreeOfLife model. Other models are not supported (because precomputed taxon label embeddings are not available for them). 
+
+Note that this is a very large table and should be redirected to a file. One major use of this table is to construct and/or validate a table for the `--subset` option of the `predict` command. Because the TreeOfLife training datasets ([TreeOfLife-10M](https://huggingface.co/datasets/imageomics/TreeOfLife-10M) for the original BioCLIP model, [TreeOfLife-200M](https://huggingface.co/datasets/imageomics/TreeOfLife-200M) for BioCLIP 2) are very different between the models, their taxon embedding labels are also different (even if the intersection of taxa is large).
 ```
 usage: bioclip list-tol-taxa [-h] [--model MODEL]
 

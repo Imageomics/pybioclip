@@ -138,7 +138,7 @@ def create_parser():
     cls_group.add_argument('--cls', help=cls_help)
     cls_group.add_argument('--bins', help='path to CSV file with two columns with the first being classes and second being bin names, when specified the --rank, --cls, and --subset arguments are not allowed.')
     subset_labels = ','.join(get_rank_labels())
-    SUBSET_HELP = f"path to CSV file used to subset the tree of life embeddings. CSV first column must be named one of {subset_labels}. When specified the --rank, --bins, and --cls arguments are not allowed."
+    SUBSET_HELP = f"path to CSV file used to subset the TreeOfLife taxa embeddings. CSV first column must be named one of {subset_labels}. When specified the --rank, --bins, and --cls arguments are not allowed."
     cls_group.add_argument('--subset', help=SUBSET_HELP)
     predict_parser.add_argument('--k', type=int, help='number of top predictions to show, default: 5')
 
