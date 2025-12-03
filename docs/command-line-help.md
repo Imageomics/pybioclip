@@ -28,7 +28,7 @@ options:
   --bins BINS           path to CSV file with two columns with the first being
                         classes and second being bin names, when specified the
                         --rank, --cls, and --subset arguments are not allowed.
-  --subset SUBSET       path to CSV file used to subset the TreeOfLife
+  --subset SUBSET       path to CSV file used to subset the TreeOfLife taxa
                         embeddings. CSV first column must be named one of
                         kingdom,phylum,class,order,family,genus,species. When
                         specified the --rank, --bins, and --cls arguments are
