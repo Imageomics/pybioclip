@@ -1,5 +1,6 @@
 # pybioclip
 
+[![DOI](https://zenodo.org/badge/778988552.svg)](https://doi.org/10.5281/zenodo.13151194)
 
 [![PyPI - Version](https://img.shields.io/pypi/v/pybioclip.svg)](https://pypi.org/project/pybioclip)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pybioclip.svg)](https://pypi.org/project/pybioclip)
