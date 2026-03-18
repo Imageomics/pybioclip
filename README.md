@@ -32,14 +32,12 @@ year = {2025}
 
 Unless you selected (via `--model`) a model different from the default (which is now BioCLIP 2), please also cite the BioCLIP 2 paper:
 ```bibtex
-@article{gu2025bioclip,
-      title = {{B}io{CLIP} 2: Emergent Properties from Scaling Hierarchical Contrastive Learning}, 
-      year = {2025},
-      author = {Jianyang Gu and Samuel Stevens and Elizabeth G Campolongo and Matthew J Thompson and Net Zhang and Jiaman Wu and Andrei Kopanev and Zheda Mai and Alexander E. White and James Balhoff and Wasila M Dahdul and Daniel Rubenstein and Hilmar Lapp and Tanya Berger-Wolf and Wei-Lun Chao and Yu Su},
-      eprint={2505.23883},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2505.23883},
+@inproceedings{gu2025bioclip,
+  title={Bio{CLIP} 2: Emergent Properties from Scaling Hierarchical Contrastive Learning},
+  author={Jianyang Gu and Samuel Stevens and Elizabeth G Campolongo and Matthew J Thompson and Net Zhang and Jiaman Wu and Andrei Kopanev and Zheda Mai and Alexander E. White and James Balhoff and Wasila Dahdul and Daniel Rubenstein and Hilmar Lapp and Tanya Berger-Wolf and Wei-Lun Chao and Yu Su},
+  booktitle={The Thirty-ninth Annual Conference on Neural Information Processing Systems},
+  year={2025},
+  url={https://openreview.net/forum?id=yPC9zmkQgG}
 }
 ```
 
