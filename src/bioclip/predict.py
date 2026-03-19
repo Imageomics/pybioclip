@@ -272,6 +272,39 @@ class BaseClassifier(nn.Module):
         logits = (self.model.logit_scale.exp() * img_features @ txt_features)
         return F.softmax(logits, dim=1)
 
+    def create_probabilities_from_features(self, image_features: torch.Tensor,
+                                           txt_features: torch.Tensor,
+                                           keys: List[str]) -> dict[str, torch.Tensor]:
+        """
+        Computes probabilities from pre-computed image features.
+
+        Args:
+            image_features (torch.Tensor): Pre-computed image embeddings (N, embedding_dim).
+                Normalized if not already (checked via L2 norm).
+            txt_features (torch.Tensor): Text embeddings.
+            keys (List[str]): Keys to label each image in the output.
+
+        Returns:
+            dict[str, torch.Tensor]: A mapping of keys to probability tensors.
+        """
+        expected_dim = self.model.visual.output_dim
+        actual_dim = image_features.shape[-1]
+        if actual_dim != expected_dim:
+            raise ValueError(
+                f"image_features embedding_dim ({actual_dim}) does not match "
+                f"model's expected dimension ({expected_dim})."
+            )
+        img_features = image_features.to(self.device)
+        norms = img_features.norm(dim=-1)
+        if not torch.allclose(norms, torch.ones_like(norms), atol=1e-6):
+            img_features = F.normalize(img_features, dim=-1)
+        probs = self.create_probabilities(img_features, txt_features)
+        probs = probs.detach().cpu()
+        result = {}
+        for i, key in enumerate(keys):
+            result[key] = probs[i]
+        return result
+
     def create_probabilities_for_images(self, images: List[str] | List[PIL.Image.Image],
                                         keys: List[str],
                                         txt_features: torch.Tensor) -> dict[str, torch.Tensor]:
@@ -392,34 +425,54 @@ class CustomLabelsClassifier(BaseClassifier):
         return all_features
 
     @torch.no_grad()
-    def predict(self, images: List[str] | str | List[PIL.Image.Image], k: int = None,
-                batch_size: int = 10, callback: Optional[Callable[[int, int], None]] = None) -> dict[str, float]:
+    def predict(self, images: List[str] | str | List[PIL.Image.Image] | None = None, k: int = None,
+                batch_size: int = 10, callback: Optional[Callable[[int, int], None]] = None,
+                image_features: torch.Tensor | None = None) -> dict[str, float]:
         """
         Predicts the probabilities for the given images.
 
         Parameters:
-            images (List[str] | str | List[PIL.Image.Image]): A list of image file paths, a single image file path, or a list of PIL Image objects.
+            images (List[str] | str | List[PIL.Image.Image] | None): A list of image file paths, a single image file path, or a list of PIL Image objects.
+                Used for generating output keys. Can be None when image_features is provided.
             k (int, optional): The number of top probabilities to return. If not specified or if greater than the number of classes, all probabilities are returned.
             batch_size (int, optional): The number of images to process in a batch.
             callback (Callable[[int, int], None], optional): A callback function that takes two integers (processed, total) to report progress.
+            image_features (torch.Tensor, optional): Pre-computed image embeddings (N, embedding_dim).
+                When provided, skips image encoding. Embeddings are normalized if not already.
 
         Returns:
             List[dict]: A list of dicts with keys "file_name" and the custom class labels.
         """
-        if isinstance(images, str):
-            images = [images]
-        probs = self.create_batched_probabilities_for_images(images, self.txt_embeddings,
-                                                             batch_size=batch_size,
-                                                             callback=callback)
+        if images is None and image_features is None:
+            raise ValueError("Either images or image_features must be provided.")
+        if image_features is not None:
+            if image_features.dim() != 2:
+                raise ValueError(f"image_features must be a 2D tensor (N, embedding_dim), got {image_features.dim()}D.")
+            n = image_features.shape[0]
+            if images is not None:
+                if isinstance(images, str):
+                    images = [images]
+                if len(images) != n:
+                    raise ValueError(f"Length of images ({len(images)}) must match image_features ({n}).")
+                keys = [self.make_key(image, i) for i, image in enumerate(images)]
+            else:
+                keys = [str(i) for i in range(n)]
+            probs = self.create_probabilities_from_features(image_features, self.txt_embeddings, keys)
+        else:
+            if isinstance(images, str):
+                images = [images]
+            probs = self.create_batched_probabilities_for_images(images, self.txt_embeddings,
+                                                                 batch_size=batch_size,
+                                                                 callback=callback)
         result = []
-        for i, image in enumerate(images):
-            key = self.make_key(image, i)
+        image_keys = list(probs.keys())
+        for key in image_keys:
             img_probs = probs[key]
             if not k or k > len(self.classes):
                 k = len(self.classes)
             result.extend(self.group_probs(key, img_probs, k))
 
-        self.record_event(images=images, k=k, batch_size=batch_size)
+        self.record_event(images=images or [], k=k, batch_size=batch_size)
         return result
 
     def group_probs(self, image_key: str, img_probs: torch.Tensor, k: int = None) -> List[dict[str, float]]:
@@ -659,38 +712,56 @@ class TreeOfLifeClassifier(BaseClassifier):
         return prediction_ary
 
     @torch.no_grad()
-    def predict(self, images: List[str] | str | List[PIL.Image.Image], rank: Rank, 
+    def predict(self, images: List[str] | str | List[PIL.Image.Image] | None = None, rank: Rank = Rank.SPECIES,
                 min_prob: float = 1e-9, k: int = 5, batch_size: int = 10,
-                callback: Optional[Callable[[int, int], None]] = None) -> dict[str, dict[str, float]]:
+                callback: Optional[Callable[[int, int], None]] = None,
+                image_features: torch.Tensor | None = None) -> dict[str, dict[str, float]]:
         """
         Predicts probabilities for supplied taxa rank for given images using the Tree of Life embeddings.
 
         Parameters:
-            images (List[str] | str | List[PIL.Image.Image]): A list of image file paths, a single image file path, or a list of PIL Image objects.
+            images (List[str] | str | List[PIL.Image.Image] | None): A list of image file paths, a single image file path, or a list of PIL Image objects.
+                Used for generating output keys. Can be None when image_features is provided.
             rank (Rank): The rank at which to make predictions (e.g., species, genus).
             min_prob (float, optional): The minimum probability threshold for predictions.
             k (int, optional): The number of top predictions to return.
             batch_size (int, optional): The number of images to process in a batch.
             callback (Callable[[int, int], None], optional): A callback function that takes two integers (processed, total) to report progress.
+            image_features (torch.Tensor, optional): Pre-computed image embeddings (N, embedding_dim).
+                When provided, skips image encoding. Embeddings are normalized if not already.
 
         Returns:
             List[dict]: A list of dicts with keys "file_name", taxon ranks, "common_name", and "score".
         """
-
-        if isinstance(images, str):
-            images = [images]
-        probs = self.create_batched_probabilities_for_images(images, self.get_txt_embeddings(),
-                                                             batch_size=batch_size,
-                                                             callback=callback)
+        if images is None and image_features is None:
+            raise ValueError("Either images or image_features must be provided.")
+        if image_features is not None:
+            if image_features.dim() != 2:
+                raise ValueError(f"image_features must be a 2D tensor (N, embedding_dim), got {image_features.dim()}D.")
+            n = image_features.shape[0]
+            if images is not None:
+                if isinstance(images, str):
+                    images = [images]
+                if len(images) != n:
+                    raise ValueError(f"Length of images ({len(images)}) must match image_features ({n}).")
+                keys = [self.make_key(image, i) for i, image in enumerate(images)]
+            else:
+                keys = [str(i) for i in range(n)]
+            probs = self.create_probabilities_from_features(image_features, self.get_txt_embeddings(), keys)
+        else:
+            if isinstance(images, str):
+                images = [images]
+            probs = self.create_batched_probabilities_for_images(images, self.get_txt_embeddings(),
+                                                                 batch_size=batch_size,
+                                                                 callback=callback)
         result = []
-        for i, image in enumerate(images):
-            key = self.make_key(image, i)
+        for key in probs.keys():
             image_probs = probs[key].cpu()
             if rank == Rank.SPECIES:
                 result.extend(self.format_species_probs(key, image_probs, k))
             else:
                 result.extend(self.format_grouped_probs(key, image_probs, rank, min_prob, k))
-        self.record_event(images=images, rank=rank.get_label(), min_prob=min_prob, k=k, batch_size=batch_size)
+        self.record_event(images=images or [], rank=rank.get_label(), min_prob=min_prob, k=k, batch_size=batch_size)
         return result
 
 
