@@ -20,12 +20,18 @@ TOL10M_HF_DATAFILE_REPO = "imageomics/TreeOfLife-10M"
 TOL200M_HF_DATAFILE_REPO = "imageomics/TreeOfLife-200M"
 HF_DATAFILE_REPO_TYPE = "dataset"
 
-BIOCLIP_V1_MODEL_STR = "hf-hub:imageomics/bioclip" # TODO
+# BioCLIP family of models
+BIOCLIP_V1_MODEL_STR = "hf-hub:imageomics/bioclip"
 BIOCLIP_V2_MODEL_STR = "hf-hub:imageomics/bioclip-2"
+BIOCLIP_V25_HUGE_MODEL_STR = "hf-hub:imageomics/bioclip-2.5-vith14"
+BIOCAP_MODEL_STR = "hf-hub:imageomics/biocap"
+# Set default model
 BIOCLIP_MODEL_STR = BIOCLIP_V2_MODEL_STR
 TOL_MODELS = {
     BIOCLIP_V1_MODEL_STR: TOL10M_HF_DATAFILE_REPO,
-    BIOCLIP_V2_MODEL_STR: TOL200M_HF_DATAFILE_REPO
+    BIOCLIP_V2_MODEL_STR: TOL200M_HF_DATAFILE_REPO,
+    BIOCLIP_V25_HUGE_MODEL_STR: TOL200M_HF_DATAFILE_REPO,
+    BIOCAP_MODEL_STR: TOL10M_HF_DATAFILE_REPO
 }
 PRED_FILENAME_KEY = "file_name"
 PRED_CLASSICATION_KEY = "classification"
@@ -343,19 +349,23 @@ class BaseClassifier(nn.Module):
     def get_txt_emb(self) -> torch.Tensor:
         """
         Retrieves TreeOfLife text embeddings for the current model from the associated Hugging Face dataset repo.
+        model_str formatted 'hf-hub:imageomics/<model_name>'
         Returns:
             torch.Tensor: A tensor containing the text embeddings for the tree of life.
         """
-        txt_emb_npy = self.get_cached_datafile("embeddings/txt_emb_species.npy")
+        model_name = self.model_str.split("/")[1]
+        txt_emb_npy = self.get_cached_datafile(f"embeddings/{model_name}/txt_emb_species.npy")
         return torch.from_numpy(np.load(txt_emb_npy))
 
     def get_txt_names(self) -> List[List[str]]:
         """
         Retrieves TreeOfLife text names for the current model from the  associated Hugging Face dataset repo.
+        model_str formatted 'hf-hub:imageomics/<model_name>'
         Returns:
             List[List[str]]: A list of lists, where each inner list contains names corresponding to the text embeddings.
         """
-        txt_names_json = self.get_cached_datafile("embeddings/txt_emb_species.json")
+        model_name = self.model_str.split("/")[1]
+        txt_names_json = self.get_cached_datafile(f"embeddings/{model_name}/txt_emb_species.json")
         with open(txt_names_json, encoding="utf-8") as fd:
             txt_names = json.load(fd)
         return txt_names
