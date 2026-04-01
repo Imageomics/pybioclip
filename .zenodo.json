@@ -48,7 +48,8 @@
         }
     ],
     "references": [
-        "Stevens S, Wu J, Thompson MJ, Campolongo EG, Song CH, Carlyn DE, Dong L, Dahdul WM, Stewart C, Berger-Wolf T, Chao W-L, Su Y (2024) BioCLIP: A Vision Foundation Model for the Tree of Life. Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), 19412\u201319424."
+        "Stevens S, Wu J, Thompson MJ, Campolongo EG, Song CH, Carlyn DE, Dong L, Dahdul WM, Stewart C, Berger-Wolf T, Chao W-L, Su Y (2024) BioCLIP: A Vision Foundation Model for the Tree of Life. Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), 19412\u201319424.",
+        "Gu, J., Stevens, S., Campolongo, E. G., Thompson, M. J., Zhang, N., Wu, J., Kopanev, A., Mai, Z., White, A. E., Balhoff, J., Dahdul, W. M., Rubenstein, D., Lapp, H., Berger-Wolf, T., Chao, W.-L., & Su, Y. (2025). BioCLIP 2: Emergent Properties from Scaling Hierarchical Contrastive Learning. The Thirty-ninth Annual Conference on Neural Information Processing Systems. Retrieved from https://openreview.net/forum?id=yPC9zmkQgG"
     ]
 }
 
