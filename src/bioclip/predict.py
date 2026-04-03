@@ -27,6 +27,7 @@ BIOCLIP_V25_HUGE_MODEL_STR = "hf-hub:imageomics/bioclip-2.5-vith14"
 BIOCAP_MODEL_STR = "hf-hub:imageomics/biocap"
 # Set default model
 BIOCLIP_MODEL_STR = BIOCLIP_V2_MODEL_STR
+# Define TOL datasets associated to the BioCLIP models
 TOL_MODELS = {
     BIOCLIP_V1_MODEL_STR: TOL10M_HF_DATAFILE_REPO,
     BIOCLIP_V2_MODEL_STR: TOL200M_HF_DATAFILE_REPO,
@@ -363,7 +364,7 @@ class BaseClassifier(nn.Module):
         Returns:
             List[List[str]]: A list of lists, where each inner list contains names corresponding to the text embeddings.
         """
-        txt_names_json = self.get_cached_datafile(f"embeddings/txt_emb_species.json")
+        txt_names_json = self.get_cached_datafile("embeddings/txt_emb_species.json")
         with open(txt_names_json, encoding="utf-8") as fd:
             txt_names = json.load(fd)
         return txt_names
