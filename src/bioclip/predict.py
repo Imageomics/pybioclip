@@ -354,18 +354,16 @@ class BaseClassifier(nn.Module):
             torch.Tensor: A tensor containing the text embeddings for the tree of life.
         """
         model_name = self.model_str.split("/")[1]
-        txt_emb_npy = self.get_cached_datafile(f"embeddings/{model_name}/txt_emb_species.npy")
+        txt_emb_npy = self.get_cached_datafile(f"embeddings/txt_emb_{model_name}.npy")
         return torch.from_numpy(np.load(txt_emb_npy))
 
     def get_txt_names(self) -> List[List[str]]:
         """
         Retrieves TreeOfLife text names for the current model from the  associated Hugging Face dataset repo.
-        model_str formatted 'hf-hub:imageomics/<model_name>'
         Returns:
             List[List[str]]: A list of lists, where each inner list contains names corresponding to the text embeddings.
         """
-        model_name = self.model_str.split("/")[1]
-        txt_names_json = self.get_cached_datafile(f"embeddings/{model_name}/txt_emb_species.json")
+        txt_names_json = self.get_cached_datafile(f"embeddings/txt_emb_species.json")
         with open(txt_names_json, encoding="utf-8") as fd:
             txt_names = json.load(fd)
         return txt_names
