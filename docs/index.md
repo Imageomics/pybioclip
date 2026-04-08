@@ -23,4 +23,4 @@ If you have any issues with installation, please first upgrade pip by running `p
 
 
 ## Tutorials
-[Command Line Tutorial](command-line-tutorial.md){ .md-button .md-button--primary } [Python Tutorial](python-tutorial.md){ .md-button .md-button--primary }
+[Command Line Tutorial](command-line-tutorial.md){ .md-button .md-button--primary } [Python Tutorial](python-tutorial.md){ .md-button .md-button--primary } [Video Tutorial](https://youtu.be/kVsGDiN7fTg?si=EVMK7G1gUu19UOQP){ .md-button .md-button--primary }
