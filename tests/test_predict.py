@@ -7,6 +7,7 @@ from bioclip.predict import ensure_tol_supported_model
 from bioclip.predict import get_tol_repo_id
 from bioclip import BIOCLIP_V2_MODEL_STR, BIOCLIP_V1_MODEL_STR
 import os
+import sys
 import torch
 import pandas as pd
 import PIL.Image
@@ -416,3 +417,63 @@ class TestEnsureTolSupportedModel(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             get_tol_repo_id("hf-hub:some/unsupported-model")
         self.assertIn("TreeOfLife predictions are only supported for the following models", str(cm.exception))
+
+
+class TestTorchCompile(unittest.TestCase):
+    """Tests that torch.compile is skipped on Windows to avoid CUDA slowdown.
+
+    triton (used by torch.compile for GPU optimization) is not supported on
+    Windows, so calling torch.compile on Windows with CUDA can cause significant
+    slowdown instead of the expected speedup.
+    """
+
+    def _make_load_pretrained_model_mocks(self):
+        """Returns a dict of patches needed to call load_pretrained_model without
+        downloading any model weights."""
+        mock_model = Mock()
+        mock_model.to.return_value = mock_model
+        mock_preprocess = Mock()
+        return {
+            'oc.create_model_from_pretrained': (mock_model, mock_preprocess),
+            'oc.list_pretrained_tags_by_model': [],
+        }
+
+    @patch('bioclip.predict.torch.compile')
+    @patch('bioclip.predict.oc.create_model_from_pretrained')
+    @patch('bioclip.predict.oc.list_pretrained_tags_by_model')
+    def test_torch_compile_skipped_on_windows(self, mock_list_tags, mock_create_model, mock_compile):
+        """torch.compile should NOT be called on Windows."""
+        mock_list_tags.return_value = []
+        mock_model = Mock()
+        mock_model.to.return_value = mock_model
+        mock_create_model.return_value = (mock_model, Mock())
+
+        with patch.object(sys, 'platform', 'win32'):
+            classifier = BaseClassifier.__new__(BaseClassifier)
+            classifier.device = 'cpu'
+            classifier.recorder = None
+            classifier.load_pretrained_model()
+
+        mock_compile.assert_not_called()
+        self.assertIs(classifier.model, mock_model)
+
+    @patch('bioclip.predict.torch.compile')
+    @patch('bioclip.predict.oc.create_model_from_pretrained')
+    @patch('bioclip.predict.oc.list_pretrained_tags_by_model')
+    def test_torch_compile_used_on_linux(self, mock_list_tags, mock_create_model, mock_compile):
+        """torch.compile should be called on non-Windows platforms (e.g. Linux)."""
+        mock_list_tags.return_value = []
+        mock_model = Mock()
+        mock_model.to.return_value = mock_model
+        compiled_model = Mock()
+        mock_compile.return_value = compiled_model
+        mock_create_model.return_value = (mock_model, Mock())
+
+        with patch.object(sys, 'platform', 'linux'):
+            classifier = BaseClassifier.__new__(BaseClassifier)
+            classifier.device = 'cpu'
+            classifier.recorder = None
+            classifier.load_pretrained_model()
+
+        mock_compile.assert_called_once()
+        self.assertIs(classifier.model, compiled_model)

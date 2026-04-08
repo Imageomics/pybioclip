@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 from tqdm import tqdm
 import torch
@@ -230,7 +231,12 @@ class BaseClassifier(nn.Module):
                                                             pretrained=pretrained_str,
                                                             device=self.device,
                                                             return_transform=True)
-        self.model = torch.compile(model.to(self.device))
+        # torch.compile uses triton for GPU optimization, which is not supported on Windows.
+        # Skipping torch.compile on Windows avoids significant CUDA slowdown on that platform.
+        if sys.platform == 'win32':
+            self.model = model.to(self.device)
+        else:
+            self.model = torch.compile(model.to(self.device))
         self.preprocess = preprocess_img if self.model_str in TOL_MODELS else preprocess
 
     @staticmethod
