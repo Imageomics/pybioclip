@@ -20,13 +20,13 @@ See the [pybioclip documentation website](https://imageomics.github.io/pybioclip
 
 Our code (this repository):
 ```bibtex
-@software{Bradley_pybioclip_2025,
+@software{Bradley_pybioclip_2026,
 author = {Bradley, John and Lapp, Hilmar and Campolongo, Elizabeth G.},
 doi = {10.5281/zenodo.13151194},
-month = sept,
+month = apr,
 title = {{pybioclip}},
 version = {2.1.3},
-year = {2025}
+year = {2026}
 }
 ```
 
