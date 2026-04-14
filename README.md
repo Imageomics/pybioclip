@@ -25,7 +25,7 @@ author = {Bradley, John and Lapp, Hilmar and Campolongo, Elizabeth G.},
 doi = {10.5281/zenodo.13151194},
 month = sept,
 title = {{pybioclip}},
-version = {2.1.2},
+version = {2.1.3},
 year = {2025}
 }
 ```
