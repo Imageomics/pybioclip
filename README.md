@@ -18,7 +18,7 @@ See the [pybioclip documentation website](https://imageomics.github.io/pybioclip
 
 ## Citation
 
-To cite this repository, please use the citation provided by _Cite this repository_ in the sidebar, which uses the information in the `CITATON.cff` file. If you need a citation with a version-specific DOI, you can obtain this by following the Zenodo DOI badge at the top.
+To cite this repository, please use the citation provided by _Cite this repository_ in the sidebar, which uses the information in the `CITATON.cff` file. If you need a citation with a version-specific DOI, you can obtain this by following the Zenodo DOI badge at the top of this file.
 
 Unless you selected (via `--model`) a model different from the default (which is now BioCLIP 2), please also cite the BioCLIP 2 paper:
 ```bibtex
