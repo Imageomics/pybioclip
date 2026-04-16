@@ -14,6 +14,9 @@ TOL_MODELS = {
 }
 
 
+DEFAULT_BATCH_SIZE = 10
+
+
 class Rank(Enum):
     """Rank for the Tree of Life classification."""
     KINGDOM = 0

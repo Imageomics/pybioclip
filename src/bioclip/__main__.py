@@ -1,9 +1,7 @@
 from .__about__ import __version__ as pybioclip_version
-from ._constants import BIOCLIP_MODEL_STR, get_rank_labels
+from ._constants import BIOCLIP_MODEL_STR, DEFAULT_BATCH_SIZE, get_rank_labels
 import argparse
 import sys
-
-DEFAULT_BATCH_SIZE = 10
 
 
 def create_parser():
