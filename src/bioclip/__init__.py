@@ -5,6 +5,16 @@
 __all__ = ["TreeOfLifeClassifier", "Rank", "CustomLabelsClassifier", "CustomLabelsBinningClassifier",
            "BIOCLIP_MODEL_STR", "BIOCLIP_V2_MODEL_STR", "BIOCLIP_V1_MODEL_STR"]
 
+# Placeholders so all explicit exports are defined at module scope.
+# Real values are loaded lazily in __getattr__.
+TreeOfLifeClassifier = None
+Rank = None
+CustomLabelsClassifier = None
+CustomLabelsBinningClassifier = None
+BIOCLIP_MODEL_STR = None
+BIOCLIP_V2_MODEL_STR = None
+BIOCLIP_V1_MODEL_STR = None
+
 # Names resolvable from _constants without loading torch
 _CONSTANTS_NAMES = frozenset(["Rank", "BIOCLIP_MODEL_STR", "BIOCLIP_V2_MODEL_STR", "BIOCLIP_V1_MODEL_STR"])
 
