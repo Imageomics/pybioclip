@@ -15,8 +15,7 @@ from huggingface_hub import hf_hub_download
 from typing import Union, List, Callable, Optional
 
 from ._constants import (
-    TOL10M_HF_DATAFILE_REPO, TOL200M_HF_DATAFILE_REPO, HF_DATAFILE_REPO_TYPE,
-    BIOCLIP_V1_MODEL_STR, BIOCLIP_V2_MODEL_STR, BIOCLIP_MODEL_STR, TOL_MODELS,
+    HF_DATAFILE_REPO_TYPE, BIOCLIP_MODEL_STR, TOL_MODELS,
     Rank, get_rank_labels,
 )
 PRED_FILENAME_KEY = "file_name"
