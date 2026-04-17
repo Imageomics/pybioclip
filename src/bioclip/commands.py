@@ -10,9 +10,6 @@ import pandas as pd
 from typing import Union
 from tqdm import tqdm
 
-DEFAULT_BATCH_SIZE = 10
-
-
 def write_results(data, format, output):
     df = pd.DataFrame(data)
     if output == 'stdout':
