@@ -427,3 +427,19 @@ class TestPatchServerHTTP(unittest.TestCase):
         resp = urlopen(req)
         self.assertEqual(resp.status, 200)
         self.assertTrue(self.state.done_event.is_set())
+
+
+class TestRunPatchGuiImports(unittest.TestCase):
+    """Verify that run_patch_gui's internal imports resolve to callable classes."""
+
+    def test_classifier_imports_are_callable(self):
+        # This exercises the same import path as run_patch_gui, which broke
+        # when __init__.py switched to lazy loading with None placeholders.
+        from bioclip.predict import (
+            TreeOfLifeClassifier,
+            CustomLabelsClassifier,
+            CustomLabelsBinningClassifier,
+        )
+        self.assertTrue(callable(TreeOfLifeClassifier))
+        self.assertTrue(callable(CustomLabelsClassifier))
+        self.assertTrue(callable(CustomLabelsBinningClassifier))

@@ -697,7 +697,7 @@ def run_patch_gui(image_paths: List[str], predict_kwargs: dict) -> List[dict]:
     Starts a local HTTP server, opens the browser, and waits for the user
     to finish selecting patches and running predictions.
     """
-    from bioclip import TreeOfLifeClassifier, CustomLabelsClassifier, CustomLabelsBinningClassifier
+    from bioclip.predict import TreeOfLifeClassifier, CustomLabelsClassifier, CustomLabelsBinningClassifier
     from bioclip.commands import parse_bins_csv
 
     cls_str = predict_kwargs.get("cls_str")
