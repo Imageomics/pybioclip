@@ -46,7 +46,7 @@ When making changes to pybioclip, ALWAYS validate:
 2. **Argument Parsing**: Test command parsing with `bioclip predict --help` and verify options
 3. **Version Check**: Run `bioclip --version` to confirm installation
 4. **Model List**: Run `bioclip list-models` to verify model access (works offline with cached model list)
-5. **Unit Tests**: Run `python -m unittest tests.test_main tests.test_recorder -v` (22 tests, ~3 seconds, works offline)
+5. **Unit Tests**: Run `python -m unittest tests.test_main tests.test_recorder -v` (25 tests, ~3 seconds, works offline)
 6. **Installation**: Ensure `pip install .` completes without errors (with network access)
 7. **Full Prediction**: Test with sample image requires network for model download on first use
 
@@ -78,7 +78,9 @@ docker run --rm \
 ├── docs/                 # MkDocs documentation
 ├── examples/             # Jupyter notebook examples  
 ├── src/bioclip/          # Main package source code
-│   ├── __main__.py       # CLI entry point
+│   ├── __main__.py       # Lightweight CLI entry point (argparse only, no heavy imports)
+│   ├── _constants.py     # Lightweight constants (Rank enum, model strings) - no torch dependency
+│   ├── commands.py       # Heavy CLI command implementations (predict, embed, list-*)
 │   ├── predict.py        # Prediction classes
 │   └── recorder.py       # Logging functionality
 ├── tests/                # Unit tests
@@ -91,7 +93,9 @@ docker run --rm \
 ```
 
 ### Key Files to Modify
-- `src/bioclip/__main__.py` -- CLI argument parsing and command routing
+- `src/bioclip/__main__.py` -- CLI argument parsing only; no heavy imports
+- `src/bioclip/_constants.py` -- Lightweight constants shared between `__main__.py` and `predict.py`
+- `src/bioclip/commands.py` -- Heavy CLI command implementations (predict, embed, list-*)
 - `src/bioclip/predict.py` -- Prediction logic and model handling
 - `src/bioclip/recorder.py` -- Prediction logging and recording
 - `tests/test_*.py` -- Add tests for new functionality
@@ -117,7 +121,7 @@ Core dependencies (automatically installed):
 - Full test suite: 1-5 minutes (with cached models)
 
 ### Common Scenarios
-1. **Adding new CLI options**: Modify `src/bioclip/__main__.py` and add tests in `tests/test_main.py`
+1. **Adding new CLI options**: Modify `src/bioclip/__main__.py` (parser) and `src/bioclip/commands.py` (implementation); add tests in `tests/test_main.py`
 2. **Changing prediction logic**: Modify `src/bioclip/predict.py` and add tests in `tests/test_predict.py`
 3. **Documentation updates**: Edit files in `docs/` directory and test with `mkdocs serve`
 4. **Container testing**: Use provided Docker/Apptainer containers for validation

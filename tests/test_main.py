@@ -250,3 +250,20 @@ class TestParser(unittest.TestCase):
         with patch("builtins.open", mock_open(read_data='dog\nfish\nbird')) as mock_file:
             cls_to_bin = parse_bins_csv("somefile.csv")
         self.assertEqual(cls_to_bin, {'cat': 'b', 'dog': 'a'})
+
+
+class TestHelpSpeed(unittest.TestCase):
+    def test_help_under_one_second(self):
+        """Verify that --help exits quickly without loading heavy dependencies."""
+        import subprocess
+        import sys
+        import time
+        start = time.monotonic()
+        result = subprocess.run(
+            [sys.executable, '-m', 'bioclip', '--help'],
+            capture_output=True,
+            timeout=10,
+        )
+        elapsed = time.monotonic() - start
+        self.assertEqual(result.returncode, 0, msg=result.stderr.decode())
+        self.assertLess(elapsed, 1.0, msg=f"--help took {elapsed:.2f}s, expected < 1s")
