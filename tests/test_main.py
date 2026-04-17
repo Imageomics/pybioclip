@@ -234,6 +234,43 @@ class TestParser(unittest.TestCase):
         mock_embed.assert_called_with(['image.jpg'], 'data.json', batch_size=10, device='cuda',
                                       model_str=None, pretrained_str=None)
 
+    def test_parse_args_patch(self):
+        args = parse_args(['patch', 'image.jpg'])
+        self.assertEqual(args.command, 'patch')
+        self.assertEqual(args.image_file, ['image.jpg'])
+        self.assertEqual(args.format, 'csv')
+        self.assertEqual(args.output, 'stdout')
+        self.assertEqual(args.rank, Rank.SPECIES)
+        self.assertEqual(args.k, 5)
+        self.assertEqual(args.cls, None)
+        self.assertEqual(args.bins, None)
+        self.assertEqual(args.device, 'cpu')
+
+    def test_parse_args_patch_multiple_images(self):
+        args = parse_args(['patch', 'img1.jpg', 'img2.jpg', 'img3.jpg'])
+        self.assertEqual(args.command, 'patch')
+        self.assertEqual(args.image_file, ['img1.jpg', 'img2.jpg', 'img3.jpg'])
+
+    def test_parse_args_patch_with_cls(self):
+        args = parse_args(['patch', 'image.jpg', '--cls', 'cat,dog'])
+        self.assertEqual(args.command, 'patch')
+        self.assertEqual(args.cls, 'cat,dog')
+        self.assertEqual(args.rank, None)
+
+    def test_parse_args_patch_with_options(self):
+        args = parse_args(['patch', 'image.jpg', '--format', 'table', '--output', 'out.csv',
+                           '--rank', 'genus', '--k', '10', '--device', 'cuda'])
+        self.assertEqual(args.command, 'patch')
+        self.assertEqual(args.format, 'table')
+        self.assertEqual(args.output, 'out.csv')
+        self.assertEqual(args.rank, Rank.GENUS)
+        self.assertEqual(args.k, 10)
+        self.assertEqual(args.device, 'cuda')
+
+    def test_parse_args_patch_mutually_exclusive(self):
+        with self.assertRaises(SystemExit):
+            parse_args(['patch', 'image.jpg', '--cls', 'cat,dog', '--rank', 'genus'])
+
     @patch('bioclip.commands.os.path')
     def test_parse_bins_csv_file_missing(self, mock_path):
         mock_path.exists.return_value = False

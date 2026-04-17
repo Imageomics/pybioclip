@@ -147,6 +147,26 @@ def run(args):
         else:
             for model_str in list(TOL_MODELS.keys()) + oc.list_models():
                 print(f"\t{model_str}")
+    elif args.command == 'patch':
+        from bioclip.patch_gui import run_patch_gui
+        cls_str = args.cls
+        if args.cls and os.path.exists(args.cls):
+            cls_str = create_classes_str(args.cls)
+        results = run_patch_gui(
+            image_paths=args.image_file,
+            predict_kwargs=dict(
+                cls_str=cls_str,
+                rank=args.rank,
+                bins_path=args.bins,
+                k=args.k,
+                device=args.device,
+                model_str=args.model,
+                pretrained_str=args.pretrained,
+                subset=args.subset,
+            )
+        )
+        if results:
+            write_results(results, args.format, args.output)
     elif args.command == 'list-tol-taxa':
         classifier = TreeOfLifeClassifier(model_str=args.model)
         df = classifier.get_label_data()

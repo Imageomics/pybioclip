@@ -72,12 +72,30 @@ def create_parser():
     list_tol_taxa_parser = subparsers.add_parser('list-tol-taxa', help=f'Print a CSV of the taxa embedding labels included with the specified model to the terminal; default: taxa in {BIOCLIP_MODEL_STR}')
     list_tol_taxa_parser.add_argument('--model', **model_arg)
 
+    # Patch GUI command
+    patch_parser = subparsers.add_parser('patch',
+        help='Interactively select image patches to mask before prediction.')
+    patch_parser.add_argument('image_file', nargs='+', help='input image file(s)')
+    patch_parser.add_argument('--format', choices=['table', 'csv'], default='csv',
+        help='format of the output, default: csv')
+    patch_parser.add_argument('--output', **output_arg)
+    patch_cls_group = patch_parser.add_mutually_exclusive_group(required=False)
+    patch_cls_group.add_argument('--rank', choices=['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'],
+        help='rank of the classification, default: species, when specified the --cls, --bins, and --subset arguments are not allowed.')
+    patch_cls_group.add_argument('--cls', help=cls_help)
+    patch_cls_group.add_argument('--bins', help='path to CSV file with two columns with the first being classes and second being bin names, when specified the --rank, --cls, and --subset arguments are not allowed.')
+    patch_cls_group.add_argument('--subset', help=SUBSET_HELP)
+    patch_parser.add_argument('--k', type=int, help='number of top predictions to show, default: 5')
+    patch_parser.add_argument('--device', **device_arg)
+    patch_parser.add_argument('--model', **model_arg)
+    patch_parser.add_argument('--pretrained', **pretrained_arg)
+
     return parser
 
 
 def parse_args(input_args=None):
     args = create_parser().parse_args(input_args)
-    if args.command == 'predict':
+    if args.command in ('predict', 'patch'):
         if not args.cls and not args.bins:
             # tree of life class list mode
             from bioclip.predict import Rank, ensure_tol_supported_model
