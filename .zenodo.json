@@ -39,9 +39,9 @@
   "license": {
     "id": "MIT"
   },
-  "publication_date": "2026-04-13",
+  "publication_date": "2026-04-17",
   "title": "pybioclip",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "grants": [
         {
             "id": "021nxhr62::2118240"
