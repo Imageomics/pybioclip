@@ -13,12 +13,6 @@ __all__ = [
     BIOCLIP_MODEL_STR, BIOCLIP_V2_MODEL_STR, BIOCLIP_V1_MODEL_STR,
 ]
 
-# Placeholders so all explicit exports are defined at module scope.
-# Real values are loaded lazily in __getattr__.
-TreeOfLifeClassifier = None
-CustomLabelsClassifier = None
-CustomLabelsBinningClassifier = None
-
 def __getattr__(name):
     if name in __all__:
         from bioclip.predict import TreeOfLifeClassifier, CustomLabelsClassifier, CustomLabelsBinningClassifier
