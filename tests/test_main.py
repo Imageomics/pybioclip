@@ -1,6 +1,10 @@
 import unittest
 from unittest.mock import mock_open, patch
 import argparse
+import os
+import subprocess
+import sys
+import tempfile
 import pandas as pd
 from bioclip.__main__ import parse_args, main
 from bioclip.commands import create_classes_str, parse_bins_csv
@@ -267,13 +271,6 @@ class TestHelpSpeed(unittest.TestCase):
         elapsed = time.monotonic() - start
         self.assertEqual(result.returncode, 0, msg=result.stderr.decode())
         self.assertLess(elapsed, 1.0, msg=f"--help took {elapsed:.2f}s, expected < 1s")
-
-
-import os
-import subprocess
-import sys
-import tempfile
-
 TESTS_DIR = os.path.dirname(os.path.realpath(__file__))
 EXAMPLE_IMAGE = os.path.join(TESTS_DIR, 'images', 'mycat.jpg')
 
