@@ -1,4 +1,4 @@
-from bioclip import TreeOfLifeClassifier, CustomLabelsClassifier, CustomLabelsBinningClassifier
+from bioclip.predict import TreeOfLifeClassifier, CustomLabelsClassifier, CustomLabelsBinningClassifier
 from ._constants import TOL_MODELS, Rank, DEFAULT_BATCH_SIZE
 from .recorder import attach_prediction_recorder, save_recorded_predictions, verify_recorder_path
 import open_clip as oc
