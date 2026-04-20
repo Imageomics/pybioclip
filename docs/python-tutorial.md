@@ -6,7 +6,8 @@ and [`Felis-catus.jpeg`](https://huggingface.co/spaces/imageomics/bioclip-demo/b
 ## Predict species classification
 
 ```python
-from bioclip import TreeOfLifeClassifier, Rank
+from bioclip import Rank
+from bioclip.predict import TreeOfLifeClassifier
 
 classifier = TreeOfLifeClassifier()
 predictions = classifier.predict("Ursus-arctos.jpeg", Rank.SPECIES)
@@ -47,7 +48,8 @@ Output from the `predict()` method showing the dictionary structure:
 The output from the predict function can be converted into a [pandas DataFrame](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html) like so:
 ```python
 import pandas as pd
-from bioclip import TreeOfLifeClassifier, Rank
+from bioclip import Rank
+from bioclip.predict import TreeOfLifeClassifier
 
 classifier = TreeOfLifeClassifier()
 predictions = classifier.predict("Ursus-arctos.jpeg", Rank.SPECIES)
@@ -61,7 +63,7 @@ The first argument of the `predict()` method supports both a single path or a li
 
 ## Predict from a list of classes
 ```python
-from bioclip import CustomLabelsClassifier
+from bioclip.predict import CustomLabelsClassifier
 
 classifier = CustomLabelsClassifier(["duck","fish","bear"])
 predictions = classifier.predict("Ursus-arctos.jpeg")
@@ -82,7 +84,7 @@ bear 1.0
 To predict with a custom model the `model_str` and `pretrained_str` arguments must be specified.
 In this example the [CLIP-ViT-B-16-laion2B-s34B-b88K](https://huggingface.co/laion/CLIP-ViT-B-16-laion2B-s34B-b88K) model is used.
 ```python
-from bioclip import CustomLabelsClassifier
+from bioclip.predict import CustomLabelsClassifier
 
 classifier = CustomLabelsClassifier(
     cls_ary = ["duck","fish","bear"],
@@ -94,7 +96,8 @@ print(classifier.predict("Ursus-arctos.jpeg"))
 
 ### Predict with the original BioCLIP model
 ```python
-from bioclip import CustomLabelsClassifier, BIOCLIP_V1_MODEL_STR
+from bioclip.predict import CustomLabelsClassifier
+from bioclip import BIOCLIP_V1_MODEL_STR
 
 classifier = CustomLabelsClassifier(
     cls_ary = ["duck","fish","bear"],
@@ -108,7 +111,7 @@ See [this tutorial](command-line-tutorial.md/#predict-using-a-custom-model) for 
 
 ## Predict from a list of classes with binning
 ```python
-from bioclip import CustomLabelsBinningClassifier
+from bioclip.predict import CustomLabelsBinningClassifier
 
 classifier = CustomLabelsBinningClassifier(cls_to_bin={
   'dog': 'small',

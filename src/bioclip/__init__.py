@@ -7,13 +7,11 @@ from bioclip._constants import (
     BIOCLIP_MODEL_STR, BIOCLIP_V2_MODEL_STR, BIOCLIP_V1_MODEL_STR,
 )
 
-__all__ = [
+__exports__ = [
     "TreeOfLifeClassifier", "CustomLabelsClassifier", "CustomLabelsBinningClassifier",
-    Rank,
-    BIOCLIP_MODEL_STR, BIOCLIP_V2_MODEL_STR, BIOCLIP_V1_MODEL_STR,
 ]
 def __getattr__(name):
-    if name in __all__:
+    if name in __exports__:
         from bioclip.predict import TreeOfLifeClassifier, CustomLabelsClassifier, CustomLabelsBinningClassifier
         g = globals()
         g['TreeOfLifeClassifier'] = TreeOfLifeClassifier

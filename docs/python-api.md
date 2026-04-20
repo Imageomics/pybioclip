@@ -1,6 +1,6 @@
 # Python API
 
-::: bioclip.TreeOfLifeClassifier
+::: bioclip.predict.TreeOfLifeClassifier
     options:
       members:
       - predict
@@ -22,14 +22,14 @@
 -  `GENUS`
 -  `SPECIES`
 
-::: bioclip.CustomLabelsClassifier
+::: bioclip.predict.CustomLabelsClassifier
     options:
       members:
       - predict
       show_root_heading: true
       show_source: true
 
-::: bioclip.CustomLabelsBinningClassifier
+::: bioclip.predict.CustomLabelsBinningClassifier
     options:
       members:
       - predict
