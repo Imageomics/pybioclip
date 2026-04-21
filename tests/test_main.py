@@ -1,6 +1,10 @@
 import unittest
 from unittest.mock import mock_open, patch
 import argparse
+import os
+import subprocess
+import sys
+import tempfile
 import pandas as pd
 from bioclip.__main__ import parse_args, main
 from bioclip.commands import create_classes_str, parse_bins_csv
@@ -267,3 +271,84 @@ class TestHelpSpeed(unittest.TestCase):
         elapsed = time.monotonic() - start
         self.assertEqual(result.returncode, 0, msg=result.stderr.decode())
         self.assertLess(elapsed, 1.0, msg=f"--help took {elapsed:.2f}s, expected < 1s")
+TESTS_DIR = os.path.dirname(os.path.realpath(__file__))
+EXAMPLE_IMAGE = os.path.join(TESTS_DIR, 'images', 'mycat.jpg')
+
+
+class TestCliSmoke(unittest.TestCase):
+    """End-to-end subprocess smoke tests for each CLI subcommand.
+
+    Invokes `python -m bioclip` to exercise the real dispatch path
+    (parse_args -> commands.run -> classifier instantiation). Guards against
+    regressions invisible to unit tests that mock the command layer.
+    """
+
+    TIMEOUT_FAST = 30
+    TIMEOUT_MODEL = 300
+
+    def _run(self, args, timeout):
+        return subprocess.run(
+            [sys.executable, '-m', 'bioclip', *args],
+            capture_output=True, timeout=timeout,
+        )
+
+    def _assert_ok(self, result):
+        self.assertEqual(
+            result.returncode, 0,
+            msg=result.stderr.decode(errors='replace'),
+        )
+
+    def test_version(self):
+        r = self._run(['--version'], self.TIMEOUT_FAST)
+        self._assert_ok(r)
+        self.assertIn('pybioclip', r.stdout.decode())
+
+    def test_list_models(self):
+        r = self._run(['list-models'], self.TIMEOUT_FAST)
+        self._assert_ok(r)
+        self.assertIn('hf-hub:imageomics/bioclip-2', r.stdout.decode())
+
+    def test_list_tol_taxa(self):
+        r = self._run(['list-tol-taxa'], self.TIMEOUT_MODEL)
+        self._assert_ok(r)
+        self.assertIn('kingdom,phylum,class', r.stdout.decode())
+
+    def test_predict_tree_of_life(self):
+        r = self._run(['predict', EXAMPLE_IMAGE], self.TIMEOUT_MODEL)
+        self._assert_ok(r)
+        out = r.stdout.decode()
+        self.assertIn('file_name', out)
+        self.assertIn('score', out)
+
+    def test_predict_custom_labels(self):
+        r = self._run(
+            ['predict', EXAMPLE_IMAGE, '--cls', 'cat,dog,bird'],
+            self.TIMEOUT_MODEL,
+        )
+        self._assert_ok(r)
+        out = r.stdout.decode()
+        self.assertIn('classification', out)
+        self.assertIn('score', out)
+
+    def test_predict_custom_labels_binning(self):
+        with tempfile.NamedTemporaryFile('w', suffix='.csv', delete=False) as f:
+            f.write('cls,bin\ncat,feline\ndog,canine\nfish,aquatic\n')
+            bins_path = f.name
+        try:
+            r = self._run(
+                ['predict', EXAMPLE_IMAGE, '--bins', bins_path],
+                self.TIMEOUT_MODEL,
+            )
+            self._assert_ok(r)
+            out = r.stdout.decode()
+            self.assertIn('classification', out)
+            self.assertIn('score', out)
+        finally:
+            os.unlink(bins_path)
+
+    def test_embed(self):
+        r = self._run(['embed', EXAMPLE_IMAGE], self.TIMEOUT_MODEL)
+        self._assert_ok(r)
+        out = r.stdout.decode()
+        self.assertIn('"embeddings"', out)
+        self.assertIn('"model"', out)
