@@ -5,12 +5,19 @@ TOL10M_HF_DATAFILE_REPO = "imageomics/TreeOfLife-10M"
 TOL200M_HF_DATAFILE_REPO = "imageomics/TreeOfLife-200M"
 HF_DATAFILE_REPO_TYPE = "dataset"
 
-BIOCLIP_V1_MODEL_STR = "hf-hub:imageomics/bioclip"  # TODO
+# BioCLIP family of models
+BIOCLIP_V1_MODEL_STR = "hf-hub:imageomics/bioclip"
 BIOCLIP_V2_MODEL_STR = "hf-hub:imageomics/bioclip-2"
+BIOCLIP_V25_HUGE_MODEL_STR = "hf-hub:imageomics/bioclip-2.5-vith14"
+BIOCAP_MODEL_STR = "hf-hub:imageomics/biocap"
+# Set default model
 BIOCLIP_MODEL_STR = BIOCLIP_V2_MODEL_STR
+# Define TOL datasets associated to the BioCLIP models
 TOL_MODELS = {
     BIOCLIP_V1_MODEL_STR: TOL10M_HF_DATAFILE_REPO,
-    BIOCLIP_V2_MODEL_STR: TOL200M_HF_DATAFILE_REPO
+    BIOCLIP_V2_MODEL_STR: TOL200M_HF_DATAFILE_REPO,
+    BIOCLIP_V25_HUGE_MODEL_STR: TOL200M_HF_DATAFILE_REPO,
+    BIOCAP_MODEL_STR: TOL10M_HF_DATAFILE_REPO
 }
 
 
