@@ -10,14 +10,12 @@ authors:
   - family-names: Campolongo
     given-names: "Elizabeth G."
 identifiers:
-  - type: doi
-    value: 10.5281/zenodo.13151194
-  - description: "The GitHub release URL of tag 2.1.1."
+  - description: "The GitHub release URL of tag 2.1.5."
     type: url
-    value: "https://github.com/Imageomics/pybioclip/releases/tag/2.1.1"
-  - description: "The GitHub URL of the commit tagged with 2.1.1."
+    value: "https://github.com/Imageomics/pybioclip/releases/tag/2.1.5"
+  - description: "The GitHub URL of the commit tagged with 2.1.5."
     type: url
-    value: "https://github.com/Imageomics/pybioclip/tree/04d1f293fa353396a317e07598c8a019dd6af5f8"
+    value: "https://github.com/Imageomics/pybioclip/tree/4ba2dbb4668728a9c0618c4ff6960ce1945d6ab6" # update on release
 repository-code: 'https://github.com/Imageomics/pybioclip'
 url: 'https://github.com/Imageomics/pybioclip'
 abstract: Python package and command line tool that simplifies using the BioCLIP foundation model.
@@ -43,36 +41,6 @@ keywords:
   - genus
   - "image classification"
 license: MIT
-version: 2.1.1
-date-released: '2025-09-17'
-references:
-- type: conference-paper
-  title: "BioCLIP: A Vision Foundation Model for the Tree of Life"
-  authors:
-    - family-names: Stevens
-      given-names: Samuel
-    - family-names: Wu
-      given-names: Jiaman
-    - family-names: Thompson
-      given-names: "Matthew J."
-    - family-names: Campolongo
-      given-names: "Elizabeth G."
-    - family-names: Song
-      given-names: "Chan Hee"
-    - family-names: Carlyn
-      given-names: "David Edward"
-    - family-names: Dong
-      given-names: Li
-    - family-names: Dahdul
-      given-names: "Wasila M"
-    - family-names: Stewart
-      given-names: Charles
-    - family-names: "Berger-Wolf"
-      given-names: Tanya
-    - family-names: Chao
-      given-names: "Wei-Lun"
-    - family-names: Su
-      given-names: Yu
-  version: 1.0.0
-  doi: "10.5281/zenodo.10895871"
-  date-released: "2024-03-29"
+version: 2.1.5
+date-released: '2026-04-20'
+doi: 10.5281/zenodo.13151194

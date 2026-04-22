@@ -1,5 +1,6 @@
 # pybioclip
 
+[![DOI](https://zenodo.org/badge/778988552.svg)](https://doi.org/10.5281/zenodo.13151194)
 
 [![PyPI - Version](https://img.shields.io/pypi/v/pybioclip.svg)](https://pypi.org/project/pybioclip)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pybioclip.svg)](https://pypi.org/project/pybioclip)
@@ -17,28 +18,16 @@ See the [pybioclip documentation website](https://imageomics.github.io/pybioclip
 
 ## Citation
 
-Our code (this repository):
-```bibtex
-@software{Bradley_pybioclip_2025,
-author = {Bradley, John and Lapp, Hilmar and Campolongo, Elizabeth G.},
-doi = {10.5281/zenodo.13151194},
-month = sept,
-title = {{pybioclip}},
-version = {2.1.1},
-year = {2025}
-}
-```
+To cite this repository, please use the citation provided by _Cite this repository_ in the sidebar, which uses the information in the `CITATON.cff` file. If you need a citation with a version-specific DOI, you can obtain this by following the Zenodo DOI badge at the top of this file.
 
 Unless you selected (via `--model`) a model different from the default (which is now BioCLIP 2), please also cite the BioCLIP 2 paper:
 ```bibtex
-@article{gu2025bioclip,
-      title = {{B}io{CLIP} 2: Emergent Properties from Scaling Hierarchical Contrastive Learning}, 
-      year = {2025},
-      author = {Jianyang Gu and Samuel Stevens and Elizabeth G Campolongo and Matthew J Thompson and Net Zhang and Jiaman Wu and Andrei Kopanev and Zheda Mai and Alexander E. White and James Balhoff and Wasila M Dahdul and Daniel Rubenstein and Hilmar Lapp and Tanya Berger-Wolf and Wei-Lun Chao and Yu Su},
-      eprint={2505.23883},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2505.23883},
+@inproceedings{gu2025bioclip,
+  title={Bio{CLIP} 2: Emergent Properties from Scaling Hierarchical Contrastive Learning},
+  author={Jianyang Gu and Samuel Stevens and Elizabeth G Campolongo and Matthew J Thompson and Net Zhang and Jiaman Wu and Andrei Kopanev and Zheda Mai and Alexander E. White and James Balhoff and Wasila Dahdul and Daniel Rubenstein and Hilmar Lapp and Tanya Berger-Wolf and Wei-Lun Chao and Yu Su},
+  booktitle={The Thirty-ninth Annual Conference on Neural Information Processing Systems},
+  year={2025},
+  url={https://openreview.net/forum?id=yPC9zmkQgG}
 }
 ```
 

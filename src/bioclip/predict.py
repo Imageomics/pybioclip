@@ -13,27 +13,11 @@ import heapq
 import PIL.Image
 from huggingface_hub import hf_hub_download
 from typing import Union, List, Callable, Optional
-from enum import Enum
 
-
-TOL10M_HF_DATAFILE_REPO = "imageomics/TreeOfLife-10M"
-TOL200M_HF_DATAFILE_REPO = "imageomics/TreeOfLife-200M"
-HF_DATAFILE_REPO_TYPE = "dataset"
-
-# BioCLIP family of models
-BIOCLIP_V1_MODEL_STR = "hf-hub:imageomics/bioclip"
-BIOCLIP_V2_MODEL_STR = "hf-hub:imageomics/bioclip-2"
-BIOCLIP_V25_HUGE_MODEL_STR = "hf-hub:imageomics/bioclip-2.5-vith14"
-BIOCAP_MODEL_STR = "hf-hub:imageomics/biocap"
-# Set default model
-BIOCLIP_MODEL_STR = BIOCLIP_V2_MODEL_STR
-# Define TOL datasets associated to the BioCLIP models
-TOL_MODELS = {
-    BIOCLIP_V1_MODEL_STR: TOL10M_HF_DATAFILE_REPO,
-    BIOCLIP_V2_MODEL_STR: TOL200M_HF_DATAFILE_REPO,
-    BIOCLIP_V25_HUGE_MODEL_STR: TOL200M_HF_DATAFILE_REPO,
-    BIOCAP_MODEL_STR: TOL10M_HF_DATAFILE_REPO
-}
+from ._constants import (
+    HF_DATAFILE_REPO_TYPE, BIOCLIP_MODEL_STR, TOL_MODELS,
+    Rank, get_rank_labels,
+)
 PRED_FILENAME_KEY = "file_name"
 PRED_CLASSICATION_KEY = "classification"
 PRED_SCORE_KEY = "score"
@@ -157,27 +141,6 @@ def ensure_tol_supported_model(model_str: str):
     get_tol_repo_id(model_str)  # This will raise ValueError if the model is not supported
 
 
-class Rank(Enum):
-    """Rank for the Tree of Life classification."""
-    KINGDOM = 0
-    PHYLUM = 1
-    CLASS = 2
-    ORDER = 3
-    FAMILY = 4
-    GENUS = 5
-    SPECIES = 6
-
-    def get_label(self):
-        return self.name.lower()
-
-
-def get_rank_labels() -> List[str]:
-    """
-    Retrieve a list of labels for the items in Rank.
-    Returns:
-        list: A list of labels corresponding to each rank in the Rank.
-    """
-    return [rank.get_label() for rank in Rank]
 
 
 # The datafile of names ('txt_emb_species.json') contains species epithet.
