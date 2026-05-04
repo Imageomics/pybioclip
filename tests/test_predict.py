@@ -557,3 +557,42 @@ class TestPredictFromEmbeddings(unittest.TestCase):
                 images=[EXAMPLE_CAT_IMAGE], rank=Rank.SPECIES, image_features=features
             )
         self.assertIn("must match", str(cm.exception))
+
+    def test_custom_predict_image_features_length_mismatch_raises(self):
+        """CustomLabelsClassifier should also reject mismatched images/image_features lengths."""
+        classifier = CustomLabelsClassifier(cls_ary=['cat', 'dog'])
+        features = torch.randn(2, classifier.model.visual.output_dim)
+        with self.assertRaises(ValueError) as cm:
+            classifier.predict(images=[EXAMPLE_CAT_IMAGE], image_features=features)
+        self.assertIn("must match", str(cm.exception))
+
+    def test_tol_predict_with_both_images_and_features_uses_real_filename(self):
+        """When both images and image_features are provided, file_name must use the real image keys
+        (not the numeric "0", "1" fallback used when only image_features is supplied)."""
+        classifier = TreeOfLifeClassifier()
+        features = classifier.create_image_features(
+            [classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE)]
+        )
+        result_from_images = classifier.predict(images=EXAMPLE_CAT_IMAGE, rank=Rank.SPECIES, k=5)
+        result_from_both = classifier.predict(
+            images=EXAMPLE_CAT_IMAGE, image_features=features, rank=Rank.SPECIES, k=5,
+        )
+        # file_name must be the actual path, not a numeric index
+        for entry in result_from_both:
+            self.assertEqual(entry['file_name'], EXAMPLE_CAT_IMAGE)
+        # And the rest of the result must match the images-only path
+        self._assert_results_equal_ignoring_file_name(self, result_from_images, result_from_both)
+
+    def test_predict_rank_omitted_raises(self):
+        """TreeOfLifeClassifier.predict() must raise TypeError when rank is omitted."""
+        classifier = TreeOfLifeClassifier()
+        with self.assertRaises(TypeError) as cm:
+            classifier.predict(images=EXAMPLE_CAT_IMAGE)
+        self.assertIn("rank", str(cm.exception))
+
+        features = classifier.create_image_features(
+            [classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE)]
+        )
+        with self.assertRaises(TypeError) as cm:
+            classifier.predict(image_features=features)
+        self.assertIn("rank", str(cm.exception))
