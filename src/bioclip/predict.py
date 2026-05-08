@@ -293,34 +293,32 @@ class BaseClassifier(nn.Module):
         Common input resolution for predict(): if image_features is provided, validates
         it and computes probabilities directly; otherwise runs the batched encoding pipeline.
 
-        Returns a (probs_dict, images_list) tuple. images_list is the normalized list form
-        suitable for record_event (empty list when only image_features were supplied).
+        images is required in both paths. When image_features is provided, images supplies
+        the identifiers used to construct output keys; image_features supplies the
+        embeddings used for inference (skipping the encoder). Their lengths must match.
+
+        Returns a (probs_dict, images_list) tuple where images_list is the normalized list
+        form (string-to-list converted).
         """
         if images is None and image_features is None:
             raise ValueError("Either images or image_features must be provided.")
-        
-        # Image features provided
+
+        # Image features provided: images is required as identifiers for output keys.
         if image_features is not None:
-            # First validate dim of provided image_features
+            if images is None:
+                raise ValueError(
+                    "images is required when image_features is provided; pass a list of "
+                    "identifiers (e.g. filename strings) corresponding to each embedding."
+                )
             image_features = self._validate_image_features(image_features)
             n = image_features.shape[0]
-            
-            # Check if images were provided
-            # If so, validate length and create keys; 
-            # if not, create dummy keys and empty images list for record_event
-            if images is not None:
-                if isinstance(images, str):
-                    images = [images]
-                if len(images) != n:
-                    raise ValueError(
-                        f"Length of images ({len(images)}) must match image_features ({n})."
-                    )
-                keys = [self.make_key(image, i) for i, image in enumerate(images)]
-            else:
-                images = []
-                keys = [str(i) for i in range(n)]
-            
-            # With validated image_features and keys, compute probabilities
+            if isinstance(images, str):
+                images = [images]
+            if len(images) != n:
+                raise ValueError(
+                    f"Length of images ({len(images)}) must match image_features ({n})."
+                )
+            keys = [self.make_key(image, i) for i, image in enumerate(images)]
             probs = self.create_probabilities(image_features, txt_features).detach().cpu()
             return {key: probs[i] for i, key in enumerate(keys)}, images
         
@@ -459,21 +457,41 @@ class CustomLabelsClassifier(BaseClassifier):
         Predicts the probabilities for the given images.
 
         Parameters:
-            images (List[str] | str | List[PIL.Image.Image] | None): A list of image file paths, a single image file path, or a list of PIL Image objects.
-                Used for generating output keys. May be None when image_features is provided. When both images and image_features are provided, their lengths must match.
-            k (int, optional): The number of top probabilities to return. If not specified or if greater than the number of classes, all probabilities are returned.
-            batch_size (int, optional): The number of images to process in a batch.
-            callback (Callable[[int, int], None], optional): A callback function that takes two integers (processed, total) to report progress.
-            image_features (torch.Tensor, optional): Pre-computed image embeddings of shape (N, embedding_dim).
-                When provided, skips image encoding. Normalized internally if not already unit-norm.
-                When supplied without images, output "file_name" entries are the zero-based index as a string ("0", "1", ...).
+            images (List[str] | str | List[PIL.Image.Image] | None):
+                A list of image file paths, a single image file path, or a list of
+                PIL Image objects. Used for generating output keys.
+
+                Required when `image_features` is provided; its length must match
+                `image_features`.
+
+            k (int, optional):
+                The number of top probabilities to return. If not specified, or if
+                greater than the number of classes, all probabilities are returned.
+
+            batch_size (int, optional):
+                The number of images to process in a batch.
+
+            callback (Callable[[int, int], None], optional):
+                A callback function taking `(processed, total)` to report progress.
+
+            image_features (torch.Tensor, optional):
+                Pre-computed image embeddings of shape `(N, embedding_dim)`.
+                When provided, the image encoder is skipped and the embeddings are
+                used directly for inference. Embeddings are L2-normalized internally
+                if not already unit-norm. `images` is still required as identifiers
+                for the output keys.
 
         Returns:
-            List[dict]: A list of dicts with keys "file_name" and the custom class labels.
+            List[dict]: A list of dicts with keys `"file_name"` and the custom
+                class labels.
 
         Raises:
-            ValueError: If neither images nor image_features is provided, if image_features
-                has the wrong shape, or if images and image_features lengths disagree.
+            ValueError: If any of the following:
+
+                - neither `images` nor `image_features` is provided,
+                - `image_features` is provided without `images`,
+                - `image_features` is not 2D or has the wrong embedding dimension,
+                - `images` and `image_features` lengths disagree.
         """
         probs, images = self._resolve_image_features(
             images, image_features, self.txt_embeddings, batch_size, callback,
@@ -728,27 +746,51 @@ class TreeOfLifeClassifier(BaseClassifier):
                 callback: Optional[Callable[[int, int], None]] = None,
                 image_features: torch.Tensor | None = None) -> dict[str, dict[str, float]]:
         """
-        Predicts probabilities for supplied taxa rank for given images using the Tree of Life embeddings.
+        Predicts probabilities for the supplied taxonomic rank using the Tree of Life
+        embeddings.
 
         Parameters:
-            images (List[str] | str | List[PIL.Image.Image] | None): A list of image file paths, a single image file path, or a list of PIL Image objects.
-                Used for generating output keys. May be None when image_features is provided. When both images and image_features are provided, their lengths must match.
-            rank (Rank): Required. The rank at which to make predictions (e.g., species, genus).
-            min_prob (float, optional): The minimum probability threshold for predictions.
-            k (int, optional): The number of top predictions to return.
-            batch_size (int, optional): The number of images to process in a batch.
-            callback (Callable[[int, int], None], optional): A callback function that takes two integers (processed, total) to report progress.
-            image_features (torch.Tensor, optional): Pre-computed image embeddings of shape (N, embedding_dim).
-                When provided, skips image encoding. Normalized internally if not already unit-norm.
-                When supplied without images, output "file_name" entries are the zero-based index as a string ("0", "1", ...).
+            images (List[str] | str | List[PIL.Image.Image] | None):
+                A list of image file paths, a single image file path, or a list of
+                PIL Image objects. Used for generating output keys.
+
+                Required when `image_features` is provided; its length must match
+                `image_features`.
+
+            rank (Rank):
+                Required. The rank at which to make predictions (e.g. species, genus).
+
+            min_prob (float, optional):
+                The minimum probability threshold for predictions.
+
+            k (int, optional):
+                The number of top predictions to return.
+
+            batch_size (int, optional):
+                The number of images to process in a batch.
+
+            callback (Callable[[int, int], None], optional):
+                A callback function taking `(processed, total)` to report progress.
+
+            image_features (torch.Tensor, optional):
+                Pre-computed image embeddings of shape `(N, embedding_dim)`.
+                When provided, the image encoder is skipped and the embeddings are
+                used directly for inference. Embeddings are L2-normalized internally
+                if not already unit-norm. `images` is still required as identifiers
+                for the output keys.
 
         Returns:
-            List[dict]: A list of dicts with keys "file_name", taxon ranks, "common_name", and "score".
+            List[dict]: A list of dicts with keys `"file_name"`, the taxon ranks,
+                `"common_name"`, and `"score"`.
 
         Raises:
-            TypeError: If rank is not provided.
-            ValueError: If neither images nor image_features is provided, if image_features
-                has the wrong shape, or if images and image_features lengths disagree.
+            TypeError: If `rank` is not provided.
+            ValueError: If any of the following:
+
+                - neither `images` nor `image_features` is provided,
+                - `image_features` is provided without `images`,
+                - `image_features` is not 2D or has the wrong embedding dimension,
+                - `images` and `image_features` lengths disagree.
         """
         if rank is None:
             raise TypeError("predict() missing 1 required argument: 'rank'")
