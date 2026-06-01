@@ -239,7 +239,7 @@ class BaseClassifier(nn.Module):
 
     def create_probabilities(self, img_features: torch.Tensor,
                              txt_features: torch.Tensor) -> dict[str, torch.Tensor]:
-        logits = (self.model.logit_scale.exp() * img_features @ txt_features)
+        logits = (self.model.logit_scale * img_features @ txt_features)
         return F.softmax(logits, dim=1)
 
     def create_probabilities_for_images(self, images: List[str] | List[PIL.Image.Image],
