@@ -238,6 +238,18 @@ class TestParser(unittest.TestCase):
         mock_embed.assert_called_with(['image.jpg'], 'data.json', batch_size=10, device='cuda',
                                       model_str=None, pretrained_str=None)
 
+    @patch('bioclip.commands.BaseClassifier')
+    def test_embed_uses_base_classifier(self, mock_base_classifier):
+        """Verify embed() uses BaseClassifier so non-BioCLIP models are accepted."""
+        from bioclip.commands import embed
+        import torch
+        mock_instance = mock_base_classifier.return_value
+        mock_instance.model_str = 'ViT-B-32'
+        mock_instance.ensure_rgb_image.return_value = 'img'
+        mock_instance.create_image_features.return_value = torch.tensor([[0.1, 0.2]])
+        embed(['image.jpg'], 'stdout', model_str='ViT-B-32', pretrained_str='openai')
+        mock_base_classifier.assert_called_once_with(model_str='ViT-B-32', pretrained_str='openai')
+
     @patch('bioclip.commands.os.path')
     def test_parse_bins_csv_file_missing(self, mock_path):
         mock_path.exists.return_value = False
