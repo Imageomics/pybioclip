@@ -475,8 +475,8 @@ class TestPredictFromEmbeddings(unittest.TestCase):
         for i in range(5, 10):
             self.assertEqual(result_from_features[i]['file_name'], EXAMPLE_CAT_IMAGE2)
 
-    def test_tol_predict_unnormalized_features_matches_images(self):
-        """Unnormalized features should be auto-normalized and produce correct results."""
+    def test_tol_predict_unnormalized_features_with_normalize_flag_matches_images(self):
+        """Unnormalized features with normalize_features=True should produce correct results."""
         classifier = TreeOfLifeClassifier()
         unnorm_features = classifier.create_image_features(
             [classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE)], normalize=False
@@ -486,6 +486,7 @@ class TestPredictFromEmbeddings(unittest.TestCase):
         result_from_images = classifier.predict(images=EXAMPLE_CAT_IMAGE, rank=Rank.SPECIES, k=5)
         result_from_features = classifier.predict(
             images=EXAMPLE_CAT_IMAGE, image_features=unnorm_features, rank=Rank.SPECIES, k=5,
+            normalize_features=True,
         )
         # Classifications should match; scores may have minor float drift from normalization
         self.assertEqual(len(result_from_images), len(result_from_features))

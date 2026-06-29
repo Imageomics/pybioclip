@@ -249,16 +249,20 @@ class BaseClassifier(nn.Module):
         logits = (self.model.logit_scale.exp() * img_features @ txt_features)
         return F.softmax(logits, dim=1)
 
-    def _validate_image_features(self, image_features: torch.Tensor) -> torch.Tensor:
+    def _validate_image_features(self, image_features: torch.Tensor,
+                                 normalize_features: bool = False) -> torch.Tensor:
         """
-        Validates pre-computed image embeddings and returns them on self.device,
-        L2-normalized if not already unit-norm.
+        Validates pre-computed image embeddings and returns them on self.device.
+
+        By default the embeddings are assumed to be already L2-normalized and are used
+        as-is; the caller is responsible for normalizing them. Pass
+        `normalize_features=True` to L2-normalize them here instead.
 
         Raises:
             ValueError: If image_features is not 2D, or if its trailing dimension does
                 not match the model's vision tower output dimension.
         """
-        
+
         # Validate dimensions
         ## Expecting (N, embedding_dim)
         if image_features.dim() != 2:
@@ -272,13 +276,11 @@ class BaseClassifier(nn.Module):
                 f"image_features embedding_dim ({actual_dim}) does not match "
                 f"model's expected dimension ({expected_dim})."
             )
-            
-        # Dim check passed, move to device and validate normalization
-        ## If not unit norm, apply normalization. 
-        ## Allowing some numerical tolerance for floating point issues.
+
+        # Dim checks passed, move to device.
+        ## Embeddings are assumed already L2-normalized unless normalize_features is set.
         img_features = image_features.to(self.device)
-        norms = img_features.norm(dim=-1)
-        if not torch.allclose(norms, torch.ones_like(norms), atol=1e-6):
+        if normalize_features:
             img_features = F.normalize(img_features, dim=-1)
         return img_features
 
@@ -287,7 +289,8 @@ class BaseClassifier(nn.Module):
                                 image_features: torch.Tensor | None,
                                 txt_features: torch.Tensor,
                                 batch_size: int | None,
-                                callback: Optional[Callable[[int, int], None]]
+                                callback: Optional[Callable[[int, int], None]],
+                                normalize_features: bool = False
                                 ) -> tuple[dict[str, torch.Tensor], List[str] | List[PIL.Image.Image]]:
         """
         Common input resolution for predict(): if image_features is provided, validates
@@ -310,7 +313,9 @@ class BaseClassifier(nn.Module):
                     "images is required when image_features is provided; pass a list of "
                     "identifiers (e.g. filename strings) corresponding to each embedding."
                 )
-            image_features = self._validate_image_features(image_features)
+            image_features = self._validate_image_features(
+                image_features, normalize_features=normalize_features
+            )
             n = image_features.shape[0]
             if isinstance(images, str):
                 images = [images]
@@ -452,7 +457,8 @@ class CustomLabelsClassifier(BaseClassifier):
     @torch.no_grad()
     def predict(self, images: List[str] | str | List[PIL.Image.Image] | None = None, k: int = None,
                 batch_size: int = 10, callback: Optional[Callable[[int, int], None]] = None,
-                image_features: torch.Tensor | None = None) -> dict[str, float]:
+                image_features: torch.Tensor | None = None,
+                normalize_features: bool = False) -> dict[str, float]:
         """
         Predicts the probabilities for the given images.
 
@@ -477,9 +483,15 @@ class CustomLabelsClassifier(BaseClassifier):
             image_features (torch.Tensor, optional):
                 Pre-computed image embeddings of shape `(N, embedding_dim)`.
                 When provided, the image encoder is skipped and the embeddings are
-                used directly for inference. Embeddings are L2-normalized internally
-                if not already unit-norm. `images` is still required as identifiers
-                for the output keys.
+                used directly for inference. The embeddings are assumed to be
+                L2-normalized; the caller is responsible for normalizing them (or
+                pass `normalize_features=True`). `images` is still required as
+                identifiers for the output keys.
+
+            normalize_features (bool, optional):
+                Whether to L2-normalize `image_features` before inference. Defaults
+                to `False`, which assumes the supplied embeddings are already
+                normalized. Has no effect when `image_features` is not provided.
 
         Returns:
             List[dict]: A list of dicts with keys `"file_name"` and the custom
@@ -495,6 +507,7 @@ class CustomLabelsClassifier(BaseClassifier):
         """
         probs, images = self._resolve_image_features(
             images, image_features, self.txt_embeddings, batch_size, callback,
+            normalize_features=normalize_features,
         )
         result = []
         for key, img_probs in probs.items():
@@ -744,7 +757,8 @@ class TreeOfLifeClassifier(BaseClassifier):
     def predict(self, images: List[str] | str | List[PIL.Image.Image] | None = None, rank: Rank | None = None,
                 min_prob: float = 1e-9, k: int = 5, batch_size: int = 10,
                 callback: Optional[Callable[[int, int], None]] = None,
-                image_features: torch.Tensor | None = None) -> dict[str, dict[str, float]]:
+                image_features: torch.Tensor | None = None,
+                normalize_features: bool = False) -> dict[str, dict[str, float]]:
         """
         Predicts probabilities for the supplied taxonomic rank using the Tree of Life
         embeddings.
@@ -775,9 +789,15 @@ class TreeOfLifeClassifier(BaseClassifier):
             image_features (torch.Tensor, optional):
                 Pre-computed image embeddings of shape `(N, embedding_dim)`.
                 When provided, the image encoder is skipped and the embeddings are
-                used directly for inference. Embeddings are L2-normalized internally
-                if not already unit-norm. `images` is still required as identifiers
-                for the output keys.
+                used directly for inference. The embeddings are assumed to be
+                L2-normalized; the caller is responsible for normalizing them (or
+                pass `normalize_features=True`). `images` is still required as
+                identifiers for the output keys.
+
+            normalize_features (bool, optional):
+                Whether to L2-normalize `image_features` before inference. Defaults
+                to `False`, which assumes the supplied embeddings are already
+                normalized. Has no effect when `image_features` is not provided.
 
         Returns:
             List[dict]: A list of dicts with keys `"file_name"`, the taxon ranks,
@@ -796,6 +816,7 @@ class TreeOfLifeClassifier(BaseClassifier):
             raise TypeError("predict() missing 1 required argument: 'rank'")
         probs, images = self._resolve_image_features(
             images, image_features, self.get_txt_embeddings(), batch_size, callback,
+            normalize_features=normalize_features,
         )
         result = []
         for key, image_probs in probs.items():
