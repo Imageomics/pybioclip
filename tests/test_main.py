@@ -240,7 +240,7 @@ class TestParser(unittest.TestCase):
 
     @patch('bioclip.commands.BaseClassifier')
     def test_embed_uses_base_classifier(self, mock_base_classifier):
-        """Verify embed() uses BaseClassifier so non-BioCLIP models are accepted."""
+        """Verify embed() constructs BaseClassifier, which should permit non-BioCLIP models."""
         from bioclip.commands import embed
         import torch
         mock_instance = mock_base_classifier.return_value
