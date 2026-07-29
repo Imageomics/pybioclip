@@ -613,7 +613,7 @@ class TreeOfLifeClassifier(BaseClassifier):
         output = collections.defaultdict(float)
         class_dict_lookup = {}
         name_to_class_dict = {}
-        for i in torch.nonzero(probs > min_prob).squeeze():
+        for i in torch.nonzero(probs > min_prob).squeeze(-1):
             classification_dict = self.get_classification_dict(i, rank)
             name = join_names(classification_dict)
             class_dict_lookup[name] = classification_dict
