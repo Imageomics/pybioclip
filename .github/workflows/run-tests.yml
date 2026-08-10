@@ -11,6 +11,8 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         python-version: ['3.10', '3.11', '3.12', '3.13']
 
+    environment: run-tests
+
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -34,5 +36,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install .
       - name: Run tests
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           python -m unittest
