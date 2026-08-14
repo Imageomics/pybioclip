@@ -10,12 +10,12 @@ authors:
   - family-names: Campolongo
     given-names: "Elizabeth G."
 identifiers:
-  - description: "The GitHub release URL of tag 2.1.5."
+  - description: "The GitHub release URL of tag 2.1.6."
     type: url
-    value: "https://github.com/Imageomics/pybioclip/releases/tag/2.1.5"
-  - description: "The GitHub URL of the commit tagged with 2.1.5."
+    value: "https://github.com/Imageomics/pybioclip/releases/tag/2.1.6"
+  - description: "The GitHub URL of the commit tagged with 2.1.6."
     type: url
-    value: "https://github.com/Imageomics/pybioclip/tree/4ba2dbb4668728a9c0618c4ff6960ce1945d6ab6" # update on release
+    value: "https://github.com/Imageomics/pybioclip/tree/<commit-hash>" # update on release
 repository-code: 'https://github.com/Imageomics/pybioclip'
 url: 'https://github.com/Imageomics/pybioclip'
 abstract: Python package and command line tool that simplifies using the BioCLIP foundation model.
@@ -41,6 +41,6 @@ keywords:
   - genus
   - "image classification"
 license: MIT
-version: 2.1.5
-date-released: '2026-04-20'
+version: 2.1.6
+date-released: '2026-08-14'
 doi: 10.5281/zenodo.13151194
