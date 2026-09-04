@@ -296,8 +296,9 @@ class BaseClassifier(nn.Module):
         """
         Creates probabilities for predict() from either images or pre-computed image
         features: if image_features is provided, validates it and computes probabilities
-        directly from the embeddings (skipping the encoder); otherwise runs the batched
-        encoding pipeline on images.
+        from the embeddings in batches (skipping the encoder); otherwise runs the batched
+        encoding pipeline on images. In both cases the probability computation is batched
+        to bound intermediate memory.
 
         images is required in both paths. When image_features is provided, images supplies
         the identifiers used to construct output keys; image_features supplies the
@@ -327,8 +328,14 @@ class BaseClassifier(nn.Module):
                     f"Length of images ({len(images)}) must match image_features ({n})."
                 )
             keys = [self.make_key(image, i) for i, image in enumerate(images)]
-            probs = self.create_probabilities(image_features, txt_features).detach().cpu()
-            return {key: probs[i] for i, key in enumerate(keys)}, images
+            probs = self.create_batched_probabilities_for_image_features(
+                image_features=image_features,
+                keys=keys,
+                txt_features=txt_features,
+                batch_size=batch_size,
+                callback=callback,
+            )
+            return probs, images
         
         # No image features provided, must run encoding pipeline on images
         if isinstance(images, str):
@@ -372,6 +379,36 @@ class BaseClassifier(nn.Module):
                     callback(processed, total_images)
                 else:
                     progress_bar.update(len(grouped_images))
+        return result
+
+    def create_batched_probabilities_for_image_features(self, image_features: torch.Tensor,
+                                                        keys: List[str],
+                                                        txt_features: torch.Tensor,
+                                                        batch_size: int | None,
+                                                        callback: Optional[Callable[[int, int], None]] = None) -> dict[str, torch.Tensor]:
+        """
+        Computes probabilities from pre-computed image features in batches over the
+        rows of image_features. Batching bounds the size of the intermediate
+        (batch_size, n_classes) logits/probability tensors.
+        """
+        total = image_features.shape[0]
+        if not batch_size:
+            batch_size = total
+        result = {}
+        disable_tqdm = callback is not None
+        with tqdm(total=total, unit="images", disable=disable_tqdm) as progress_bar:
+            for i in range(0, total, batch_size):
+                grouped_features = image_features[i:i + batch_size]
+                grouped_keys = keys[i:i + batch_size]
+                probs = self.create_probabilities(grouped_features, txt_features)
+                probs = probs.detach().cpu()
+                for j, key in enumerate(grouped_keys):
+                    result[key] = probs[j]
+                if callback:
+                    processed = i + len(grouped_keys)
+                    callback(processed, total)
+                else:
+                    progress_bar.update(len(grouped_keys))
         return result
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
