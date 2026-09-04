@@ -441,3 +441,219 @@ class TestEnsureTolSupportedModel(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             get_tol_repo_id("hf-hub:some/unsupported-model")
         self.assertIn("TreeOfLife predictions are only supported for the following models", str(cm.exception))
+
+
+class TestPredictFromEmbeddings(unittest.TestCase):
+    """Tests for predict() with pre-computed image_features."""
+
+    @staticmethod
+    def _assert_results_equal_ignoring_file_name(test_case, expected, actual):
+        """Assert two result lists are identical except for file_name."""
+        test_case.assertEqual(len(expected), len(actual))
+        for exp, act in zip(expected, actual):
+            for key in exp:
+                if key == 'file_name':
+                    continue
+                test_case.assertEqual(exp[key], act[key],
+                    f"Mismatch on key '{key}': {exp[key]} != {act[key]}")
+
+    def test_tol_predict_species_from_features_matches_images(self):
+        """Species-level predict from embeddings must match predict from images exactly."""
+        classifier = TreeOfLifeClassifier()
+        features = classifier.create_image_features(
+            [classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE)]
+        )
+        result_from_images = classifier.predict(images=EXAMPLE_CAT_IMAGE, rank=Rank.SPECIES, k=5)
+        result_from_features = classifier.predict(
+            images=EXAMPLE_CAT_IMAGE, image_features=features, rank=Rank.SPECIES, k=5,
+        )
+        self._assert_results_equal_ignoring_file_name(self, result_from_images, result_from_features)
+        for entry in result_from_features:
+            self.assertEqual(entry['file_name'], EXAMPLE_CAT_IMAGE)
+
+    def test_tol_predict_family_from_features_matches_images(self):
+        """Family-level predict from embeddings must match predict from images exactly."""
+        classifier = TreeOfLifeClassifier()
+        features = classifier.create_image_features(
+            [classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE)]
+        )
+        result_from_images = classifier.predict(images=EXAMPLE_CAT_IMAGE, rank=Rank.FAMILY, k=2)
+        result_from_features = classifier.predict(
+            images=EXAMPLE_CAT_IMAGE, image_features=features, rank=Rank.FAMILY, k=2,
+        )
+        self._assert_results_equal_ignoring_file_name(self, result_from_images, result_from_features)
+
+    def test_tol_predict_multiple_from_features_matches_images(self):
+        """Multi-image predict from embeddings must match predict from images exactly."""
+        classifier = TreeOfLifeClassifier()
+        img1 = classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE)
+        img2 = classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE2)
+        features = classifier.create_image_features([img1, img2])
+        images_list = [EXAMPLE_CAT_IMAGE, EXAMPLE_CAT_IMAGE2]
+        result_from_images = classifier.predict(images=images_list, rank=Rank.SPECIES, k=5)
+        result_from_features = classifier.predict(
+            images=images_list, image_features=features, rank=Rank.SPECIES, k=5,
+        )
+        self._assert_results_equal_ignoring_file_name(self, result_from_images, result_from_features)
+        for i in range(5):
+            self.assertEqual(result_from_features[i]['file_name'], EXAMPLE_CAT_IMAGE)
+        for i in range(5, 10):
+            self.assertEqual(result_from_features[i]['file_name'], EXAMPLE_CAT_IMAGE2)
+
+    def test_tol_predict_from_features_batched_matches_unbatched(self):
+        """Batching over feature rows must produce the same result as a single batch."""
+        classifier = TreeOfLifeClassifier()
+        img1 = classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE)
+        img2 = classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE2)
+        features = classifier.create_image_features([img1, img2])
+        images_list = [EXAMPLE_CAT_IMAGE, EXAMPLE_CAT_IMAGE2]
+        result_single = classifier.predict(
+            images=images_list, image_features=features, rank=Rank.SPECIES, k=5,
+            batch_size=len(images_list),
+        )
+        result_batched = classifier.predict(
+            images=images_list, image_features=features, rank=Rank.SPECIES, k=5,
+            batch_size=1,
+        )
+        # Labels must match exactly. Scores may differ by float rounding because
+        # matmul over a different number of rows can use a different kernel.
+        self.assertEqual(len(result_single), len(result_batched))
+        for single, batched in zip(result_single, result_batched):
+            for key in single:
+                if key == 'score':
+                    self.assertAlmostEqual(single[key], batched[key], places=4)
+                else:
+                    self.assertEqual(single[key], batched[key],
+                        f"Mismatch on key '{key}': {single[key]} != {batched[key]}")
+
+    def test_tol_predict_unnormalized_features_with_normalize_flag_matches_images(self):
+        """Unnormalized features with normalize_features=True should produce correct results."""
+        classifier = TreeOfLifeClassifier()
+        unnorm_features = classifier.create_image_features(
+            [classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE)], normalize=False
+        )
+        norms = unnorm_features.norm(dim=-1)
+        self.assertFalse(torch.allclose(norms, torch.ones_like(norms), atol=1e-6))
+        result_from_images = classifier.predict(images=EXAMPLE_CAT_IMAGE, rank=Rank.SPECIES, k=5)
+        result_from_features = classifier.predict(
+            images=EXAMPLE_CAT_IMAGE, image_features=unnorm_features, rank=Rank.SPECIES, k=5,
+            normalize_features=True,
+        )
+        # Classifications should match; scores may have minor float drift from normalization
+        self.assertEqual(len(result_from_images), len(result_from_features))
+        for img_res, feat_res in zip(result_from_images, result_from_features):
+            for key in img_res:
+                if key == 'score':
+                    continue
+                self.assertEqual(img_res[key], feat_res[key],
+                    f"Mismatch on key '{key}': {img_res[key]} != {feat_res[key]}")
+
+    def test_custom_predict_from_features_matches_images(self):
+        """CustomLabelsClassifier predict from embeddings must match predict from images exactly."""
+        classifier = CustomLabelsClassifier(cls_ary=['cat', 'dog'])
+        features = classifier.create_image_features(
+            [classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE)]
+        )
+        result_from_images = classifier.predict(images=EXAMPLE_CAT_IMAGE)
+        result_from_features = classifier.predict(images=EXAMPLE_CAT_IMAGE, image_features=features)
+        self._assert_results_equal_ignoring_file_name(self, result_from_images, result_from_features)
+        for entry in result_from_features:
+            self.assertEqual(entry['file_name'], EXAMPLE_CAT_IMAGE)
+
+    def test_binning_predict_from_features_matches_images(self):
+        """CustomLabelsBinningClassifier predict from embeddings must match predict from images."""
+        classifier = CustomLabelsBinningClassifier(cls_to_bin={
+            'cat': 'one',
+            'mouse': 'two',
+            'fish': 'two',
+        })
+        features = classifier.create_image_features(
+            [classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE)]
+        )
+        result_from_images = classifier.predict(images=EXAMPLE_CAT_IMAGE)
+        result_from_features = classifier.predict(images=EXAMPLE_CAT_IMAGE, image_features=features)
+        self._assert_results_equal_ignoring_file_name(self, result_from_images, result_from_features)
+
+    def test_predict_no_images_no_features_raises(self):
+        """Should raise ValueError when neither images nor image_features provided."""
+        classifier = TreeOfLifeClassifier()
+        with self.assertRaises(ValueError) as cm:
+            classifier.predict(rank=Rank.SPECIES)
+        self.assertIn("Either images or image_features must be provided", str(cm.exception))
+
+        cls_classifier = CustomLabelsClassifier(cls_ary=['cat', 'dog'])
+        with self.assertRaises(ValueError) as cm:
+            cls_classifier.predict()
+        self.assertIn("Either images or image_features must be provided", str(cm.exception))
+
+    def test_predict_image_features_wrong_dim_raises(self):
+        """Should raise ValueError for non-2D image_features tensor."""
+        classifier = TreeOfLifeClassifier()
+        with self.assertRaises(ValueError) as cm:
+            classifier.predict(
+                images=EXAMPLE_CAT_IMAGE, image_features=torch.randn(768), rank=Rank.SPECIES,
+            )
+        self.assertIn("2D tensor", str(cm.exception))
+
+    def test_predict_image_features_wrong_embedding_dim_raises(self):
+        """Should raise ValueError when embedding_dim doesn't match model's expected dimension."""
+        classifier = TreeOfLifeClassifier()
+        # Model expects 768 for ViT-L/14, pass 512
+        features = torch.randn(1, 512)
+        with self.assertRaises(ValueError) as cm:
+            classifier.predict(
+                images=EXAMPLE_CAT_IMAGE, image_features=features, rank=Rank.SPECIES,
+            )
+        self.assertIn("does not match", str(cm.exception))
+
+    def test_predict_image_features_length_mismatch_raises(self):
+        """Should raise ValueError when images and image_features lengths don't match."""
+        classifier = TreeOfLifeClassifier()
+        features = torch.randn(2, 768)
+        with self.assertRaises(ValueError) as cm:
+            classifier.predict(
+                images=[EXAMPLE_CAT_IMAGE], rank=Rank.SPECIES, image_features=features
+            )
+        self.assertIn("must match", str(cm.exception))
+
+    def test_custom_predict_image_features_length_mismatch_raises(self):
+        """CustomLabelsClassifier should also reject mismatched images/image_features lengths."""
+        classifier = CustomLabelsClassifier(cls_ary=['cat', 'dog'])
+        features = torch.randn(2, classifier.model.visual.output_dim)
+        with self.assertRaises(ValueError) as cm:
+            classifier.predict(images=[EXAMPLE_CAT_IMAGE], image_features=features)
+        self.assertIn("must match", str(cm.exception))
+
+    def test_tol_predict_image_features_without_images_raises(self):
+        """image_features now requires images as identifiers; calling without images must raise."""
+        classifier = TreeOfLifeClassifier()
+        features = classifier.create_image_features(
+            [classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE)]
+        )
+        with self.assertRaises(ValueError) as cm:
+            classifier.predict(image_features=features, rank=Rank.SPECIES)
+        self.assertIn("images is required", str(cm.exception))
+
+    def test_custom_predict_image_features_without_images_raises(self):
+        """Same images-required contract on CustomLabelsClassifier."""
+        classifier = CustomLabelsClassifier(cls_ary=['cat', 'dog'])
+        features = classifier.create_image_features(
+            [classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE)]
+        )
+        with self.assertRaises(ValueError) as cm:
+            classifier.predict(image_features=features)
+        self.assertIn("images is required", str(cm.exception))
+
+    def test_predict_rank_omitted_raises(self):
+        """TreeOfLifeClassifier.predict() must raise TypeError when rank is omitted."""
+        classifier = TreeOfLifeClassifier()
+        with self.assertRaises(TypeError) as cm:
+            classifier.predict(images=EXAMPLE_CAT_IMAGE)
+        self.assertIn("rank", str(cm.exception))
+
+        features = classifier.create_image_features(
+            [classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE)]
+        )
+        with self.assertRaises(TypeError) as cm:
+            classifier.predict(images=EXAMPLE_CAT_IMAGE, image_features=features)
+        self.assertIn("rank", str(cm.exception))
