@@ -284,17 +284,20 @@ class BaseClassifier(nn.Module):
             img_features = F.normalize(img_features, dim=-1)
         return img_features
 
-    def _resolve_image_features(self,
-                                images: List[str] | str | List[PIL.Image.Image] | None,
-                                image_features: torch.Tensor | None,
-                                txt_features: torch.Tensor,
-                                batch_size: int | None,
-                                callback: Optional[Callable[[int, int], None]],
-                                normalize_features: bool = False
-                                ) -> tuple[dict[str, torch.Tensor], List[str] | List[PIL.Image.Image]]:
+    def _create_probabilities_for_images_or_image_features(
+            self,
+            images: List[str] | str | List[PIL.Image.Image] | None,
+            image_features: torch.Tensor | None,
+            txt_features: torch.Tensor,
+            batch_size: int | None,
+            callback: Optional[Callable[[int, int], None]],
+            normalize_features: bool = False,
+    ) -> tuple[dict[str, torch.Tensor], List[str] | List[PIL.Image.Image]]:
         """
-        Common input resolution for predict(): if image_features is provided, validates
-        it and computes probabilities directly; otherwise runs the batched encoding pipeline.
+        Creates probabilities for predict() from either images or pre-computed image
+        features: if image_features is provided, validates it and computes probabilities
+        directly from the embeddings (skipping the encoder); otherwise runs the batched
+        encoding pipeline on images.
 
         images is required in both paths. When image_features is provided, images supplies
         the identifiers used to construct output keys; image_features supplies the
@@ -505,8 +508,12 @@ class CustomLabelsClassifier(BaseClassifier):
                 - `image_features` is not 2D or has the wrong embedding dimension,
                 - `images` and `image_features` lengths disagree.
         """
-        probs, images = self._resolve_image_features(
-            images, image_features, self.txt_embeddings, batch_size, callback,
+        probs, images = self._create_probabilities_for_images_or_image_features(
+            images=images,
+            image_features=image_features,
+            txt_features=self.txt_embeddings,
+            batch_size=batch_size,
+            callback=callback,
             normalize_features=normalize_features,
         )
         result = []
@@ -814,8 +821,12 @@ class TreeOfLifeClassifier(BaseClassifier):
         """
         if rank is None:
             raise TypeError("predict() missing 1 required argument: 'rank'")
-        probs, images = self._resolve_image_features(
-            images, image_features, self.get_txt_embeddings(), batch_size, callback,
+        probs, images = self._create_probabilities_for_images_or_image_features(
+            images=images,
+            image_features=image_features,
+            txt_features=self.get_txt_embeddings(),
+            batch_size=batch_size,
+            callback=callback,
             normalize_features=normalize_features,
         )
         result = []
