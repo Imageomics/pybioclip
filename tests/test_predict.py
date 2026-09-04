@@ -475,6 +475,32 @@ class TestPredictFromEmbeddings(unittest.TestCase):
         for i in range(5, 10):
             self.assertEqual(result_from_features[i]['file_name'], EXAMPLE_CAT_IMAGE2)
 
+    def test_tol_predict_from_features_batched_matches_unbatched(self):
+        """Batching over feature rows must produce the same result as a single batch."""
+        classifier = TreeOfLifeClassifier()
+        img1 = classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE)
+        img2 = classifier.ensure_rgb_image(EXAMPLE_CAT_IMAGE2)
+        features = classifier.create_image_features([img1, img2])
+        images_list = [EXAMPLE_CAT_IMAGE, EXAMPLE_CAT_IMAGE2]
+        result_single = classifier.predict(
+            images=images_list, image_features=features, rank=Rank.SPECIES, k=5,
+            batch_size=len(images_list),
+        )
+        result_batched = classifier.predict(
+            images=images_list, image_features=features, rank=Rank.SPECIES, k=5,
+            batch_size=1,
+        )
+        # Labels must match exactly. Scores may differ by float rounding because
+        # matmul over a different number of rows can use a different kernel.
+        self.assertEqual(len(result_single), len(result_batched))
+        for single, batched in zip(result_single, result_batched):
+            for key in single:
+                if key == 'score':
+                    self.assertAlmostEqual(single[key], batched[key], places=4)
+                else:
+                    self.assertEqual(single[key], batched[key],
+                        f"Mismatch on key '{key}': {single[key]} != {batched[key]}")
+
     def test_tol_predict_unnormalized_features_with_normalize_flag_matches_images(self):
         """Unnormalized features with normalize_features=True should produce correct results."""
         classifier = TreeOfLifeClassifier()
