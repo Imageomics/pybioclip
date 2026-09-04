@@ -132,6 +132,68 @@ small 7.165559509303421e-05
 !!! info "Documentation"
     The [CustomLabelsBinningClassifier documentation](python-api.md/#bioclip.CustomLabelsBinningClassifier) describes all arguments supported by the constructor. The base class [CustomLabelsClassifier docs](python-api.md/#bioclip.CustomLabelsClassifier) describes arguments for the predict method.
 
+## Predict from pre-computed embeddings
+The `predict()` method can classify images from embeddings that were created earlier, skipping the image encoder.
+This is useful when the same embeddings are reused for several tasks, for example to search and classify without encoding each image twice.
+
+```python
+from bioclip import Rank
+from bioclip.predict import TreeOfLifeClassifier, CustomLabelsClassifier
+
+classifier = TreeOfLifeClassifier()
+image_paths = ["Ursus-arctos.jpeg", "Felis-catus.jpeg"]
+
+# Encode once. These embeddings are L2-normalized by default.
+images = [classifier.ensure_rgb_image(path) for path in image_paths]
+image_features = classifier.create_image_features(images)
+
+# Classify from the embeddings. The paths supply the file_name for each result.
+predictions = classifier.predict(
+    images=image_paths,
+    image_features=image_features,
+    rank=Rank.SPECIES,
+    k=2,
+)
+for prediction in predictions:
+    print(prediction["file_name"], prediction["species"], "-", prediction["score"])
+
+# Reuse the same embeddings with a custom list of labels.
+custom_classifier = CustomLabelsClassifier(["bear", "cat", "fish"])
+predictions = custom_classifier.predict(
+    images=image_paths,
+    image_features=image_features,
+)
+for prediction in predictions:
+    print(prediction["file_name"], prediction["classification"], "-", prediction["score"])
+```
+
+Output:
+```
+Ursus-arctos.jpeg Ursus arctos - 0.8381199240684509
+Ursus-arctos.jpeg Ursus etruscus - 0.11911307275295258
+Felis-catus.jpeg Felis silvestris - 0.2651330530643463
+Felis-catus.jpeg Felis margarita - 0.25954708456993103
+Ursus-arctos.jpeg bear - 0.9999905824661255
+Ursus-arctos.jpeg fish - 9.243121894542128e-06
+Ursus-arctos.jpeg cat - 1.240456271034418e-07
+Felis-catus.jpeg cat - 0.999996542930603
+Felis-catus.jpeg fish - 2.8105594083172036e-06
+Felis-catus.jpeg bear - 5.946275223323028e-07
+```
+
+The `images` argument is required alongside `image_features`. It provides the identifier for each row of `image_features` and is used to fill in `file_name`.
+The two must have the same length. As with the other examples, when a list of PIL images is passed the index of the image is used for `file_name`.
+`image_features` must be a 2D tensor of shape `(N, embedding_dim)`, where `embedding_dim` matches the model's image encoder.
+The `batch_size` argument applies to this path as well.
+
+The same `image_features` and `normalize_features` arguments are supported by `CustomLabelsClassifier` and `CustomLabelsBinningClassifier`.
+
+!!! warning "Embeddings must be L2-normalized"
+    `predict()` assumes that `image_features` are already L2-normalized and does not check or normalize them by default.
+    Embeddings from `create_image_features()` are normalized unless `normalize=False` is passed.
+    Embeddings written by the [`bioclip embed`](command-line-tutorial.md/#create-embeddings) command are **not** normalized.
+    For embeddings that are not normalized, pass `normalize_features=True` to have `predict()` normalize them, or normalize them yourself before calling `predict()`.
+
 ## Example Notebooks
 ### Predict species for images
 [PredictImages.ipynb](https://github.com/Imageomics/pybioclip/blob/main/examples/PredictImages.ipynb)  downloads some images and predicts species.
