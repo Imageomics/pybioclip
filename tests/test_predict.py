@@ -113,6 +113,31 @@ class TestPredict(unittest.TestCase):
             ANY, 2
         )
 
+    def test_format_grouped_probs_squeeze_dim(self):
+        # Regression test for #200: torch.nonzero(...).squeeze() collapsed to a
+        # 0-d tensor (unindexable) when exactly one entry exceeded min_prob.
+        # squeeze(-1) must keep the result iterable for N == 0, N == 1, and N > 1.
+        classifier = TreeOfLifeClassifier()
+        classifier.get_classification_dict = Mock(
+            side_effect=lambda idx, rank: {'kingdom': f'Kingdom{int(idx)}'}
+        )
+
+        # N == 0: nothing exceeds min_prob
+        probs = torch.tensor([0.0, 0.0, 0.0])
+        result = classifier.format_grouped_probs(EXAMPLE_CAT_IMAGE, probs, Rank.KINGDOM)
+        self.assertEqual(result, [])
+
+        # N == 1: exactly one entry exceeds min_prob (this used to crash)
+        probs = torch.tensor([0.9, 0.0, 0.0])
+        result = classifier.format_grouped_probs(EXAMPLE_CAT_IMAGE, probs, Rank.KINGDOM)
+        self.assertEqual(len(result), 1)
+        self.assertAlmostEqual(result[0]['score'], 0.9)
+
+        # N > 1: multiple entries exceed min_prob
+        probs = torch.tensor([0.9, 0.5, 0.0])
+        result = classifier.format_grouped_probs(EXAMPLE_CAT_IMAGE, probs, Rank.KINGDOM)
+        self.assertEqual(len(result), 2)
+
     def test_custom_labels_classifier(self):
         classifier = CustomLabelsClassifier(cls_ary=['cat', 'dog'])
         prediction_ary = classifier.predict(images=EXAMPLE_CAT_IMAGE)

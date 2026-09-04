@@ -1,4 +1,4 @@
-from bioclip.predict import TreeOfLifeClassifier, CustomLabelsClassifier, CustomLabelsBinningClassifier
+from bioclip.predict import BaseClassifier, TreeOfLifeClassifier, CustomLabelsClassifier, CustomLabelsBinningClassifier
 from ._constants import TOL_MODELS, Rank, DEFAULT_BATCH_SIZE
 from .recorder import attach_prediction_recorder, save_recorded_predictions, verify_recorder_path
 import open_clip as oc
@@ -82,7 +82,7 @@ def predict(image_file: list[str],
 
 
 def embed(image_file: list[str], output: str, batch_size: int = DEFAULT_BATCH_SIZE, **kwargs):
-    classifier = TreeOfLifeClassifier(**kwargs)
+    classifier = BaseClassifier(**kwargs)
     images_dict = {}
     data = {
         "model": classifier.model_str,
