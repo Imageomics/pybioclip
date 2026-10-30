@@ -491,6 +491,7 @@ class TreeOfLifeClassifier(BaseClassifier):
         self.txt_names = self.get_txt_names()
         self._subset_txt_embeddings = None
         self._subset_txt_names = None
+        self._rank_groups_cache = {}
 
     def get_txt_embeddings(self):
         if self._subset_txt_embeddings is None:
@@ -596,6 +597,7 @@ class TreeOfLifeClassifier(BaseClassifier):
                 names.append(self.txt_names[idx])
         self._subset_txt_embeddings = torch.stack(embeddings, dim=1)
         self._subset_txt_names = names
+        self._rank_groups_cache = {}
 
     def format_species_probs(self, image_key: str, probs: torch.Tensor, k: int = 5) -> List[dict[str, float]]:
         # Prevent error when probs is smaller than k
@@ -609,22 +611,50 @@ class TreeOfLifeClassifier(BaseClassifier):
             result.append(item)
         return result
 
+    def get_rank_groups(self, rank: Rank, num_species: int) -> tuple[torch.Tensor, List[dict[str, str]]]:
+        """
+        Maps each species index to its taxon at `rank`. Built once per rank and cached,
+        so aggregating each image is a single index_add_ instead of a Python loop (#147).
+
+        Returns:
+            tuple: (group index for each species, classification dict for each group)
+        """
+        cache_key = (rank, num_species)
+        if cache_key not in self._rank_groups_cache:
+            group_ids = []
+            group_dicts = []
+            name_to_group = {}
+            for i in range(num_species):
+                classification_dict = self.get_classification_dict(i, rank)
+                name = join_names(classification_dict)
+                if name not in name_to_group:
+                    name_to_group[name] = len(group_dicts)
+                    group_dicts.append(classification_dict)
+                group_ids.append(name_to_group[name])
+            self._rank_groups_cache[cache_key] = (torch.tensor(group_ids, dtype=torch.long), group_dicts)
+        return self._rank_groups_cache[cache_key]
+
     def format_grouped_probs(self, image_key: str, probs: torch.Tensor, rank: Rank, min_prob: float = 1e-9, k: int = 5) -> List[dict[str, float]]:
-        output = collections.defaultdict(float)
-        class_dict_lookup = {}
-        name_to_class_dict = {}
-        for i in torch.nonzero(probs > min_prob).squeeze(-1):
-            classification_dict = self.get_classification_dict(i, rank)
-            name = join_names(classification_dict)
-            class_dict_lookup[name] = classification_dict
-            output[name] += probs[i]
-            name_to_class_dict[name] = classification_dict
-        topk_names = heapq.nlargest(k, output, key=output.get)
+        group_ids, group_dicts = self.get_rank_groups(rank, probs.shape[0])
+        group_ids = group_ids.to(probs.device)
+        above_min = probs > min_prob
+        kept_probs = torch.where(above_min, probs, torch.zeros_like(probs))
+        output = torch.zeros(len(group_dicts), dtype=probs.dtype, device=probs.device)
+        output.index_add_(0, group_ids, kept_probs)
+        # Only groups with at least one species above min_prob are candidates
+        hits = torch.zeros(len(group_dicts), dtype=torch.long, device=probs.device)
+        hits.index_add_(0, group_ids, above_min.long())
+        candidates = hits > 0
+        k = min(k, int(candidates.sum()))
+        if k == 0:
+            return []
+        output[~candidates] = float("-inf")
+        topk = output.topk(k)
         prediction_ary = []
-        for name in topk_names:
+        for i, score in zip(topk.indices, topk.values):
             item = { PRED_FILENAME_KEY: image_key }
-            item.update(name_to_class_dict[name])
-            item[PRED_SCORE_KEY] = output[name].item()
+            item.update(group_dicts[i])
+            item[PRED_SCORE_KEY] = score.item()
             prediction_ary.append(item)
         return prediction_ary
 

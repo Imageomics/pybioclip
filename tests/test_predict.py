@@ -138,6 +138,34 @@ class TestPredict(unittest.TestCase):
         result = classifier.format_grouped_probs(EXAMPLE_CAT_IMAGE, probs, Rank.KINGDOM)
         self.assertEqual(len(result), 2)
 
+    def test_format_grouped_probs_sums_by_rank(self):
+        # #147: species probabilities are summed per taxon via a cached group index
+        classifier = TreeOfLifeClassifier()
+        families = ['Felidae', 'Canidae', 'Felidae', 'Ursidae']
+        classifier.get_classification_dict = Mock(
+            side_effect=lambda idx, rank: {'family': families[int(idx)]}
+        )
+        probs = torch.tensor([0.3, 0.25, 0.2, 0.0])
+        result = classifier.format_grouped_probs(EXAMPLE_CAT_IMAGE, probs, Rank.FAMILY, k=5)
+        self.assertEqual([r['family'] for r in result], ['Felidae', 'Canidae'])
+        self.assertAlmostEqual(result[0]['score'], 0.5)
+        self.assertAlmostEqual(result[1]['score'], 0.25)
+
+        # The group index is built once and reused for later images
+        calls = classifier.get_classification_dict.call_count
+        classifier.format_grouped_probs(EXAMPLE_CAT_IMAGE, probs, Rank.FAMILY, k=1)
+        self.assertEqual(classifier.get_classification_dict.call_count, calls)
+
+    def test_apply_filter_resets_rank_groups(self):
+        classifier = TreeOfLifeClassifier()
+        classifier.get_rank_groups(Rank.KINGDOM, len(classifier.txt_names))
+        self.assertTrue(classifier._rank_groups_cache)
+        taxon_filter = classifier.get_label_data().species == 'Ursus arctos'
+        classifier.apply_filter(taxon_filter)
+        self.assertEqual(classifier._rank_groups_cache, {})
+        result = classifier.predict(images=EXAMPLE_CAT_IMAGE, rank=Rank.GENUS)
+        self.assertEqual(result[0]['genus'], 'Ursus')
+
     def test_custom_labels_classifier(self):
         classifier = CustomLabelsClassifier(cls_ary=['cat', 'dog'])
         prediction_ary = classifier.predict(images=EXAMPLE_CAT_IMAGE)
