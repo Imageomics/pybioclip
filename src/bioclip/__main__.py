@@ -102,6 +102,11 @@ def main():
     if sys.platform == 'win32':
         sys.stdout.reconfigure(encoding='utf-8')
     args = parse_args()
+    if args.command is None:
+        # No subcommand given: show usage and fail instead of falling
+        # through with a success exit code.
+        create_parser().print_help()
+        return 2
     from bioclip import commands
     commands.run(args)
 
