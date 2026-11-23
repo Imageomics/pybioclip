@@ -53,14 +53,17 @@ options:
 ## bioclip embed
 Use BioCLIP to generate embeddings for image files.
 ```
-usage: bioclip embed [-h] [--output OUTPUT] [--device DEVICE] [--model MODEL]
-                     [--pretrained PRETRAINED] image_file [image_file ...]
+usage: bioclip embed [-h] [--format {json,parquet}] [--output OUTPUT]
+                     [--device DEVICE] [--model MODEL] [--pretrained PRETRAINED]
+                     [--batch-size BATCH_SIZE] image_file [image_file ...]
 
 positional arguments:
   image_file            input image file(s)
 
 options:
   -h, --help            show this help message and exit
+  --format {json,parquet}
+                        format of the output, default: json; parquet requires --output
   --output OUTPUT       print output to file, default: stdout
   --device DEVICE       device to use (cpu or cuda or mps), default: cpu
   --model MODEL         model identifier (see command list-models);
@@ -69,7 +72,13 @@ options:
                         pretrained model checkpoint as tag or file, depends
                         on model; needed only if more than one is available
                         (see command list-models)
+  --batch-size BATCH_SIZE
+                        Number of images to process in a batch, default: 10
 ```
+
+Parquet output requires the optional `pybioclip[parquet]` dependency and a file
+destination. See [Export embeddings to Parquet](command-line-tutorial.md#export-embeddings-to-parquet)
+for the schema and an example.
 
 ## bioclip list-models
 List available models and pretrained model checkpoints.

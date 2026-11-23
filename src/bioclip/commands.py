@@ -81,9 +81,23 @@ def predict(image_file: list[str],
         save_recorded_predictions(classifier, log)
 
 
-def embed(image_file: list[str], output: str, batch_size: int = DEFAULT_BATCH_SIZE, **kwargs):
+def embed(image_file: list[str], output: str, batch_size: int = DEFAULT_BATCH_SIZE,
+          format: str = 'json', **kwargs):
+    if format not in ('json', 'parquet'):
+        raise ValueError(f"Invalid embedding format: {format}")
+    if format == 'parquet':
+        if output == 'stdout':
+            raise ValueError("Parquet output requires --output with a file path")
+        try:
+            from ._parquet import write_embeddings_parquet
+        except ModuleNotFoundError as error:
+            if error.name != 'pyarrow' and not (error.name or '').startswith('pyarrow.'):
+                raise
+            raise ImportError(
+                "Parquet output requires pyarrow; install it with pip install 'pybioclip[parquet]'"
+            ) from error
     classifier = BaseClassifier(**kwargs)
-    images_dict = {}
+    images_dict: dict[str, list[float]] = {}
     data = {
         "model": classifier.model_str,
         "embeddings": images_dict
@@ -101,7 +115,9 @@ def embed(image_file: list[str], output: str, batch_size: int = DEFAULT_BATCH_SI
 
             progress_bar.update(len(batch_paths))
 
-    if output == 'stdout':
+    if format == 'parquet':
+        write_embeddings_parquet(images_dict, output, classifier.model_str, classifier.pretrained_str)
+    elif output == 'stdout':
         print(json.dumps(data, indent=4))
     else:
         with open(output, 'w') as outfile:
@@ -120,6 +136,7 @@ def run(args):
         embed(args.image_file,
               args.output,
               batch_size=args.batch_size,
+              format=args.format,
               device=args.device,
               model_str=args.model,
               pretrained_str=args.pretrained)

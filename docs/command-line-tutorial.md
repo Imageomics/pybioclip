@@ -250,6 +250,43 @@ Output:
     The [bioclip embed documentation](command-line-help.md/#bioclip-embed) describes all arguments supported by `bioclip embed` command.
 
 
+### Export embeddings to Parquet
+
+Install the optional Parquet dependency:
+
+```console
+pip install 'pybioclip[parquet]'
+```
+
+Save embeddings in the format accepted by
+[Embedding Explorer](https://github.com/Imageomics/emb-explorer):
+
+```console
+bioclip embed --format parquet --output embeddings.parquet leaf.jpg tree.jpg
+```
+
+Parquet output requires a file path; JSON remains the default and supports stdout.
+The Parquet file has two columns: `uuid` (string) and `emb` (list of float32).
+`uuid` is the exact input path string, matching the keys in the JSON output; it is
+not a content hash or generated UUID. Repeated identical paths produce one row,
+just as they produce one JSON dictionary entry. Different path spellings remain
+distinct, even if they refer to the same file.
+
+Embeddings remain unnormalized, as in the JSON output, and are stored as float32.
+Model, pretrained checkpoint and normalization information are stored as JSON in
+the file's `pybioclip` schema metadata. All rows have the same vector dimension.
+The export does not add taxonomy labels or image preview URLs.
+
+To inspect the file without loading a model:
+
+```python
+import pyarrow.parquet as pq
+
+table = pq.read_table('embeddings.parquet')
+print(table.schema)
+print(table['uuid'].to_pylist())
+```
+
 ## View command line help
 ```console
 bioclip -h

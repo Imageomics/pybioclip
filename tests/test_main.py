@@ -110,6 +110,7 @@ class TestParser(unittest.TestCase):
 
         args = parse_args(['embed', 'image.jpg'])
         self.assertEqual(args.command, 'embed')
+        self.assertEqual(args.format, 'json')
         self.assertEqual(args.image_file, ['image.jpg'])
         self.assertEqual(args.output, 'stdout')
         self.assertEqual(args.device, 'cpu')
@@ -223,9 +224,9 @@ class TestParser(unittest.TestCase):
     def test_embed_with_batch_size(self, mock_parse_args, mock_embed):
         mock_parse_args.return_value = argparse.Namespace(command='embed', image_file=['image.jpg', 'image2.png'],
                                                           output='stdout', device='cpu', model=None, pretrained=None,
-                                                          batch_size=5)
+                                                          batch_size=5, format='json')
         main()
-        mock_embed.assert_called_with(['image.jpg', 'image2.png'], 'stdout', batch_size=5, device='cpu',
+        mock_embed.assert_called_with(['image.jpg', 'image2.png'], 'stdout', batch_size=5, format='json', device='cpu',
                                       model_str=None, pretrained_str=None)
 
     @patch('bioclip.commands.embed')
@@ -233,10 +234,23 @@ class TestParser(unittest.TestCase):
     def test_embed_default_batch_size(self, mock_parse_args, mock_embed):
         mock_parse_args.return_value = argparse.Namespace(command='embed', image_file=['image.jpg'],
                                                           output='data.json', device='cuda', model=None, pretrained=None,
-                                                          batch_size=10)
+                                                          batch_size=10, format='json')
         main()
-        mock_embed.assert_called_with(['image.jpg'], 'data.json', batch_size=10, device='cuda',
+        mock_embed.assert_called_with(['image.jpg'], 'data.json', batch_size=10, format='json', device='cuda',
                                       model_str=None, pretrained_str=None)
+
+    @patch('bioclip.commands.embed')
+    def test_embed_parquet_dispatch(self, mock_embed):
+        from bioclip.commands import run
+        args = parse_args(['embed', 'image.jpg', '--format', 'parquet', '--output', 'data.parquet'])
+        run(args)
+        mock_embed.assert_called_once_with(['image.jpg'], 'data.parquet', batch_size=10,
+                                          format='parquet', device='cpu', model_str=None,
+                                          pretrained_str=None)
+
+    def test_embed_rejects_unknown_format(self):
+        with self.assertRaises(SystemExit):
+            parse_args(['embed', 'image.jpg', '--format', 'csv'])
 
     @patch('bioclip.commands.BaseClassifier')
     def test_embed_uses_base_classifier(self, mock_base_classifier):

@@ -35,6 +35,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+parquet = ["pyarrow"]
 docs = [
     "mkdocs",
     "mkdocs-material",
