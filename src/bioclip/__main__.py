@@ -52,6 +52,8 @@ def create_parser():
     # Embed command
     embed_parser = subparsers.add_parser('embed', help='Use BioCLIP to generate embeddings for image files.')
     embed_parser.add_argument('image_file', nargs='+', help='input image file(s)')
+    embed_parser.add_argument('--format', choices=['json', 'parquet'], default='json',
+                              help='format of the output, default: json; parquet requires --output')
     embed_parser.add_argument('--output', **output_arg)
     embed_parser.add_argument('--device', **device_arg)
     embed_parser.add_argument('--model', **model_arg)
